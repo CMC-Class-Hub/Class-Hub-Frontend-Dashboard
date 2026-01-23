@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Calendar, ArrowLeft, Link2, Users, Trash2, MessageSquare, LogOut, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Calendar, ArrowLeft, Link2, Users, Trash2, MessageSquare, LogOut, ChevronDown, ChevronRight, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -508,6 +508,7 @@ export function InstructorDashboard() {
   const [d3Template, setD3Template] = useState('');
   const [d1Template, setD1Template] = useState('');
   const [expandedTemplate, setExpandedTemplate] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const currentUser = getCurrentUser();
@@ -697,53 +698,95 @@ export function InstructorDashboard() {
 
   // 사이드바
   const Sidebar = () => (
-    <div className="w-64 bg-white border-r h-screen fixed left-0 top-0 flex flex-col">
-      <div className="p-6 border-b">
-        <h2 className="text-xl font-bold text-gray-900">Class Hub</h2>
-        <p className="text-sm text-gray-500 mt-1">{user.name}님</p>
-      </div>
+    <>
+      {/* 모바일 오버레이 배경 */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-      <nav className="flex-1 p-4">
-        <div className="space-y-1">
+      {/* 사이드바 */}
+      <div className={`
+        w-64 bg-white border-r h-screen fixed left-0 top-0 flex flex-col z-50
+        transform transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:translate-x-0
+      `}>
+        <div className="p-6 border-b flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Class Hub</h2>
+            <p className="text-sm text-gray-500 mt-1">{user.name}님</p>
+          </div>
+          {/* 모바일 닫기 버튼 */}
           <button
-            onClick={() => {
-              setCurrentNav('classes');
-              setSelectedTemplate(null);
-              setSelectedSession(null);
-            }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-              currentNav === 'classes'
-                ? 'bg-blue-50 text-blue-600'
-                : 'text-gray-700 hover:bg-gray-50'
-            }`}
+            onClick={() => setSidebarOpen(false)}
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100"
           >
-            <Calendar className="h-5 w-5" />
-            <span className="font-medium">클래스 관리</span>
-          </button>
-
-          <button
-            onClick={() => setCurrentNav('messages')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-              currentNav === 'messages'
-                ? 'bg-blue-50 text-blue-600'
-                : 'text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <MessageSquare className="h-5 w-5" />
-            <span className="font-medium">메시지 템플릿</span>
+            <X className="h-5 w-5" />
           </button>
         </div>
-      </nav>
 
-      <div className="p-4 border-t">
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          <LogOut className="h-5 w-5" />
-          <span className="font-medium">로그아웃</span>
-        </button>
+        <nav className="flex-1 p-4">
+          <div className="space-y-1">
+            <button
+              onClick={() => {
+                setCurrentNav('classes');
+                setSelectedTemplate(null);
+                setSelectedSession(null);
+                setSidebarOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                currentNav === 'classes'
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <Calendar className="h-5 w-5" />
+              <span className="font-medium">클래스 관리</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setCurrentNav('messages');
+                setSidebarOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                currentNav === 'messages'
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <MessageSquare className="h-5 w-5" />
+              <span className="font-medium">메시지 템플릿</span>
+            </button>
+          </div>
+        </nav>
+
+        <div className="p-4 border-t">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <LogOut className="h-5 w-5" />
+            <span className="font-medium">로그아웃</span>
+          </button>
+        </div>
       </div>
+    </>
+  );
+
+  // 모바일 헤더
+  const MobileHeader = () => (
+    <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b z-30 flex items-center px-4">
+      <button
+        onClick={() => setSidebarOpen(true)}
+        className="p-2 rounded-lg hover:bg-gray-100"
+      >
+        <Menu className="h-6 w-6" />
+      </button>
+      <h1 className="ml-3 font-bold text-gray-900">Class Hub</h1>
     </div>
   );
 
@@ -754,17 +797,17 @@ export function InstructorDashboard() {
       const applications = getApplicationsByClassId(selectedSession.id);
 
       return (
-        <div className="space-y-6">
-          <Button variant="ghost" onClick={() => setSelectedSession(null)}>
+        <div className="space-y-4 md:space-y-6">
+          <Button variant="ghost" onClick={() => setSelectedSession(null)} className="px-2">
             <ArrowLeft className="mr-2 h-4 w-4" />
             세션 목록으로
           </Button>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="p-4 md:p-6">
               <div>
-                <CardTitle>{selectedTemplate.name}</CardTitle>
-                <CardDescription className="mt-2">
+                <CardTitle className="text-lg md:text-xl">{selectedTemplate.name}</CardTitle>
+                <CardDescription className="mt-2 text-sm">
                   {format(new Date(selectedSession.date), 'PPP (EEE)', { locale: ko })} {selectedSession.startTime} - {selectedSession.endTime}
                 </CardDescription>
               </div>
@@ -772,15 +815,15 @@ export function InstructorDashboard() {
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>신청자 목록</CardTitle>
-              <CardDescription>총 {applications.length}명 / 정원 {selectedTemplate.capacity}명</CardDescription>
+            <CardHeader className="p-4 md:p-6">
+              <CardTitle className="text-base md:text-lg">신청자 목록</CardTitle>
+              <CardDescription className="text-sm">총 {applications.length}명 / 정원 {selectedTemplate.capacity}명</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
               {applications.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <Users className="h-12 w-12 mx-auto mb-3 text-gray-400" />
-                  <p>아직 신청자가 없습니다</p>
+                <div className="text-center py-6 md:py-8 text-gray-500">
+                  <Users className="h-10 w-10 md:h-12 md:w-12 mx-auto mb-3 text-gray-400" />
+                  <p className="text-sm md:text-base">아직 신청자가 없습니다</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -790,11 +833,11 @@ export function InstructorDashboard() {
 
                     return (
                       <div key={app.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{student.name}</p>
-                          <p className="text-sm text-gray-500">{student.email}</p>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-sm md:text-base">{student.name}</p>
+                          <p className="text-xs md:text-sm text-gray-500 truncate">{student.email}</p>
                         </div>
-                        <Badge variant={app.status === 'CONFIRMED' ? 'default' : 'outline'}>
+                        <Badge variant={app.status === 'CONFIRMED' ? 'default' : 'outline'} className="ml-2 text-xs">
                           {app.status === 'CONFIRMED' ? '확정' : app.status === 'PENDING' ? '대기' : '취소'}
                         </Badge>
                       </div>
@@ -811,19 +854,19 @@ export function InstructorDashboard() {
     // 클래스 세션 목록
     if (selectedTemplate) {
       return (
-        <div className="space-y-6">
-          <Button variant="ghost" onClick={() => setSelectedTemplate(null)}>
+        <div className="space-y-4 md:space-y-6">
+          <Button variant="ghost" onClick={() => setSelectedTemplate(null)} className="px-2">
             <ArrowLeft className="mr-2 h-4 w-4" />
             클래스 목록으로
           </Button>
 
           {/* 클래스 정보 카드 */}
           <Card>
-            <CardHeader>
-              <div className="flex items-start justify-between">
+            <CardHeader className="p-4 md:p-6">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div className="flex-1">
-                  <CardTitle>{selectedTemplate.name}</CardTitle>
-                  <CardDescription className="mt-2">{selectedTemplate.description}</CardDescription>
+                  <CardTitle className="text-lg md:text-xl">{selectedTemplate.name}</CardTitle>
+                  <CardDescription className="mt-2 text-sm">{selectedTemplate.description}</CardDescription>
                   <div className="mt-4 space-y-1 text-sm text-gray-600">
                     <p><span className="font-medium">장소:</span> {selectedTemplate.location}</p>
                     <p><span className="font-medium">정원:</span> {selectedTemplate.capacity}명</p>
@@ -832,18 +875,18 @@ export function InstructorDashboard() {
                     )}
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => copyLink(selectedTemplate.id)}>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button variant="outline" onClick={() => copyLink(selectedTemplate.id)} className="w-full sm:w-auto">
                     <Link2 className="h-4 w-4 mr-2" />
                     클래스 링크
                   </Button>
                   <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="outline">
+                      <Button variant="outline" className="w-full sm:w-auto">
                         수정
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4 md:mx-auto">
                       <DialogHeader>
                         <DialogTitle>클래스 수정</DialogTitle>
                       </DialogHeader>
@@ -860,16 +903,16 @@ export function InstructorDashboard() {
           </Card>
 
           {/* 세션 추가 버튼 */}
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-gray-900">세션 목록</h2>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+            <h2 className="text-base md:text-lg font-semibold text-gray-900">세션 목록</h2>
             <Dialog open={addSessionDialogOpen} onOpenChange={setAddSessionDialogOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button className="w-full sm:w-auto">
                   <Plus className="mr-2 h-4 w-4" />
                   세션 추가
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="mx-4 md:mx-auto">
                 <DialogHeader>
                   <DialogTitle>새 세션 추가</DialogTitle>
                 </DialogHeader>
@@ -881,12 +924,12 @@ export function InstructorDashboard() {
           {/* 세션 목록 */}
           {sessions.length === 0 ? (
             <Card>
-              <CardContent className="p-12 text-center">
-                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <CardContent className="p-8 md:p-12 text-center">
+                <Calendar className="h-10 w-10 md:h-12 md:w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-2">
                   아직 세션이 없습니다
                 </h3>
-                <p className="text-gray-500">
+                <p className="text-sm md:text-base text-gray-500">
                   시간대별 세션을 추가하세요
                 </p>
               </CardContent>
@@ -899,18 +942,18 @@ export function InstructorDashboard() {
 
                 return (
                   <Card key={session.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
+                    <CardContent className="p-3 md:p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="font-semibold">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <h3 className="font-semibold text-sm md:text-base">
                               {format(new Date(session.date), 'M월 d일 (EEE)', { locale: ko })}
                             </h3>
-                            <Badge variant="outline">
+                            <Badge variant="outline" className="text-xs">
                               {session.startTime} - {session.endTime}
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-xs md:text-sm text-gray-600">
                             신청 {confirmedCount}명 / 정원 {selectedTemplate.capacity}명
                           </p>
                         </div>
@@ -920,6 +963,7 @@ export function InstructorDashboard() {
                             variant="outline"
                             size="sm"
                             onClick={() => setSelectedSession(session)}
+                            className="flex-1 sm:flex-none text-xs md:text-sm"
                           >
                             신청자 보기
                           </Button>
@@ -945,21 +989,21 @@ export function InstructorDashboard() {
 
     // 클래스 목록
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 md:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">클래스 관리</h1>
-            <p className="text-gray-500 mt-1">클래스와 세션을 관리하세요</p>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900">클래스 관리</h1>
+            <p className="text-sm md:text-base text-gray-500 mt-1">클래스와 세션을 관리하세요</p>
           </div>
 
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="w-full sm:w-auto">
                 <Plus className="mr-2 h-5 w-5" />
                 클래스 만들기
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4 md:mx-auto">
               <DialogHeader>
                 <DialogTitle>새 클래스 만들기</DialogTitle>
               </DialogHeader>
@@ -973,34 +1017,34 @@ export function InstructorDashboard() {
 
         {templates.length === 0 ? (
           <Card>
-            <CardContent className="p-12 text-center">
-              <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <CardContent className="p-8 md:p-12 text-center">
+              <Calendar className="h-10 w-10 md:h-12 md:w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-2">
                 아직 클래스가 없습니다
               </h3>
-              <p className="text-gray-500 mb-6">
+              <p className="text-sm md:text-base text-gray-500 mb-6">
                 클래스를 만들어보세요
               </p>
-              <Button onClick={() => setCreateDialogOpen(true)}>
+              <Button onClick={() => setCreateDialogOpen(true)} className="w-full sm:w-auto">
                 <Plus className="mr-2 h-4 w-4" />
                 클래스 만들기
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {templates.map((template) => {
               const templateSessions = getSessionsFromStorage(template.id);
 
               return (
                 <Card key={template.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedTemplate(template)}>
-                  <CardHeader>
-                    <CardTitle>{template.name}</CardTitle>
-                    <CardDescription>{template.description}</CardDescription>
+                  <CardHeader className="p-4 md:p-6">
+                    <CardTitle className="text-base md:text-lg">{template.name}</CardTitle>
+                    <CardDescription className="text-sm line-clamp-2">{template.description}</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-600 mb-2">{template.location}</p>
-                    <p className="text-sm text-gray-500">세션 {templateSessions.length}개</p>
+                  <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
+                    <p className="text-xs md:text-sm text-gray-600 mb-2 truncate">{template.location}</p>
+                    <p className="text-xs md:text-sm text-gray-500">세션 {templateSessions.length}개</p>
                   </CardContent>
                 </Card>
               );
@@ -1019,19 +1063,19 @@ export function InstructorDashboard() {
     ];
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">메시지 템플릿</h1>
-          <p className="text-gray-500 mt-1">자동 발송 메시지를 설정하세요</p>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">메시지 템플릿</h1>
+          <p className="text-sm md:text-base text-gray-500 mt-1">자동 발송 메시지를 설정하세요</p>
         </div>
 
         {/* 변수 안내 */}
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">사용 가능한 변수</CardTitle>
+          <CardHeader className="pb-3 p-4 md:p-6 md:pb-3">
+            <CardTitle className="text-sm md:text-base">사용 가능한 변수</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2 text-sm">
+          <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
+            <div className="flex flex-wrap gap-1.5 md:gap-2 text-xs md:text-sm">
               <Badge variant="outline">{'{클래스명}'}</Badge>
               <Badge variant="outline">{'{날짜}'}</Badge>
               <Badge variant="outline">{'{시간}'}</Badge>
@@ -1052,26 +1096,26 @@ export function InstructorDashboard() {
             return (
               <Card key={type}>
                 <CardHeader
-                  className="cursor-pointer"
+                  className="cursor-pointer p-4 md:p-6"
                   onClick={() => setExpandedTemplate(isExpanded ? null : type)}
                 >
                   <div>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      {isExpanded ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                    <CardTitle className="text-base md:text-lg flex items-center gap-2">
+                      {isExpanded ? <ChevronDown className="h-4 w-4 md:h-5 md:w-5" /> : <ChevronRight className="h-4 w-4 md:h-5 md:w-5" />}
                       {title}
                     </CardTitle>
-                    <CardDescription className="ml-7">{description}</CardDescription>
+                    <CardDescription className="ml-6 md:ml-7 text-xs md:text-sm">{description}</CardDescription>
                   </div>
                 </CardHeader>
 
                 {isExpanded && (
-                  <CardContent className="pt-0">
+                  <CardContent className="pt-0 p-4 md:p-6 md:pt-0">
                     <Textarea
                       value={content}
                       onChange={(e) => setContent(e.target.value)}
-                      rows={8}
+                      rows={6}
                       placeholder={`${title} 내용을 입력하세요. {클래스명}, {날짜}, {시간} 등의 변수를 사용할 수 있습니다.`}
-                      className="mb-4"
+                      className="mb-4 text-sm"
                     />
                     <Button onClick={() => handleSaveMessageTemplate(type)} className="w-full">
                       {title} 저장
@@ -1087,11 +1131,12 @@ export function InstructorDashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50">
+      <MobileHeader />
       <Sidebar />
 
-      <div className="flex-1 ml-64 overflow-y-auto">
-        <div className="p-8">
+      <div className="flex-1 md:ml-64 overflow-y-auto">
+        <div className="p-4 pt-18 md:p-8 md:pt-8">
           {currentNav === 'classes' && <ClassesView />}
           {currentNav === 'messages' && <MessagesView />}
         </div>
