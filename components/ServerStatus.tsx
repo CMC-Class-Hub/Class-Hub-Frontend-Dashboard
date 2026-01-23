@@ -15,7 +15,7 @@ export function ServerStatus() {
   useEffect(() => {
     const checkServerHealth = async () => {
       try {
-        const response = await fetch('https://api.classhub.site/health', {
+        const response = await fetch('https://classhub.site/health', {
           method: 'GET',
           mode: 'cors',
         });
