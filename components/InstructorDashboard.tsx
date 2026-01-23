@@ -15,6 +15,7 @@ import { generateId, generateLinkId, getApplicationsByClassId, getStudentById, s
 import { getTemplates as getTemplatesFromStorage, saveTemplate as saveTemplateToStorage, getSessionsByTemplateId as getSessionsFromStorage, saveSession as saveSessionToStorage, deleteSession as deleteSessionFromStorage } from '@/utils/template-storage';
 import { getMessageTemplatesByTemplateId, saveMessageTemplate, getDefaultMessageTemplate } from '@/utils/message-template-storage';
 import { ClassTemplate, ClassSession } from '@/types/template';
+import { ServerStatus } from '@/components/ServerStatus';
 import { MessageTemplate } from '@/types/message-template';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -1141,6 +1142,9 @@ export function InstructorDashboard() {
           {currentNav === 'messages' && <MessagesView />}
         </div>
       </div>
+
+      {/* 서버 상태 표시 (개발용) - 삭제 시 이 줄과 ServerStatus import 제거 */}
+      <ServerStatus />
     </div>
   );
 }
