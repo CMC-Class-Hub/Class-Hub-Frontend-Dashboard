@@ -12,6 +12,9 @@ interface ReservationDetail {
     endTime: string;
     applicantName: string;
     phoneNumber: string;
+    capacity: number;     // 추가
+    currentNum: number;   // 추가
+    sessionStatus: string; // 추가
 }
 
 export default function ReservationDetailPage() {
@@ -36,6 +39,26 @@ export default function ReservationDetailPage() {
             });
     }, [reservationId, router]);
 
+    // 예약 취소 핸들러
+    const handleCancel = async () => {
+        if (!confirm('정말 예약을 취소하시겠습니까?\n취소 후에는 복구할 수 없습니다.')) return;
+
+        try {
+            const res = await fetch(`http://localhost:8080/api/reservations/${reservationId}`, {
+                method: 'DELETE'
+            });
+
+            if (res.ok) {
+                alert('예약이 취소되었습니다.');
+                router.push('/'); // 홈으로 이동
+            } else {
+                alert('취소에 실패했습니다.');
+            }
+        } catch (e) {
+            alert('서버 오류가 발생했습니다.');
+        }
+    };
+
     if (loading) return <div className="min-h-screen flex justify-center items-center bg-[#F2F4F6]">로딩 중...</div>;
     if (!detail) return null;
 
@@ -50,7 +73,7 @@ export default function ReservationDetailPage() {
                 </div>
 
                 <div className="p-6 space-y-6">
-                    {/* [수정] 상단 상태 카드 디자인 변경 (이미지 제거) */}
+                    {/* 상단 상태 텍스트 */}
                     <div>
                         <h2 className="text-2xl font-bold text-[#191F28] leading-tight mb-2">
                             예약이<br/>확정되었습니다.
@@ -82,6 +105,22 @@ export default function ReservationDetailPage() {
                                     <div className="font-medium text-[#333D4B]">{detail.startTime.slice(0,5)} ~ {detail.endTime.slice(0,5)}</div>
                                 </div>
                             </div>
+                            {/* [추가] 정원 및 상태 정보 표시 */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <div className="text-xs font-bold text-[#8B95A1] mb-1">참여 인원</div>
+                                    <div className="font-medium text-[#3182F6]">
+                                        {detail.currentNum} / {detail.capacity}명
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="text-xs font-bold text-[#8B95A1] mb-1">모집 상태</div>
+                                    <div className={`font-medium ${detail.sessionStatus === 'FULL' ? 'text-red-500' : 'text-green-600'}`}>
+                                        {detail.sessionStatus === 'FULL' ? '마감됨' : '모집중'}
+                                    </div>
+                                </div>
+                            </div>
+
                             <div>
                                 <div className="text-xs font-bold text-[#8B95A1] mb-1">장소</div>
                                 <div className="font-medium text-[#333D4B]">{detail.classLocation}</div>
@@ -105,7 +144,7 @@ export default function ReservationDetailPage() {
                     </section>
                 </div>
 
-                {/* 하단 버튼 */}
+                {/* 하단 버튼 영역 */}
                 <div className="p-6 pt-0 space-y-3">
                     <button
                         onClick={() => router.push('/')}
@@ -113,12 +152,13 @@ export default function ReservationDetailPage() {
                     >
                         홈으로 돌아가기
                     </button>
-                    {/* 목록으로 가는 버튼 */}
+
+                    {/* [추가] 예약 취소 버튼 (빨간색 텍스트) */}
                     <button
-                        onClick={() => router.push('/reservation/check')}
-                        className="w-full py-3 bg-white border border-[#E5E8EB] text-[#6B7684] rounded-xl font-bold text-sm hover:bg-gray-50"
+                        onClick={handleCancel}
+                        className="w-full py-3 bg-white border border-[#E5E8EB] text-red-500 rounded-xl font-bold text-sm hover:bg-red-50"
                     >
-                        내 신청 내역 조회하기
+                        예약 취소하기
                     </button>
                 </div>
             </div>
