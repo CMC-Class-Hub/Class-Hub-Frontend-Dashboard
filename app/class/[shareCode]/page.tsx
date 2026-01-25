@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link'; // [추가] 링크 이동을 위해 임포트
+import Link from 'next/link';
 
 // --- 타입 정의 ---
 interface SessionResponse {
@@ -45,6 +45,9 @@ export default function ClassEnrollmentPage() {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [completedReservationId, setCompletedReservationId] = useState<number | null>(null);
 
+    // [추가] 에러 메시지 상태
+    const [errorMessage, setErrorMessage] = useState('');
+
     // 1. 클래스 정보 불러오기
     useEffect(() => {
         if (!shareCode) return;
@@ -68,9 +71,12 @@ export default function ClassEnrollmentPage() {
     const handleReserve = async () => {
         if (!selectedSessionId || !applicantName || !phoneNumber || !classDetail) return;
 
+        setErrorMessage(''); // 요청 전 에러 초기화
+
         const cleanNumber = phoneNumber.replace(/[^0-9]/g, '');
         if (cleanNumber.length < 9 || cleanNumber.length > 11) {
-            return alert("올바른 전화번호를 입력해주세요.");
+            setErrorMessage("올바른 전화번호를 입력해주세요.");
+            return;
         }
         const formattedPhone = cleanNumber.replace(
             /(^02|^0505|^1[0-9]{3}|^0[0-9]{2})([0-9]+)?([0-9]{4})$/,
@@ -89,16 +95,17 @@ export default function ClassEnrollmentPage() {
             });
 
             if (res.ok) {
-                const reservationId = await res.json(); // 백엔드에서 ID 반환
+                const reservationId = await res.json();
                 setCompletedReservationId(reservationId);
                 setStep('COMPLETED');
                 window.scrollTo(0, 0);
             } else {
                 const errorText = await res.text();
-                alert(`예약 실패: ${errorText}`);
+                // [수정] alert 대신 화면에 에러 표시
+                setErrorMessage(errorText);
             }
         } catch (e) {
-            alert('서버 연결에 실패했습니다.');
+            setErrorMessage('서버 연결에 실패했습니다.');
         }
     };
 
@@ -153,11 +160,11 @@ export default function ClassEnrollmentPage() {
                 {/* 상단 네비게이션 */}
                 <div className="sticky top-0 bg-white/80 backdrop-blur-md z-10 border-b border-gray-100 px-4 py-3 flex items-center relative">
                     {step === 'INPUT' && (
-                        <button onClick={() => setStep('SELECTION')} className="text-2xl text-[#191F28] absolute left-4">←</button>
+                        <button onClick={() => { setStep('SELECTION'); setErrorMessage(''); }} className="text-2xl text-[#191F28] absolute left-4">←</button>
                     )}
                     <span className="font-bold text-[#191F28] text-sm mx-auto">클래스 예약</span>
 
-                    {/* [추가] 신청 내역 조회 버튼 */}
+                    {/* 신청 내역 조회 버튼 */}
                     <Link
                         href="/reservation/check"
                         className="absolute right-4 text-xs font-bold text-[#8B95A1] bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-100 hover:bg-gray-100 hover:text-[#333D4B] transition-colors"
@@ -190,7 +197,7 @@ export default function ClassEnrollmentPage() {
                                             <button
                                                 key={session.sessionId}
                                                 disabled={isFull}
-                                                onClick={() => setSelectedSessionId(session.sessionId)}
+                                                onClick={() => { setSelectedSessionId(session.sessionId); setErrorMessage(''); }}
                                                 className={`p-4 rounded-xl border text-left transition-all flex justify-between items-center ${
                                                     isSelected ? 'border-[#3182F6] bg-[#E8F3FF] ring-1 ring-[#3182F6]' : 'border-gray-200 bg-white hover:bg-gray-50'
                                                 } ${isFull ? 'opacity-50 grayscale cursor-not-allowed bg-gray-100' : ''}`}
@@ -208,7 +215,7 @@ export default function ClassEnrollmentPage() {
                                 </div>
                             </section>
 
-                            {/* 상세 정보는 선택 단계에서만 보임 */}
+                            {/* 상세 정보 */}
                             <section className="space-y-4 pt-4">
                                 <h3 className="font-bold text-[#191F28] text-base">상세 정보</h3>
                                 <div className="bg-[#F9FAFB] rounded-xl p-4 text-sm text-[#4E5968] space-y-3">
@@ -243,7 +250,7 @@ export default function ClassEnrollmentPage() {
                                         placeholder="이름 (실명)"
                                         className="w-full p-3.5 bg-[#F9FAFB] rounded-xl text-[#191F28] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3182F6] border border-transparent"
                                         value={applicantName}
-                                        onChange={(e) => setApplicantName(e.target.value)}
+                                        onChange={(e) => { setApplicantName(e.target.value); setErrorMessage(''); }}
                                     />
                                 </div>
                                 <div>
@@ -253,7 +260,7 @@ export default function ClassEnrollmentPage() {
                                         placeholder="01012345678"
                                         className="w-full p-3.5 bg-[#F9FAFB] rounded-xl text-[#191F28] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#3182F6] border border-transparent"
                                         value={phoneNumber}
-                                        onChange={(e) => setPhoneNumber(e.target.value)}
+                                        onChange={(e) => { setPhoneNumber(e.target.value); setErrorMessage(''); }}
                                     />
                                 </div>
                             </div>
@@ -261,8 +268,16 @@ export default function ClassEnrollmentPage() {
                     )}
                 </div>
 
-                {/* 하단 고정 버튼 */}
+                {/* 하단 고정 버튼 영역 */}
                 <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-[#F2F4F6] p-4 safe-area-bottom">
+
+                    {/* [추가] 에러 메시지 표시 영역 */}
+                    {errorMessage && (
+                        <div className="mb-3 p-3 bg-red-50 rounded-xl border border-red-100 flex items-center justify-center animate-in slide-in-from-bottom-2 fade-in">
+                            <span className="text-red-500 text-sm font-bold">⚠️ {errorMessage}</span>
+                        </div>
+                    )}
+
                     {step === 'SELECTION' ? (
                         <button
                             onClick={() => setStep('INPUT')}
