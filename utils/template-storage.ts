@@ -65,3 +65,14 @@ export const deleteSession = (sessionId: string): void => {
   const filtered = sessions.filter(s => s.id !== sessionId);
   localStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(filtered));
 };
+
+export const deleteTemplate = (templateId: string): void => {
+  const templates = getTemplates();
+  const filtered = templates.filter(t => t.id !== templateId);
+  localStorage.setItem(STORAGE_KEYS.TEMPLATES, JSON.stringify(filtered));
+
+  // 관련 세션도 삭제
+  const sessions = getSessions();
+  const filteredSessions = sessions.filter(s => s.templateId !== templateId);
+  localStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(filteredSessions));
+};

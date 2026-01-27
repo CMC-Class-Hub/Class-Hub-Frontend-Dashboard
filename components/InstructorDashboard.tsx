@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Calendar, ArrowLeft, Link2, Users, Trash2, MessageSquare, LogOut, ChevronDown, ChevronRight, Menu, X } from 'lucide-react';
+import { Plus, Calendar, ArrowLeft, Link2, Users, Trash2, MessageSquare, LogOut, ChevronDown, ChevronRight, Menu, X, User as UserIcon, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,15 +12,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { getCurrentUser, logout } from '@/utils/auth';
 import { generateId, generateLinkId, getApplicationsByClassId, getStudentById, saveStudent, saveApplication } from '@/utils/storage';
-import { getTemplates as getTemplatesFromStorage, saveTemplate as saveTemplateToStorage, getSessionsByTemplateId as getSessionsFromStorage, saveSession as saveSessionToStorage, deleteSession as deleteSessionFromStorage } from '@/utils/template-storage';
+import { getTemplates as getTemplatesFromStorage, saveTemplate as saveTemplateToStorage, getSessionsByTemplateId as getSessionsFromStorage, saveSession as saveSessionToStorage, deleteSession as deleteSessionFromStorage, deleteTemplate as deleteTemplateFromStorage } from '@/utils/template-storage';
 import { getMessageTemplatesByTemplateId, saveMessageTemplate, getDefaultMessageTemplate } from '@/utils/message-template-storage';
+import { getMessagesBySessionId } from '@/utils/message-storage';
 import { ClassTemplate, ClassSession } from '@/types/template';
 import { ServerStatus } from '@/components/ServerStatus';
 import { MessageTemplate } from '@/types/message-template';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
-type NavItem = 'classes' | 'messages';
+type NavItem = 'classes' | 'messages' | 'profile';
 
 // 클래스 생성 폼 컴포넌트 (별도 분리하여 포커스 문제 해결)
 function CreateClassForm({ onSubmit, onCancel }: {
@@ -606,6 +607,14 @@ export function InstructorDashboard() {
     loadTemplates(user.id);
   };
 
+  const handleDeleteTemplate = (e: React.MouseEvent, templateId: string) => {
+    e.stopPropagation();
+    if (confirm('정말로 이 클래스를 삭제하시겠습니까? 관련된 모든 세션도 함께 삭제됩니다.')) {
+      deleteTemplateFromStorage(templateId);
+      if (user) loadTemplates(user.id);
+    }
+  };
+
   const handleEditTemplate = (data: {
     name: string;
     description: string;
@@ -738,11 +747,10 @@ export function InstructorDashboard() {
                 setSelectedSession(null);
                 setSidebarOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                currentNav === 'classes'
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${currentNav === 'classes'
+                ? 'bg-blue-50 text-blue-600'
+                : 'text-gray-700 hover:bg-gray-50'
+                }`}
             >
               <Calendar className="h-5 w-5" />
               <span className="font-medium">클래스 관리</span>
@@ -753,14 +761,27 @@ export function InstructorDashboard() {
                 setCurrentNav('messages');
                 setSidebarOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                currentNav === 'messages'
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${currentNav === 'messages'
+                ? 'bg-blue-50 text-blue-600'
+                : 'text-gray-700 hover:bg-gray-50'
+                }`}
             >
               <MessageSquare className="h-5 w-5" />
               <span className="font-medium">메시지 템플릿</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setCurrentNav('profile');
+                setSidebarOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${currentNav === 'profile'
+                ? 'bg-blue-50 text-blue-600'
+                : 'text-gray-700 hover:bg-gray-50'
+                }`}
+            >
+              <Settings className="h-5 w-5" />
+              <span className="font-medium">정보 수정</span>
             </button>
           </div>
         </nav>
@@ -796,6 +817,7 @@ export function InstructorDashboard() {
     // 세션 상세 (신청자 목록)
     if (selectedSession && selectedTemplate) {
       const applications = getApplicationsByClassId(selectedSession.id);
+      const sessionMessages = getMessagesBySessionId(selectedSession.id);
 
       return (
         <div className="space-y-4 md:space-y-6">
@@ -832,15 +854,35 @@ export function InstructorDashboard() {
                     const student = getStudentById(app.studentId);
                     if (!student) return null;
 
+                    // 메시지 상태 확인
+                    const d3Msg = sessionMessages.find(m => m.studentId === student.id && m.type === 'D-3');
+                    const d1Msg = sessionMessages.find(m => m.studentId === student.id && m.type === 'D-1');
+
                     return (
-                      <div key={app.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-4">
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium text-sm md:text-base">{student.name}</p>
-                          <p className="text-xs md:text-sm text-gray-500 truncate">{student.email}</p>
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="font-medium text-base">{student.name}</p>
+                            <Badge variant={app.status === 'CONFIRMED' ? 'default' : 'outline'} className="text-xs">
+                              {app.status === 'CONFIRMED' ? '확정' : app.status === 'PENDING' ? '대기' : '취소'}
+                            </Badge>
+                          </div>
+                          <div className="text-sm text-gray-500 space-y-0.5">
+                            <p>{student.phone || '전화번호 없음'}</p>
+                            <p className="text-xs text-gray-400">신청: {format(new Date(app.appliedAt), 'yyyy.MM.dd HH:mm')}</p>
+                          </div>
                         </div>
-                        <Badge variant={app.status === 'CONFIRMED' ? 'default' : 'outline'} className="ml-2 text-xs">
-                          {app.status === 'CONFIRMED' ? '확정' : app.status === 'PENDING' ? '대기' : '취소'}
-                        </Badge>
+
+                        <div className="flex gap-2 text-xs">
+                          <div className={`px-3 py-1.5 rounded border ${d3Msg ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
+                            <p className="font-semibold mb-0.5">D-3</p>
+                            <p>{d3Msg ? (d3Msg.status === 'SENT' ? '전송완료' : '전송예정') : '미발송'}</p>
+                          </div>
+                          <div className={`px-3 py-1.5 rounded border ${d1Msg ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
+                            <p className="font-semibold mb-0.5">D-1</p>
+                            <p>{d1Msg ? (d1Msg.status === 'SENT' ? '전송완료' : '전송예정') : '미발송'}</p>
+                          </div>
+                        </div>
                       </div>
                     );
                   })}
@@ -953,6 +995,9 @@ export function InstructorDashboard() {
                             <Badge variant="outline" className="text-xs">
                               {session.startTime} - {session.endTime}
                             </Badge>
+                            <Badge variant={session.status === 'RECRUITING' ? 'default' : 'secondary'} className="text-xs">
+                              {session.status === 'RECRUITING' ? '모집중' : session.status === 'CLOSED' ? '마감' : '종료'}
+                            </Badge>
                           </div>
                           <p className="text-xs md:text-sm text-gray-600">
                             신청 {confirmedCount}명 / 정원 {selectedTemplate.capacity}명
@@ -1040,7 +1085,17 @@ export function InstructorDashboard() {
               return (
                 <Card key={template.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedTemplate(template)}>
                   <CardHeader className="p-4 md:p-6">
-                    <CardTitle className="text-base md:text-lg">{template.name}</CardTitle>
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-base md:text-lg">{template.name}</CardTitle>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
+                        onClick={(e) => handleDeleteTemplate(e, template.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <CardDescription className="text-sm line-clamp-2">{template.description}</CardDescription>
                   </CardHeader>
                   <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
@@ -1067,7 +1122,7 @@ export function InstructorDashboard() {
       <div className="space-y-4 md:space-y-6">
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">메시지 템플릿</h1>
-          <p className="text-sm md:text-base text-gray-500 mt-1">자동 발송 메시지를 설정하세요</p>
+          <p className="text-sm md:text-base text-gray-500 mt-1">자동 발송 메시지를 확인하세요</p>
         </div>
 
         {/* 변수 안내 */}
@@ -1092,7 +1147,7 @@ export function InstructorDashboard() {
           {templateTypes.map(({ type, title, description }) => {
             const isExpanded = expandedTemplate === type;
             const content = type === 'D-3' ? d3Template : d1Template;
-            const setContent = type === 'D-3' ? setD3Template : setD1Template;
+            // const setContent = type === 'D-3' ? setD3Template : setD1Template;
 
             return (
               <Card key={type}>
@@ -1113,20 +1168,69 @@ export function InstructorDashboard() {
                   <CardContent className="pt-0 p-4 md:p-6 md:pt-0">
                     <Textarea
                       value={content}
-                      onChange={(e) => setContent(e.target.value)}
+                      readOnly
                       rows={6}
-                      placeholder={`${title} 내용을 입력하세요. {클래스명}, {날짜}, {시간} 등의 변수를 사용할 수 있습니다.`}
-                      className="mb-4 text-sm"
+                      className="mb-4 text-sm bg-gray-50"
                     />
-                    <Button onClick={() => handleSaveMessageTemplate(type)} className="w-full">
-                      {title} 저장
-                    </Button>
                   </CardContent>
                 )}
               </Card>
             );
           })}
         </div>
+      </div>
+    );
+  };
+
+  // 정보 수정 뷰
+  const ProfileView = () => {
+    const [name, setName] = useState(user?.name || '');
+    const [email, setEmail] = useState(user?.email || '');
+    const [phone, setPhone] = useState((user as any)?.phoneNumber || '');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      // 실제 업데이트 로직 구현 필요 (여기서는 alert만 표시)
+      alert('정보가 수정되었습니다. (구현 필요)');
+    };
+
+    return (
+      <div className="max-w-md mx-auto space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">정보 수정</h1>
+          <p className="text-gray-500 mt-1">계정 정보를 수정하세요</p>
+        </div>
+
+        <Card>
+          <CardContent className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="profile-name">이름</Label>
+                <Input id="profile-name" value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="profile-email">이메일</Label>
+                <Input id="profile-email" value={email} onChange={(e) => setEmail(e.target.value)} type="email" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="profile-phone">전화번호</Label>
+                <Input id="profile-phone" value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="profile-password">새 비밀번호</Label>
+                <Input id="profile-password" value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="변경하려면 입력하세요" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="profile-confirm-password">비밀번호 확인</Label>
+                <Input id="profile-confirm-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type="password" />
+              </div>
+              <Button type="submit" className="w-full">저장</Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     );
   };
@@ -1140,6 +1244,7 @@ export function InstructorDashboard() {
         <div className="p-4 pt-18 md:p-8 md:pt-8">
           {currentNav === 'classes' && <ClassesView />}
           {currentNav === 'messages' && <MessagesView />}
+          {currentNav === 'profile' && <ProfileView />}
         </div>
       </div>
 
