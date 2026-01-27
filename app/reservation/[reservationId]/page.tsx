@@ -6,15 +6,16 @@ import { useParams, useRouter } from 'next/navigation';
 interface ReservationDetail {
     reservationId: number;
     classTitle: string;
+    classImageUrl?: string; // [추가] 이미지 URL (있을 수도 없을 수도 있음)
     classLocation: string;
     date: string;
     startTime: string;
     endTime: string;
     applicantName: string;
     phoneNumber: string;
-    capacity: number;     // 추가
-    currentNum: number;   // 추가
-    sessionStatus: string; // 추가
+    capacity: number;
+    currentNum: number;
+    sessionStatus: string;
 }
 
 export default function ReservationDetailPage() {
@@ -39,7 +40,6 @@ export default function ReservationDetailPage() {
             });
     }, [reservationId, router]);
 
-    // 예약 취소 핸들러
     const handleCancel = async () => {
         if (!confirm('정말 예약을 취소하시겠습니까?\n취소 후에는 복구할 수 없습니다.')) return;
 
@@ -50,7 +50,7 @@ export default function ReservationDetailPage() {
 
             if (res.ok) {
                 alert('예약이 취소되었습니다.');
-                router.push('/'); // 홈으로 이동
+                router.push('/');
             } else {
                 alert('취소에 실패했습니다.');
             }
@@ -67,7 +67,7 @@ export default function ReservationDetailPage() {
             <div className="w-full max-w-[480px] bg-white min-h-screen shadow-2xl relative">
 
                 {/* 상단 네비게이션 */}
-                <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center">
+                <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center z-10">
                     <button onClick={() => router.back()} className="text-2xl text-[#191F28] mr-2">←</button>
                     <span className="font-bold text-[#191F28] text-sm">예약 내역 상세</span>
                 </div>
@@ -90,6 +90,18 @@ export default function ReservationDetailPage() {
                     <section>
                         <h3 className="font-bold text-[#191F28] mb-3">클래스 정보</h3>
                         <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
+
+                            {/* [추가] 이미지가 존재하면 표시 */}
+                            {detail.classImageUrl && (
+                                <div className="w-full h-40 bg-gray-100 rounded-lg overflow-hidden mb-2 border border-gray-100">
+                                    <img
+                                        src={detail.classImageUrl}
+                                        alt={detail.classTitle}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                            )}
+
                             <div>
                                 <div className="text-xs font-bold text-[#8B95A1] mb-1">클래스명</div>
                                 <div className="font-bold text-[#333D4B] text-lg">{detail.classTitle}</div>
@@ -105,7 +117,7 @@ export default function ReservationDetailPage() {
                                     <div className="font-medium text-[#333D4B]">{detail.startTime.slice(0,5)} ~ {detail.endTime.slice(0,5)}</div>
                                 </div>
                             </div>
-                            {/* [추가] 정원 및 상태 정보 표시 */}
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <div className="text-xs font-bold text-[#8B95A1] mb-1">참여 인원</div>
@@ -153,7 +165,6 @@ export default function ReservationDetailPage() {
                         홈으로 돌아가기
                     </button>
 
-                    {/* [추가] 예약 취소 버튼 (빨간색 텍스트) */}
                     <button
                         onClick={handleCancel}
                         className="w-full py-3 bg-white border border-[#E5E8EB] text-red-500 rounded-xl font-bold text-sm hover:bg-red-50"
