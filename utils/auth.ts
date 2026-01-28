@@ -4,6 +4,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  phoneNumber?: string;
   role: 'instructor';
   createdAt: string;
 }
@@ -24,7 +25,7 @@ const saveUsers = (users: User[]): void => {
 };
 
 // 회원가입
-export const signUp = (email: string, name: string, password: string): { success: boolean; error?: string; user?: User } => {
+export const signUp = (email: string, name: string, password: string, phoneNumber: string): { success: boolean; error?: string; user?: User } => {
   const users = getUsers();
 
   // 이메일 중복 체크
@@ -36,6 +37,7 @@ export const signUp = (email: string, name: string, password: string): { success
     id: `instructor_${Date.now()}`,
     email,
     name,
+    phoneNumber,
     role: 'instructor',
     createdAt: new Date().toISOString(),
   };

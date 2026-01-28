@@ -15,6 +15,7 @@ export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -24,7 +25,7 @@ export default function SignUpPage() {
     setIsLoading(true);
 
     // 유효성 검사
-    if (!name || !email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword || !phoneNumber) {
       setError("모든 필드를 입력해주세요.");
       setIsLoading(false);
       return;
@@ -43,7 +44,7 @@ export default function SignUpPage() {
     }
 
     // 회원가입
-    const signUpResult = signUp(email, name, password);
+    const signUpResult = signUp(email, name, password, phoneNumber);
 
     if (!signUpResult.success) {
       setError(signUpResult.error || "회원가입에 실패했습니다.");
@@ -97,6 +98,18 @@ export default function SignUpPage() {
                 placeholder="example@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phoneNumber">전화번호</Label>
+              <Input
+                id="phoneNumber"
+                type="tel"
+                placeholder="010-1234-5678"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
                 required
               />
             </div>
