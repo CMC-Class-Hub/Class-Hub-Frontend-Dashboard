@@ -348,6 +348,85 @@ function AddSessionForm({ onSubmit }: {
   );
 }
 
+// 메시지 템플릿 수정 폼 컴포넌트 (별도 분리하여 포커스 문제 해결)
+function EditMessageTemplateForm({
+  type,
+  initialContent,
+  onSave,
+  onCancel
+}: {
+  type: 'D-3' | 'D-1';
+  initialContent: string;
+  onSave: (content: string) => void;
+  onCancel: () => void;
+}) {
+  const [content, setContent] = useState(initialContent);
+
+  const handleInsertVariable = (variable: string) => {
+    setContent(prev => prev + variable);
+  };
+
+  const handleResetToDefault = () => {
+    if (confirm('기본 문구로 복구하시겠습니까? 현재 입력된 내용이 사라집니다.')) {
+      const defaultContent = getDefaultMessageTemplate(type, '{클래스명}');
+      setContent(defaultContent);
+    }
+  };
+
+  return (
+    <>
+      {/* 변수 입력 도우미 */}
+      <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+        <p className="text-xs text-blue-800 font-medium mb-2">👇 아래 버튼을 누르면 내용에 자동으로 들어갑니다</p>
+        <div className="flex flex-wrap gap-1.5 text-xs">
+          {['{클래스명}', '{날짜}', '{시간}', '{장소}', '{준비물}'].map((variable) => (
+            <button
+              key={variable}
+              type="button"
+              onClick={() => handleInsertVariable(variable)}
+              className="px-2 py-1 bg-white border border-blue-200 rounded text-blue-700 hover:bg-blue-50 transition-colors shadow-sm"
+            >
+              {variable}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <Textarea
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        rows={6}
+        placeholder={`${type} 메시지 내용을 입력하세요. {클래스명}, {날짜}, {시간} 등의 변수를 사용할 수 있습니다.`}
+        className="mb-4 text-sm bg-white"
+        autoFocus
+      />
+
+      <div className="flex gap-2 justify-end">
+        <Button
+          variant="ghost"
+          type="button"
+          onClick={onCancel}
+        >
+          취소
+        </Button>
+        <Button
+          variant="outline"
+          type="button"
+          onClick={handleResetToDefault}
+        >
+          기본 문구로 복구
+        </Button>
+        <Button
+          type="button"
+          onClick={() => onSave(content)}
+        >
+          저장
+        </Button>
+      </div>
+    </>
+  );
+}
+
 // 예시 데이터 초기화 함수
 function initializeDemoData(instructorId: string) {
   const templates = getTemplatesFromStorage();
@@ -510,6 +589,7 @@ export function InstructorDashboard() {
   const [d3Template, setD3Template] = useState('');
   const [d1Template, setD1Template] = useState('');
   const [expandedTemplate, setExpandedTemplate] = useState<string | null>(null);
+  const [editingTemplate, setEditingTemplate] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -1125,29 +1205,14 @@ export function InstructorDashboard() {
           <p className="text-sm md:text-base text-gray-500 mt-1">자동 발송 메시지를 확인하세요</p>
         </div>
 
-        {/* 변수 안내 */}
-        <Card>
-          <CardHeader className="pb-3 p-4 md:p-6 md:pb-3">
-            <CardTitle className="text-sm md:text-base">사용 가능한 변수</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
-            <div className="flex flex-wrap gap-1.5 md:gap-2 text-xs md:text-sm">
-              <Badge variant="outline">{'{클래스명}'}</Badge>
-              <Badge variant="outline">{'{날짜}'}</Badge>
-              <Badge variant="outline">{'{시간}'}</Badge>
-              <Badge variant="outline">{'{장소}'}</Badge>
-              <Badge variant="outline">{'{준비물}'}</Badge>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">위 변수들은 메시지 발송 시 실제 값으로 자동 대체됩니다.</p>
-          </CardContent>
-        </Card>
+
 
         {/* D-3, D-1 템플릿 목록 */}
         <div className="space-y-3">
           {templateTypes.map(({ type, title, description }) => {
             const isExpanded = expandedTemplate === type;
             const content = type === 'D-3' ? d3Template : d1Template;
-            // const setContent = type === 'D-3' ? setD3Template : setD1Template;
+            const setContent = type === 'D-3' ? setD3Template : setD1Template;
 
             return (
               <Card key={type}>
@@ -1155,23 +1220,61 @@ export function InstructorDashboard() {
                   className="cursor-pointer p-4 md:p-6"
                   onClick={() => setExpandedTemplate(isExpanded ? null : type)}
                 >
-                  <div>
-                    <CardTitle className="text-base md:text-lg flex items-center gap-2">
-                      {isExpanded ? <ChevronDown className="h-4 w-4 md:h-5 md:w-5" /> : <ChevronRight className="h-4 w-4 md:h-5 md:w-5" />}
-                      {title}
-                    </CardTitle>
-                    <CardDescription className="ml-6 md:ml-7 text-xs md:text-sm">{description}</CardDescription>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-base md:text-lg flex items-center gap-2">
+                        {isExpanded ? <ChevronDown className="h-4 w-4 md:h-5 md:w-5" /> : <ChevronRight className="h-4 w-4 md:h-5 md:w-5" />}
+                        {title}
+                      </CardTitle>
+                      <CardDescription className="ml-6 md:ml-7 text-xs md:text-sm">{description}</CardDescription>
+                    </div>
+                    {isExpanded && editingTemplate !== type && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingTemplate(type);
+                        }}
+                      >
+                        수정하기
+                      </Button>
+                    )}
                   </div>
                 </CardHeader>
 
                 {isExpanded && (
                   <CardContent className="pt-0 p-4 md:p-6 md:pt-0">
-                    <Textarea
-                      value={content}
-                      readOnly
-                      rows={6}
-                      className="mb-4 text-sm bg-gray-50"
-                    />
+                    {editingTemplate === type ? (
+                      <EditMessageTemplateForm
+                        type={type}
+                        initialContent={content}
+                        onSave={(newContent) => {
+                          setContent(newContent);
+                          const existing = messageTemplates.find(t => t.type === type);
+                          const messageTemplate: MessageTemplate = {
+                            id: existing?.id || generateId('msg-template'),
+                            templateId: 'global',
+                            type,
+                            content: newContent,
+                            createdAt: existing?.createdAt || new Date().toISOString(),
+                            updatedAt: new Date().toISOString(),
+                          };
+                          saveMessageTemplate(messageTemplate);
+                          loadGlobalMessageTemplates();
+                          alert(`${type} 메시지 템플릿이 저장되었습니다.`);
+                          setEditingTemplate(null);
+                        }}
+                        onCancel={() => setEditingTemplate(null)}
+                      />
+                    ) : (
+                      <Textarea
+                        value={content}
+                        readOnly
+                        rows={6}
+                        className="mb-4 text-sm bg-gray-50"
+                      />
+                    )}
                   </CardContent>
                 )}
               </Card>
