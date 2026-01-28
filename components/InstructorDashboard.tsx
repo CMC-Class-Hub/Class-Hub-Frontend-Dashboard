@@ -776,7 +776,7 @@ export function InstructorDashboard() {
   };
 
   const copyLink = (linkId: string) => {
-    const url = `${window.location.origin}?session=${linkId}`;
+    const url = `https://classhub-link.vercel.app/test`;
     navigator.clipboard.writeText(url);
     alert('링크가 복사되었습니다!');
   };
