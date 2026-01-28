@@ -17,13 +17,12 @@ export default function Home() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-          Class Hub
-        </h1>
-        <p className="text-gray-600">로딩 중...</p>
-      </div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F2F4F6]">
+      <h1 className="text-3xl font-bold text-[#3182F6] mb-6">
+        Class Hub
+      </h1>
+      <div className="w-10 h-10 border-4 border-[#E5E8EB] border-t-[#3182F6] rounded-full animate-spin mb-4"></div>
+      <p className="text-[#8B95A1] font-medium">로딩 중...</p>
     </div>
   );
 }

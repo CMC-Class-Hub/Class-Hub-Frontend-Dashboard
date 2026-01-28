@@ -1,26 +1,44 @@
 @import "tailwindcss";
 
 :root {
+  /* 토스 디자인 시스템 컬러 팔레트 */
+  --toss-blue: #3182F6;
+  --toss-blue-hover: #1B64DA;
+  --toss-blue-light: #E8F3FF;
+  --toss-gray-50: #F9FAFB;
+  --toss-gray-100: #F2F4F6;
+  --toss-gray-200: #E5E8EB;
+  --toss-gray-300: #D1D6DB;
+  --toss-gray-400: #B0B8C1;
+  --toss-gray-500: #8B95A1;
+  --toss-gray-600: #6B7684;
+  --toss-gray-700: #4E5968;
+  --toss-gray-800: #333D4B;
+  --toss-gray-900: #191F28;
+  --toss-red: #F04452;
+  --toss-green: #03C75A;
+
+  /* CSS 변수 매핑 */
   --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
+  --foreground: 216 28% 12%;
   --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
+  --card-foreground: 216 28% 12%;
   --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-  --primary: 221.2 83.2% 53.3%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222.2 47.4% 11.2%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 221.2 83.2% 53.3%;
-  --radius: 0.5rem;
+  --popover-foreground: 216 28% 12%;
+  --primary: 214 91% 58%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 216 12% 95%;
+  --secondary-foreground: 216 28% 12%;
+  --muted: 216 12% 95%;
+  --muted-foreground: 215 14% 59%;
+  --accent: 216 12% 95%;
+  --accent-foreground: 216 28% 12%;
+  --destructive: 354 82% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 216 12% 90%;
+  --input: 216 12% 95%;
+  --ring: 214 91% 58%;
+  --radius: 1rem;
 }
 
 @theme inline {
@@ -59,4 +77,48 @@ body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 토스 스타일 유틸리티 클래스 */
+.toss-shadow {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.toss-shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.toss-shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+}
+
+/* 부드러운 트랜지션 */
+.toss-transition {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 클릭 피드백 */
+.toss-press:active {
+  transform: scale(0.98);
+}
+
+/* 스크롤바 스타일링 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--toss-gray-300);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--toss-gray-400);
 }

@@ -66,13 +66,13 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-6">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+    <div className="min-h-screen flex items-center justify-center bg-[#F2F4F6] p-4 sm:p-6">
+      <Card className="w-full max-w-[420px] p-2 sm:p-4">
+        <CardHeader className="text-center pb-2">
+          <CardTitle className="text-2xl sm:text-3xl font-bold text-[#3182F6]">
             Class Hub
           </CardTitle>
-          <CardDescription className="text-base mt-2">
+          <CardDescription className="text-sm sm:text-base mt-2 text-[#6B7684]">
             강사 계정을 만들어보세요
           </CardDescription>
         </CardHeader>
@@ -139,7 +139,7 @@ export default function SignUpPage() {
             </div>
 
             {error && (
-              <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm">
+              <div className="p-4 rounded-2xl bg-[#FFEBEE] text-[#F04452] text-sm font-medium">
                 {error}
               </div>
             )}
@@ -149,10 +149,10 @@ export default function SignUpPage() {
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+          <div className="mt-8 text-center">
+            <p className="text-sm text-[#6B7684]">
               이미 계정이 있으신가요?{" "}
-              <Link href="/login" className="text-blue-600 hover:underline font-medium">
+              <Link href="/login" className="text-[#3182F6] hover:underline font-semibold">
                 로그인
               </Link>
             </p>
