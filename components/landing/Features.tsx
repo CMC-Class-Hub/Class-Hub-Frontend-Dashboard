@@ -11,7 +11,7 @@ const features = [
     {
         icon: <MessageSquare className="w-8 h-8 text-[#3182F6]" />,
         title: "자동 안내 문자",
-        description: "수업 3일 전, 1일 전 안내 문자를 자동으로 발송합니다. 번거로운 문자 발송 업무에서 해방되세요."
+        description: "신청 완료 안내부터 수업 3일 전, 1일 전 리마인더까지. 번거로운 문자 발송 업무에서 해방되세요."
     },
     {
         icon: <Users className="w-8 h-8 text-[#3182F6]" />,
@@ -47,7 +47,7 @@ export function Features() {
                     ))}
                 </div>
 
-                <div className="bg-[#1B64DA] rounded-3xl p-8 sm:p-12 text-center text-white relative overflow-hidden">
+                <div id="pricing" className="bg-[#1B64DA] rounded-3xl p-8 sm:p-12 text-center text-white relative overflow-hidden">
                     <div className="relative z-10">
                         <h3 className="text-2xl sm:text-3xl font-bold mb-6">지금 바로 시작해보세요</h3>
                         <p className="text-blue-100 mb-8 max-w-xl mx-auto">
