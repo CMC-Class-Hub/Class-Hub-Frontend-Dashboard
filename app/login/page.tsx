@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { login } from "@/utils/auth";
+import { api } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,12 +28,11 @@ export default function LoginPage() {
       return;
     }
 
-    const result = login(email, password);
-
-    if (result.success) {
+    try {
+      await api.auth.login({ email, password });
       router.push("/dashboard");
-    } else {
-      setError(result.error || "로그인에 실패했습니다.");
+    } catch (err: any) {
+      setError(err.message || "로그인에 실패했습니다.");
     }
 
     setIsLoading(false);

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { signUp, login } from "@/utils/auth";
+import { api } from "@/lib/api";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -43,21 +43,20 @@ export default function SignUpPage() {
       return;
     }
 
-    // 회원가입
-    const signUpResult = signUp(email, name, password, phoneNumber);
-
-    if (!signUpResult.success) {
-      setError(signUpResult.error || "회원가입에 실패했습니다.");
+    try {
+      // 회원가입
+      await api.auth.signUp({ email, name, password, phoneNumber });
+    } catch (err: any) {
+      setError(err.message || "회원가입에 실패했습니다.");
       setIsLoading(false);
       return;
     }
 
-    // 자동 로그인
-    const loginResult = login(email, password);
-
-    if (loginResult.success) {
+    try {
+      // 자동 로그인
+      await api.auth.login({ email, password });
       router.push("/dashboard");
-    } else {
+    } catch (err) {
       // 회원가입은 성공했지만 로그인 실패 시 로그인 페이지로
       router.push("/login");
     }

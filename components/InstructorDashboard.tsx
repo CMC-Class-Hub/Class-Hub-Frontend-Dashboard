@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Calendar, ArrowLeft, Link2, Users, Trash2, MessageSquare, LogOut, ChevronDown, ChevronRight, Menu, X, User as UserIcon, Settings } from 'lucide-react';
+import { Plus, Calendar, ArrowLeft, Link2, Users, Trash2, MessageSquare, LogOut, ChevronDown, ChevronRight, Menu, X, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,14 +10,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { getCurrentUser, logout } from '@/utils/auth';
-import { generateId, generateLinkId, getApplicationsByClassId, getStudentById, saveStudent, saveApplication } from '@/utils/storage';
-import { getTemplates as getTemplatesFromStorage, saveTemplate as saveTemplateToStorage, getSessionsByTemplateId as getSessionsFromStorage, saveSession as saveSessionToStorage, deleteSession as deleteSessionFromStorage, deleteTemplate as deleteTemplateFromStorage } from '@/utils/template-storage';
-import { getMessageTemplatesByTemplateId, saveMessageTemplate, getDefaultMessageTemplate } from '@/utils/message-template-storage';
-import { getMessagesBySessionId } from '@/utils/message-storage';
-import { ClassTemplate, ClassSession } from '@/types/template';
+import { type User, type Message } from '@/lib/api';
+import {
+  api,
+  templateApi,
+  sessionApi,
+  studentApi,
+  applicationApi,
+  messageTemplateApi,
+  type ClassTemplate,
+  type ClassSession,
+  type Application,
+  type Student,
+} from '@/lib/api';
 import { ServerStatus } from '@/components/ServerStatus';
-import { MessageTemplate } from '@/types/message-template';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
@@ -152,9 +158,14 @@ function CreateClassForm({ onSubmit, onCancel }: {
         />
       </div>
 
-      <Button type="submit" className="w-full">
-        클래스 생성
-      </Button>
+      <div className="flex gap-2">
+        <Button type="button" variant="ghost" className="flex-1" onClick={onCancel}>
+          취소
+        </Button>
+        <Button type="submit" className="flex-1">
+          클래스 생성
+        </Button>
+      </div>
     </form>
   );
 }
@@ -289,9 +300,14 @@ function EditClassForm({ template, onSubmit, onCancel }: {
         />
       </div>
 
-      <Button type="submit" className="w-full">
-        클래스 수정
-      </Button>
+      <div className="flex gap-2">
+        <Button type="button" variant="ghost" className="flex-1" onClick={onCancel}>
+          취소
+        </Button>
+        <Button type="submit" className="flex-1">
+          클래스 수정
+        </Button>
+      </div>
     </form>
   );
 }
@@ -368,7 +384,7 @@ function EditMessageTemplateForm({
 
   const handleResetToDefault = () => {
     if (confirm('기본 문구로 복구하시겠습니까? 현재 입력된 내용이 사라집니다.')) {
-      const defaultContent = getDefaultMessageTemplate(type, '{클래스명}');
+      const defaultContent = messageTemplateApi.getDefault(type, '{클래스명}');
       setContent(defaultContent);
     }
   };
@@ -430,151 +446,6 @@ function EditMessageTemplateForm({
   );
 }
 
-// 예시 데이터 초기화 함수
-function initializeDemoData(instructorId: string) {
-  const templates = getTemplatesFromStorage();
-  const hasDemo = templates.some(t => t.instructorId === instructorId);
-
-  if (hasDemo) return;
-
-  // 예시 클래스 생성
-  const demoClass: ClassTemplate = {
-    id: generateId('template'),
-    instructorId,
-    name: '요가 입문 클래스',
-    description: '초보자를 위한 기초 요가 수업입니다. 호흡법부터 기본 자세까지 차근차근 배워봅니다.',
-    location: '서울시 강남구 테헤란로 123, 2층 요가 스튜디오',
-    locationDetails: '건물 입구에서 엘리베이터 이용, 주차 2시간 무료',
-    preparation: '요가매트, 편안한 운동복, 물',
-    instructions: '수업 10분 전까지 도착해주세요.',
-    notes: '처음 오시는 분들은 미리 말씀해주시면 기초부터 알려드립니다.',
-    capacity: 12,
-    depositAmount: 15000,
-    cancellationPolicy: '24시간 전 취소 시 전액 환급',
-    noShowPolicy: '노쇼 시 보증금 환급 불가',
-    status: 'ACTIVE',
-    createdAt: new Date().toISOString(),
-  };
-  saveTemplateToStorage(demoClass);
-
-  // 예시 세션 생성
-  const session1: ClassSession = {
-    id: generateId('session'),
-    templateId: demoClass.id,
-    instructorId,
-    date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    startTime: '10:00',
-    endTime: '11:30',
-    status: 'RECRUITING',
-    linkId: generateLinkId(),
-    createdAt: new Date().toISOString(),
-  };
-  saveSessionToStorage(session1);
-
-  const session2: ClassSession = {
-    id: generateId('session'),
-    templateId: demoClass.id,
-    instructorId,
-    date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    startTime: '14:00',
-    endTime: '15:30',
-    status: 'RECRUITING',
-    linkId: generateLinkId(),
-    createdAt: new Date().toISOString(),
-  };
-  saveSessionToStorage(session2);
-
-  // 예시 학생 및 신청자 생성
-  const student1 = {
-    id: generateId('student'),
-    name: '김민지',
-    email: 'minji@example.com',
-    phone: '010-1234-5678',
-    applicationCount: 3,
-    cancellationCount: 0,
-    noResponseCount: 0,
-    noShowCount: 0,
-    attendedCount: 2,
-    trustLevel: 'NORMAL' as const,
-    createdAt: new Date().toISOString(),
-  };
-  saveStudent(student1);
-
-  const student2 = {
-    id: generateId('student'),
-    name: '이수현',
-    email: 'suhyun@example.com',
-    phone: '010-2345-6789',
-    applicationCount: 5,
-    cancellationCount: 1,
-    noResponseCount: 0,
-    noShowCount: 0,
-    attendedCount: 4,
-    trustLevel: 'NORMAL' as const,
-    createdAt: new Date().toISOString(),
-  };
-  saveStudent(student2);
-
-  const student3 = {
-    id: generateId('student'),
-    name: '박서준',
-    email: 'seojun@example.com',
-    phone: '010-3456-7890',
-    applicationCount: 2,
-    cancellationCount: 0,
-    noResponseCount: 0,
-    noShowCount: 0,
-    attendedCount: 1,
-    trustLevel: 'NORMAL' as const,
-    createdAt: new Date().toISOString(),
-  };
-  saveStudent(student3);
-
-  // 신청 데이터 생성
-  saveApplication({
-    id: generateId('app'),
-    classId: session1.id,
-    studentId: student1.id,
-    status: 'CONFIRMED',
-    paymentStatus: 'COMPLETED',
-    depositAmount: 15000,
-    refundEligible: true,
-    appliedAt: new Date().toISOString(),
-  });
-
-  saveApplication({
-    id: generateId('app'),
-    classId: session1.id,
-    studentId: student2.id,
-    status: 'CONFIRMED',
-    paymentStatus: 'COMPLETED',
-    depositAmount: 15000,
-    refundEligible: true,
-    appliedAt: new Date().toISOString(),
-  });
-
-  saveApplication({
-    id: generateId('app'),
-    classId: session1.id,
-    studentId: student3.id,
-    status: 'PENDING',
-    paymentStatus: 'PENDING',
-    depositAmount: 15000,
-    refundEligible: true,
-    appliedAt: new Date().toISOString(),
-  });
-
-  saveApplication({
-    id: generateId('app'),
-    classId: session2.id,
-    studentId: student1.id,
-    status: 'CONFIRMED',
-    paymentStatus: 'COMPLETED',
-    depositAmount: 15000,
-    refundEligible: true,
-    appliedAt: new Date().toISOString(),
-  });
-}
 
 export function InstructorDashboard() {
   const router = useRouter();
@@ -586,28 +457,38 @@ export function InstructorDashboard() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [addSessionDialogOpen, setAddSessionDialogOpen] = useState(false);
   const [sessions, setSessions] = useState<ClassSession[]>([]);
-  const [user, setUser] = useState<{ id: string; name: string; email: string } | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
-  const [messageTemplates, setMessageTemplates] = useState<MessageTemplate[]>([]);
   const [d3Template, setD3Template] = useState('');
   const [d1Template, setD1Template] = useState('');
   const [expandedTemplate, setExpandedTemplate] = useState<string | null>(null);
   const [editingTemplate, setEditingTemplate] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // 신청자 및 학생 데이터 상태
+  const [sessionApplications, setSessionApplications] = useState<Application[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [sessionApplicationCounts, setSessionApplicationCounts] = useState<Record<string, number>>({});
+  const [templateSessionCounts, setTemplateSessionCounts] = useState<Record<string, number>>({});
+  const [sessionMessages, setSessionMessages] = useState<Message[]>([]);
+
   useEffect(() => {
-    const currentUser = getCurrentUser();
-    if (!currentUser) {
-      router.push('/login');
-      return;
-    }
-    setUser(currentUser);
+    const checkAuth = async () => {
+      const currentUser = await api.auth.getCurrentUser();
 
-    // 예시 데이터 초기화
-    initializeDemoData(currentUser.id);
+      if (!currentUser) {
+        router.push('/login');
+        return;
+      }
+      setUser(currentUser);
 
-    loadTemplates(currentUser.id);
-    loadGlobalMessageTemplates();
+      // 예시 데이터 초기화
+      api.initializeDemoData(currentUser.id);
+
+      loadTemplates(currentUser.id);
+      loadGlobalMessageTemplates();
+    };
+    checkAuth();
   }, [router]);
 
   useEffect(() => {
@@ -617,45 +498,98 @@ export function InstructorDashboard() {
     }
   }, [selectedTemplate]);
 
-  const loadTemplates = (instructorId: string) => {
-    const allTemplates = getTemplatesFromStorage();
-    const myTemplates = allTemplates.filter(t => t.instructorId === instructorId);
+  // 세션 선택 시 신청자 데이터 로드
+  useEffect(() => {
+    const loadSessionData = async () => {
+      if (selectedSession) {
+        const apps = await applicationApi.getBySessionId(selectedSession.id);
+        setSessionApplications(apps);
+
+        // 신청자들의 학생 정보 로드
+        const studentIds = [...new Set(apps.map(a => a.studentId))];
+        const studentPromises = studentIds.map(id => studentApi.getById(id));
+        const studentResults = await Promise.all(studentPromises);
+        setStudents(studentResults.filter((s): s is Student => s !== null));
+
+        // 메시지 이력 로드
+        const msgs = await api.messageHistory.getBySessionId(selectedSession.id);
+        setSessionMessages(msgs);
+      } else {
+        setSessionMessages([]);
+      }
+    };
+
+    loadSessionData();
+  }, [selectedSession]);
+
+  // 세션 목록의 신청자 수 로드
+  useEffect(() => {
+    const loadApplicationCounts = async () => {
+      if (sessions.length > 0) {
+        const counts: Record<string, number> = {};
+        for (const session of sessions) {
+          const apps = await applicationApi.getBySessionId(session.id);
+          counts[session.id] = apps.filter(a => a.status === 'CONFIRMED').length;
+        }
+        setSessionApplicationCounts(counts);
+      }
+    };
+
+    loadApplicationCounts();
+  }, [sessions]);
+
+  // 템플릿별 세션 수 로드
+  useEffect(() => {
+    const loadTemplateSessionCounts = async () => {
+      if (templates.length > 0) {
+        const counts: Record<string, number> = {};
+        for (const template of templates) {
+          const templateSessions = await sessionApi.getByTemplateId(template.id);
+          counts[template.id] = templateSessions.length;
+        }
+        setTemplateSessionCounts(counts);
+      }
+    };
+
+    loadTemplateSessionCounts();
+  }, [templates]);
+
+  const loadTemplates = async (instructorId: string) => {
+    const myTemplates = await templateApi.getAll(instructorId);
     setTemplates(myTemplates);
   };
 
-  const loadSessions = (templateId: string) => {
-    const templateSessions = getSessionsFromStorage(templateId);
+  const loadSessions = async (templateId: string) => {
+    const templateSessions = await sessionApi.getByTemplateId(templateId);
     setSessions(templateSessions);
   };
 
-  const loadMessageTemplates = (templateId: string) => {
-    const templates = getMessageTemplatesByTemplateId(templateId);
-    setMessageTemplates(templates);
+  const loadMessageTemplates = async (templateId: string) => {
+    const templates = await messageTemplateApi.getByTemplateId(templateId);
 
     const d3 = templates.find(t => t.type === 'D-3');
     const d1 = templates.find(t => t.type === 'D-1');
 
-    setD3Template(d3?.content || getDefaultMessageTemplate('D-3', '{클래스명}'));
-    setD1Template(d1?.content || getDefaultMessageTemplate('D-1', '{클래스명}'));
+    setD3Template(d3?.content || messageTemplateApi.getDefault('D-3', '{클래스명}'));
+    setD1Template(d1?.content || messageTemplateApi.getDefault('D-1', '{클래스명}'));
   };
 
-  const loadGlobalMessageTemplates = () => {
-    const templates = getMessageTemplatesByTemplateId('global');
-    setMessageTemplates(templates);
+  const loadGlobalMessageTemplates = async () => {
+    const templates = await messageTemplateApi.getByTemplateId('global');
 
     const d3 = templates.find(t => t.type === 'D-3');
     const d1 = templates.find(t => t.type === 'D-1');
 
-    setD3Template(d3?.content || getDefaultMessageTemplate('D-3', '{클래스명}'));
-    setD1Template(d1?.content || getDefaultMessageTemplate('D-1', '{클래스명}'));
+    setD3Template(d3?.content || messageTemplateApi.getDefault('D-3', '{클래스명}'));
+    setD1Template(d1?.content || messageTemplateApi.getDefault('D-1', '{클래스명}'));
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await api.auth.logout();
     router.push('/login');
   };
 
-  const handleCreateTemplate = (data: {
+  const handleCreateTemplate = async (data: {
     name: string;
     description: string;
     location: string;
@@ -667,9 +601,7 @@ export function InstructorDashboard() {
   }) => {
     if (!user) return;
 
-    const template: ClassTemplate = {
-      id: generateId('template'),
-      instructorId: user.id,
+    await templateApi.create(user.id, {
       name: data.name,
       description: data.description,
       location: data.location,
@@ -678,27 +610,21 @@ export function InstructorDashboard() {
       instructions: data.instructions,
       notes: data.notes,
       capacity: data.capacity,
-      depositAmount: 0,
-      cancellationPolicy: '',
-      noShowPolicy: '',
-      status: 'ACTIVE',
-      createdAt: new Date().toISOString(),
-    };
+    });
 
-    saveTemplateToStorage(template);
     setCreateDialogOpen(false);
-    loadTemplates(user.id);
+    await loadTemplates(user.id);
   };
 
-  const handleDeleteTemplate = (e: React.MouseEvent, templateId: string) => {
+  const handleDeleteTemplate = async (e: React.MouseEvent, templateId: string) => {
     e.stopPropagation();
     if (confirm('정말로 이 클래스를 삭제하시겠습니까? 관련된 모든 세션도 함께 삭제됩니다.')) {
-      deleteTemplateFromStorage(templateId);
-      if (user) loadTemplates(user.id);
+      await templateApi.delete(templateId);
+      if (user) await loadTemplates(user.id);
     }
   };
 
-  const handleEditTemplate = (data: {
+  const handleEditTemplate = async (data: {
     name: string;
     description: string;
     location: string;
@@ -710,8 +636,7 @@ export function InstructorDashboard() {
   }) => {
     if (!user || !selectedTemplate) return;
 
-    const updatedTemplate: ClassTemplate = {
-      ...selectedTemplate,
+    const updatedTemplate = await templateApi.update(selectedTemplate.id, {
       name: data.name,
       description: data.description,
       location: data.location,
@@ -720,63 +645,40 @@ export function InstructorDashboard() {
       instructions: data.instructions,
       notes: data.notes,
       capacity: data.capacity,
-    };
+    });
 
-    saveTemplateToStorage(updatedTemplate);
     setEditDialogOpen(false);
     setSelectedTemplate(updatedTemplate);
-    loadTemplates(user.id);
+    await loadTemplates(user.id);
   };
 
-  const handleAddSession = (data: { date: string; startTime: string; endTime: string }) => {
+  const handleAddSession = async (data: { date: string; startTime: string; endTime: string }) => {
     if (!selectedTemplate || !user) return;
 
-    const session: ClassSession = {
-      id: generateId('session'),
+    await sessionApi.create(user.id, {
       templateId: selectedTemplate.id,
-      instructorId: user.id,
       date: data.date,
       startTime: data.startTime,
       endTime: data.endTime,
-      status: 'RECRUITING',
-      linkId: generateLinkId(),
-      createdAt: new Date().toISOString(),
-    };
+    });
 
-    saveSessionToStorage(session);
     setAddSessionDialogOpen(false);
-    loadSessions(selectedTemplate.id);
+    await loadSessions(selectedTemplate.id);
   };
 
-  const handleDeleteSession = (sessionId: string) => {
+  const handleDeleteSession = async (sessionId: string) => {
     if (confirm('이 세션을 삭제하시겠습니까?')) {
-      deleteSessionFromStorage(sessionId);
+      await sessionApi.delete(sessionId);
       if (selectedTemplate) {
-        loadSessions(selectedTemplate.id);
+        await loadSessions(selectedTemplate.id);
       }
     }
   };
 
-  const handleSaveMessageTemplate = (type: 'D-3' | 'D-1') => {
-    const content = type === 'D-3' ? d3Template : d1Template;
-    const existing = messageTemplates.find(t => t.type === type);
 
-    const messageTemplate: MessageTemplate = {
-      id: existing?.id || generateId('msg-template'),
-      templateId: 'global', // 전역 템플릿으로 저장
-      type,
-      content,
-      createdAt: existing?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    saveMessageTemplate(messageTemplate);
-    loadGlobalMessageTemplates();
-    alert(`${type} 메시지 템플릿이 저장되었습니다.`);
-  };
 
   const copyLink = (linkId: string) => {
-    const url = `https://classhub-link.vercel.app/test`;
+    const url = `https://classhub-link.vercel.app/apply/${linkId}`;
     navigator.clipboard.writeText(url);
     alert('링크가 복사되었습니다!');
   };
@@ -896,12 +798,16 @@ export function InstructorDashboard() {
     </div>
   );
 
+  // 학생 ID로 학생 정보 찾기
+  const getStudentById = (studentId: string): Student | null => {
+    return students.find(s => s.id === studentId) || null;
+  };
+
   // 클래스 관리 뷰
   const ClassesView = () => {
     // 세션 상세 (신청자 목록)
     if (selectedSession && selectedTemplate) {
-      const applications = getApplicationsByClassId(selectedSession.id);
-      const sessionMessages = getMessagesBySessionId(selectedSession.id);
+      const applications = sessionApplications;
 
       return (
         <div className="space-y-5 md:space-y-6">
@@ -1068,8 +974,7 @@ export function InstructorDashboard() {
           ) : (
             <div className="space-y-3">
               {sessions.map((session) => {
-                const applications = getApplicationsByClassId(session.id);
-                const confirmedCount = applications.filter(a => a.status === 'CONFIRMED').length;
+                const confirmedCount = sessionApplicationCounts[session.id] || 0;
 
                 return (
                   <Card key={session.id} className="hover:shadow-md hover:border-[#3182F6]/30 transition-all duration-200">
@@ -1171,7 +1076,7 @@ export function InstructorDashboard() {
         ) : (
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {templates.map((template) => {
-              const templateSessions = getSessionsFromStorage(template.id);
+              const sessionCount = templateSessionCounts[template.id] || 0;
 
               return (
                 <Card key={template.id} className="cursor-pointer hover:shadow-lg hover:border-[#3182F6]/30 transition-all duration-200 active:scale-[0.98]" onClick={() => setSelectedTemplate(template)}>
@@ -1191,7 +1096,7 @@ export function InstructorDashboard() {
                   </CardHeader>
                   <CardContent className="p-5 md:p-6 pt-0 md:pt-0">
                     <p className="text-xs md:text-sm text-[#6B7684] mb-2 truncate">{template.location}</p>
-                    <Badge variant="secondary" className="text-xs">세션 {templateSessions.length}개</Badge>
+                    <Badge variant="secondary" className="text-xs">세션 {sessionCount}개</Badge>
                   </CardContent>
                 </Card>
               );
@@ -1258,19 +1163,10 @@ export function InstructorDashboard() {
                       <EditMessageTemplateForm
                         type={type}
                         initialContent={content}
-                        onSave={(newContent) => {
+                        onSave={async (newContent) => {
                           setContent(newContent);
-                          const existing = messageTemplates.find(t => t.type === type);
-                          const messageTemplate: MessageTemplate = {
-                            id: existing?.id || generateId('msg-template'),
-                            templateId: 'global',
-                            type,
-                            content: newContent,
-                            createdAt: existing?.createdAt || new Date().toISOString(),
-                            updatedAt: new Date().toISOString(),
-                          };
-                          saveMessageTemplate(messageTemplate);
-                          loadGlobalMessageTemplates();
+                          await messageTemplateApi.save('global', type, newContent);
+                          await loadGlobalMessageTemplates();
                           alert(`${type} 메시지 템플릿이 저장되었습니다.`);
                           setEditingTemplate(null);
                         }}
@@ -1298,11 +1194,10 @@ export function InstructorDashboard() {
   const ProfileView = () => {
     const [name, setName] = useState(user?.name || '');
     const [email, setEmail] = useState(user?.email || '');
-    const [phone, setPhone] = useState((user as any)?.phoneNumber || '');
+    const [phone, setPhone] = useState(user?.phoneNumber || '');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       // 실제 업데이트 로직 구현 필요 (여기서는 alert만 표시)

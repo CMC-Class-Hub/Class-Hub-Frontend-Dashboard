@@ -1,0 +1,47 @@
+import type { ClassSession, ISessionApi, CreateSessionRequest, UpdateSessionRequest } from '../types';
+import { API_URL } from '../api-config';
+
+export const sessionApiReal: ISessionApi = {
+  async getByTemplateId(templateId: string): Promise<ClassSession[]> {
+    const response = await fetch(`${API_URL}/api/templates/${templateId}/sessions`);
+    if (!response.ok) throw new Error('Failed to fetch sessions');
+    const data = await response.json();
+    return data.data;
+  },
+
+  async getById(id: string): Promise<ClassSession | null> {
+    const response = await fetch(`${API_URL}/api/sessions/${id}`);
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.data;
+  },
+
+  async create(instructorId: string, data: CreateSessionRequest): Promise<ClassSession> {
+    const response = await fetch(`${API_URL}/api/sessions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...data, instructorId }),
+    });
+    if (!response.ok) throw new Error('Failed to create session');
+    const result = await response.json();
+    return result.data;
+  },
+
+  async update(id: string, data: UpdateSessionRequest): Promise<ClassSession> {
+    const response = await fetch(`${API_URL}/api/sessions/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Failed to update session');
+    const result = await response.json();
+    return result.data;
+  },
+
+  async delete(id: string): Promise<void> {
+    const response = await fetch(`${API_URL}/api/sessions/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Failed to delete session');
+  },
+};
