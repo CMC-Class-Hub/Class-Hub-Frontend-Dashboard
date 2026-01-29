@@ -1,22 +1,22 @@
 "use client";
 
-import { Calendar, MessageSquare, Users, CheckCircle2 } from 'lucide-react';
+import { Link as LinkIcon, MessageSquare, Users, CheckCircle2 } from 'lucide-react';
 
 const features = [
     {
-        icon: <Calendar className="w-8 h-8 text-[#3182F6]" />,
-        title: "간편한 일정 관리",
-        description: "한 눈에 들어오는 캘린더로 수업 일정을 관리하세요. 새로운 클래스 개설도 몇 번의 클릭이면 충분합니다."
+        icon: <LinkIcon className="w-8 h-8 text-[#3182F6]" />,
+        title: "간편한 신청 링크 공유",
+        description: "복잡한 웹사이트 제작은 그만. 클래스를 개설하고 생성된 링크 하나로 수강생을 바로 모집하세요."
     },
     {
         icon: <MessageSquare className="w-8 h-8 text-[#3182F6]" />,
         title: "자동 안내 문자",
-        description: "수업 3일 전, 1일 전 안내 문자를 자동으로 발송합니다. 수강생이 놓치지 않도록 꼼꼼하게 챙겨주세요."
+        description: "수업 3일 전, 1일 전 안내 문자를 자동으로 발송합니다. 번거로운 문자 발송 업무에서 해방되세요."
     },
     {
         icon: <Users className="w-8 h-8 text-[#3182F6]" />,
         title: "수강생 통합 관리",
-        description: "신청자 명단 확인부터 노쇼, 환불 관리까지. 수강생 정보를 체계적으로 기록하고 관리할 수 있습니다."
+        description: "신청자 명단부터 출석 여부까지 한 번에. 수강 이력과 신뢰도(No-Show)를 관리하여 효율적으로 운영하세요."
     }
 ];
 

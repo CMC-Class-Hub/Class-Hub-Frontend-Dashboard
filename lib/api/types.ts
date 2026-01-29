@@ -11,7 +11,7 @@ export type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED';
 export type AttendanceResponse = 'ATTENDING' | 'CANCELLED' | 'NO_RESPONSE';
 export type TrustLevel = 'NORMAL' | 'CAUTION' | 'WARNING';
 export type NotificationType = 'D-3' | 'D-1' | 'PAYMENT_REMINDER' | 'CONFIRMATION' | 'CANCELLATION';
-export type MessageTemplateType = 'D-3' | 'D-1';
+export type MessageTemplateType = 'D-3' | 'D-1' | 'APPLY_CONFIRMED';
 
 // Class Template
 export interface ClassTemplate {

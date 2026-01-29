@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { type User, type Message } from '@/lib/api';
+import { type User, type Message, type MessageTemplateType } from '@/lib/api';
 import {
   api,
   templateApi,
@@ -365,17 +365,17 @@ function AddSessionForm({ onSubmit }: {
 }
 
 // 메시지 템플릿 수정 폼 컴포넌트 (별도 분리하여 포커스 문제 해결)
-function EditMessageTemplateForm({
+const EditMessageTemplateForm = ({
   type,
   initialContent,
   onSave,
   onCancel
 }: {
-  type: 'D-3' | 'D-1';
+  type: MessageTemplateType;
   initialContent: string;
-  onSave: (content: string) => void;
+  onSave: (content: string) => Promise<void>;
   onCancel: () => void;
-}) {
+}) => {
   const [content, setContent] = useState(initialContent);
 
   const handleInsertVariable = (variable: string) => {
@@ -395,7 +395,7 @@ function EditMessageTemplateForm({
       <div className="mb-4 p-4 bg-[#E8F3FF] rounded-2xl">
         <p className="text-xs text-[#3182F6] font-semibold mb-3">아래 버튼을 누르면 내용에 자동으로 들어갑니다</p>
         <div className="flex flex-wrap gap-2 text-xs">
-          {['{클래스명}', '{날짜}', '{시간}', '{장소}', '{준비물}'].map((variable) => (
+          {['{클래스명}', '{날짜}', '{시간}', '{장소}', '{준비물}', '{주차}', '{클래스 링크}'].map((variable) => (
             <button
               key={variable}
               type="button"
@@ -411,8 +411,8 @@ function EditMessageTemplateForm({
       <Textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        rows={6}
-        placeholder={`${type} 메시지 내용을 입력하세요. {클래스명}, {날짜}, {시간} 등의 변수를 사용할 수 있습니다.`}
+        rows={10}
+        placeholder="메시지 내용을 입력하세요. {클래스명}, {날짜}, {시간} 등의 변수를 사용할 수 있습니다."
         className="mb-4 text-sm"
         autoFocus
       />
@@ -461,8 +461,9 @@ export function InstructorDashboard() {
 
   const [d3Template, setD3Template] = useState('');
   const [d1Template, setD1Template] = useState('');
-  const [expandedTemplate, setExpandedTemplate] = useState<string | null>(null);
-  const [editingTemplate, setEditingTemplate] = useState<string | null>(null);
+  const [confirmedTemplate, setConfirmedTemplate] = useState<string>('');
+  const [expandedTemplate, setExpandedTemplate] = useState<MessageTemplateType | null>(null);
+  const [editingTemplate, setEditingTemplate] = useState<MessageTemplateType | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // 신청자 및 학생 데이터 상태
@@ -569,9 +570,11 @@ export function InstructorDashboard() {
 
     const d3 = templates.find(t => t.type === 'D-3');
     const d1 = templates.find(t => t.type === 'D-1');
+    const confirmed = templates.find(t => t.type === 'APPLY_CONFIRMED');
 
     setD3Template(d3?.content || messageTemplateApi.getDefault('D-3', '{클래스명}'));
     setD1Template(d1?.content || messageTemplateApi.getDefault('D-1', '{클래스명}'));
+    setConfirmedTemplate(confirmed?.content || messageTemplateApi.getDefault('APPLY_CONFIRMED', '{클래스명}'));
   };
 
   const loadGlobalMessageTemplates = async () => {
@@ -579,9 +582,11 @@ export function InstructorDashboard() {
 
     const d3 = templates.find(t => t.type === 'D-3');
     const d1 = templates.find(t => t.type === 'D-1');
+    const confirmed = templates.find(t => t.type === 'APPLY_CONFIRMED');
 
     setD3Template(d3?.content || messageTemplateApi.getDefault('D-3', '{클래스명}'));
     setD1Template(d1?.content || messageTemplateApi.getDefault('D-1', '{클래스명}'));
+    setConfirmedTemplate(confirmed?.content || messageTemplateApi.getDefault('APPLY_CONFIRMED', '{클래스명}'));
   };
 
   const handleLogout = async () => {
@@ -678,9 +683,10 @@ export function InstructorDashboard() {
 
 
   const copyLink = (linkId: string) => {
-    const url = `https://classhub-link.vercel.app/apply/${linkId}`;
+    // 백엔드 연결 전까지 테스트 링크 사용
+    const url = 'https://classhub-link.vercel.app/class/test';
     navigator.clipboard.writeText(url);
-    alert('링크가 복사되었습니다!');
+    alert('테스트 링크가 복사되었습니다!');
   };
 
   if (!user) {
@@ -1110,8 +1116,9 @@ export function InstructorDashboard() {
   // 메시지 템플릿 뷰
   const MessagesView = () => {
     const templateTypes = [
-      { type: 'D-3' as const, title: 'D-3 메시지', description: '수업 3일 전에 자동 발송됩니다' },
-      { type: 'D-1' as const, title: 'D-1 메시지', description: '수업 1일 전에 자동 발송됩니다' },
+      { type: 'APPLY_CONFIRMED' as const, title: '신청 완료 안내', description: '수업 신청 직후 자동으로 발송됩니다' },
+      { type: 'D-3' as const, title: 'D-3 리마인더', description: '수업 3일 전에 자동으로 발송됩니다' },
+      { type: 'D-1' as const, title: 'D-1 리마인더', description: '수업 1일 전에 자동으로 발송됩니다' },
     ];
 
     return (
@@ -1121,12 +1128,27 @@ export function InstructorDashboard() {
           <p className="text-sm md:text-base text-[#8B95A1] mt-1">자동 발송 메시지를 확인하세요</p>
         </div>
 
-        {/* D-3, D-1 템플릿 목록 */}
+        {/* 템플릿 목록 */}
         <div className="space-y-4">
           {templateTypes.map(({ type, title, description }) => {
             const isExpanded = expandedTemplate === type;
-            const content = type === 'D-3' ? d3Template : d1Template;
-            const setContent = type === 'D-3' ? setD3Template : setD1Template;
+            let content = '';
+            let setContent: (val: string) => void = () => { };
+
+            switch (type) {
+              case 'APPLY_CONFIRMED':
+                content = confirmedTemplate;
+                setContent = setConfirmedTemplate;
+                break;
+              case 'D-3':
+                content = d3Template;
+                setContent = setD3Template;
+                break;
+              case 'D-1':
+                content = d1Template;
+                setContent = setD1Template;
+                break;
+            }
 
             return (
               <Card key={type} className="hover:shadow-md transition-shadow">

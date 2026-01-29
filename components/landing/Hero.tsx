@@ -1,10 +1,24 @@
 "use client";
 
 import Link from 'next/link';
+import { useRouter } from "next/navigation";
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, PlayCircle } from 'lucide-react';
+import { api } from '@/lib/api';
 
 export function Hero() {
+    const router = useRouter();
+
+    const handleDemoLogin = async () => {
+        try {
+            await api.auth.login({ email: 'demo@classhub.com', password: '1234' });
+            router.push('/dashboard');
+        } catch (error) {
+            console.error('Demo login failed:', error);
+            alert('데모 로그인 중 오류가 발생했습니다.');
+        }
+    };
+
     return (
         <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-gradient-to-b from-blue-50/50 to-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
@@ -25,16 +39,18 @@ export function Hero() {
 
                 <div className="flex flex-col sm:flex-row justify-center gap-4">
                     <Link href="/signup">
-                        <Button size="lg" className="w-full sm:w-auto text-lg h-14 px-8 bg-[#3182F6] hover:bg-[#1B64DA] text-white shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 rounded-full">
-                            무료로 시작하기
-                            <ArrowRight className="ml-2 w-5 h-5" />
+                        <Button size="lg" className="w-full sm:w-60 text-lg h-14 px-8 bg-[#3182F6] hover:bg-[#1B64DA] text-white shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 rounded-full font-bold">
+                            클래스허브 시작하기
                         </Button>
                     </Link>
-                    <Link href="#features">
-                        <Button size="lg" variant="outline" className="w-full sm:w-auto text-lg h-14 px-8 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-full">
-                            더 알아보기
-                        </Button>
-                    </Link>
+                    <Button
+                        size="lg"
+                        variant="outline"
+                        onClick={handleDemoLogin}
+                        className="w-full sm:w-60 text-lg h-14 px-8 border-[#3182F6] text-[#3182F6] hover:bg-blue-50 rounded-full font-bold border-2"
+                    >
+                        데모 체험하기
+                    </Button>
                 </div>
             </div>
 
