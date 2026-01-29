@@ -395,7 +395,7 @@ const EditMessageTemplateForm = ({
       <div className="mb-4 p-4 bg-[#E8F3FF] rounded-2xl">
         <p className="text-xs text-[#3182F6] font-semibold mb-3">아래 버튼을 누르면 내용에 자동으로 들어갑니다</p>
         <div className="flex flex-wrap gap-2 text-xs">
-          {['{클래스명}', '{날짜}', '{시간}', '{장소}', '{준비물}', '{주차}', '{클래스 링크}'].map((variable) => (
+          {['{수강생명}', '{클래스명}', '{날짜}', '{시간}', '{장소}', '{준비물}', '{주차}', '{클래스링크}'].map((variable) => (
             <button
               key={variable}
               type="button"
