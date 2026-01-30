@@ -134,21 +134,13 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                 <CardHeader className="p-5 md:p-6">
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                         <div className="space-y-1 flex-1">
-                            <CardTitle className="text-xl md:text-2xl">{template.name}</CardTitle>
-                            <CardDescription className="text-sm md:text-base mt-2">
+                            <CardTitle className="text-lg md:text-xl">{template.name}</CardTitle>
+                            <CardDescription className="text-sm mt-2">
                                 {template.description}
                             </CardDescription>
 
-                            <div className="mt-4 flex flex-wrap gap-2">
-                                <Badge variant="secondary" className="text-xs md:text-sm px-2 py-1">
-                                    {template.location}
-                                </Badge>
-                            </div>
-
                             <div className="mt-4 space-y-2 text-sm text-[#4E5968]">
-                                {template.locationDetails && (
-                                    <p><span className="font-semibold text-[#191F28]">상세위치:</span> {template.locationDetails}</p>
-                                )}
+                                <p><span className="font-semibold text-[#191F28]">장소:</span> {template.location}</p>
                                 {(template.price !== undefined) && (
                                     <p><span className="font-semibold text-[#191F28]">가격:</span> {template.price.toLocaleString()}원</p>
                                 )}

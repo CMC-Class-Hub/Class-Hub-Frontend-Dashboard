@@ -86,8 +86,8 @@ export default function DashboardLayout({
                                 setSidebarOpen(false);
                             }}
                             className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-200 ${isActive("/dashboard/classes")
-                                    ? "bg-[#E8F3FF] text-[#3182F6]"
-                                    : "text-[#4E5968] hover:bg-[#F2F4F6]"
+                                ? "bg-[#E8F3FF] text-[#3182F6]"
+                                : "text-[#4E5968] hover:bg-[#F2F4F6]"
                                 }`}
                         >
                             <Calendar className="h-5 w-5" />
@@ -100,8 +100,8 @@ export default function DashboardLayout({
                                 setSidebarOpen(false);
                             }}
                             className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-200 ${isActive("/dashboard/messages")
-                                    ? "bg-[#E8F3FF] text-[#3182F6]"
-                                    : "text-[#4E5968] hover:bg-[#F2F4F6]"
+                                ? "bg-[#E8F3FF] text-[#3182F6]"
+                                : "text-[#4E5968] hover:bg-[#F2F4F6]"
                                 }`}
                         >
                             <MessageSquare className="h-5 w-5" />
@@ -114,8 +114,8 @@ export default function DashboardLayout({
                                 setSidebarOpen(false);
                             }}
                             className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-200 ${isActive("/dashboard/profile")
-                                    ? "bg-[#E8F3FF] text-[#3182F6]"
-                                    : "text-[#4E5968] hover:bg-[#F2F4F6]"
+                                ? "bg-[#E8F3FF] text-[#3182F6]"
+                                : "text-[#4E5968] hover:bg-[#F2F4F6]"
                                 }`}
                         >
                             <Settings className="h-5 w-5" />
@@ -148,7 +148,7 @@ export default function DashboardLayout({
 
             {/* 메인 컨텐츠 영역 */}
             <div className="md:pl-72 pt-16 md:pt-0 min-h-screen">
-                <main className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+                <main className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
                     {children}
                 </main>
             </div>
