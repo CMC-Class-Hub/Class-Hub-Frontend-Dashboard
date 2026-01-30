@@ -16,7 +16,7 @@ const features = [
     {
         icon: <Users className="w-8 h-8 text-[#3182F6]" />,
         title: "수강생 통합 관리",
-        description: "신청자 명단부터 출석 여부까지 한 번에. 수강 이력과 신뢰도(No-Show)를 관리하여 효율적으로 운영하세요."
+        description: "신청자 명단부터 문자 발송 여부까지 한 번에. 수강 이력과 신뢰도(No-Show)를 관리하여 효율적으로 운영하세요."
     }
 ];
 
