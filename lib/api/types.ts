@@ -24,11 +24,14 @@ export interface ClassTemplate {
   preparation?: string;
   instructions?: string;
   notes?: string;
-  capacity: number;
+
   depositAmount?: number;
   cancellationPolicy?: string;
   noShowPolicy?: string;
   status: ClassTemplateStatus;
+  images?: string[];
+  price?: number;
+  parkingInfo?: string;
   createdAt: string;
 }
 
@@ -41,6 +44,7 @@ export interface ClassSession {
   startTime: string;
   endTime: string;
   status: ClassStatus;
+  capacity: number;
   linkId: string;
   createdAt: string;
 }
@@ -166,6 +170,7 @@ export interface User {
 export interface LoginRequest {
   email: string;
   password: string;
+  name?: string; // Optional for login, but might be used if unified
 }
 
 export interface SignUpRequest {
@@ -192,10 +197,13 @@ export interface CreateTemplateRequest {
   preparation?: string;
   instructions?: string;
   notes?: string;
-  capacity: number;
+
   depositAmount?: number;
   cancellationPolicy?: string;
   noShowPolicy?: string;
+  images?: string[];
+  price?: number;
+  parkingInfo?: string;
 }
 
 export interface UpdateTemplateRequest extends Partial<CreateTemplateRequest> {
@@ -206,13 +214,16 @@ export interface CreateSessionRequest {
   templateId: string;
   date: string;
   startTime: string;
+
   endTime: string;
+  capacity: number;
 }
 
 export interface UpdateSessionRequest {
   date?: string;
   startTime?: string;
   endTime?: string;
+  capacity?: number;
   status?: ClassStatus;
 }
 

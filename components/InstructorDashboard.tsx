@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { type User, type Message, type MessageTemplateType } from '@/lib/api';
+import { type User, type Message } from '@/lib/api';
 import {
   api,
   templateApi,
@@ -22,13 +22,19 @@ import {
   type ClassSession,
   type Application,
   type Student,
+  type MessageTemplate,
+  type MessageTemplateType,
 } from '@/lib/api';
 import { ServerStatus } from '@/components/ServerStatus';
+import { ImageUpload } from '@/components/ui/ImageUpload';
+import { AddressSearchInput } from '@/components/ui/AddressSearchInput';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
 type NavItem = 'classes' | 'messages' | 'profile';
 
+// 클래스 생성 폼 컴포넌트 (별도 분리하여 포커스 문제 해결)
+// 클래스 생성 폼 컴포넌트 (별도 분리하여 포커스 문제 해결)
 // 클래스 생성 폼 컴포넌트 (별도 분리하여 포커스 문제 해결)
 function CreateClassForm({ onSubmit, onCancel }: {
   onSubmit: (data: {
@@ -38,8 +44,10 @@ function CreateClassForm({ onSubmit, onCancel }: {
     locationDetails: string;
     preparation: string;
     instructions: string;
-    notes: string;
-    capacity: number;
+    images?: string[];
+    price?: number;
+    parkingInfo?: string;
+    cancellationPolicy?: string;
   }) => void;
   onCancel: () => void;
 }) {
@@ -49,8 +57,10 @@ function CreateClassForm({ onSubmit, onCancel }: {
   const [locationDetails, setLocationDetails] = useState('');
   const [preparation, setPreparation] = useState('');
   const [instructions, setInstructions] = useState('');
-  const [notes, setNotes] = useState('');
-  const [capacity, setCapacity] = useState(10);
+  const [images, setImages] = useState<string[]>([]);
+  const [price, setPrice] = useState(0);
+  const [parkingInfo, setParkingInfo] = useState('');
+  const [cancellationPolicy, setCancellationPolicy] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,13 +71,21 @@ function CreateClassForm({ onSubmit, onCancel }: {
       locationDetails,
       preparation,
       instructions,
-      notes,
-      capacity,
+
+      images,
+      price,
+      parkingInfo,
+      cancellationPolicy,
     });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label>대표 이미지 (여러 장 선택 가능)</Label>
+        <ImageUpload values={images} onChange={setImages} />
+      </div>
+
       <div className="space-y-2">
         <Label htmlFor="className">클래스명 *</Label>
         <Input
@@ -92,13 +110,23 @@ function CreateClassForm({ onSubmit, onCancel }: {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="classLocation">장소 *</Label>
+        <Label htmlFor="classPrice">1인 가격 (원)</Label>
         <Input
-          id="classLocation"
+          id="classPrice"
+          type="number"
+          min="0"
+          value={price}
+          onChange={(e) => setPrice(parseInt(e.target.value) || 0)}
+          placeholder="0"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="classLocation">장소 *</Label>
+        <AddressSearchInput
           value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          placeholder="예: 서울시 강남구 테헤란로 123"
-          required
+          onChange={setLocation}
+          placeholder="주소 검색 (클릭)"
         />
       </div>
 
@@ -108,22 +136,25 @@ function CreateClassForm({ onSubmit, onCancel }: {
           id="classLocationDetails"
           value={locationDetails}
           onChange={(e) => setLocationDetails(e.target.value)}
-          placeholder="건물 입구, 주차 정보 등"
+          placeholder="건물 입구, 주차 정보 등 상세 주소"
           rows={2}
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="classCapacity">정원 *</Label>
-        <Input
-          id="classCapacity"
-          type="number"
-          min="1"
-          value={capacity}
-          onChange={(e) => setCapacity(parseInt(e.target.value) || 1)}
-          required
+        <Label htmlFor="classParkingInfo">주차 안내</Label>
+        <Textarea
+          id="classParkingInfo"
+          value={parkingInfo}
+          onChange={(e) => setParkingInfo(e.target.value)}
+          placeholder="주차 가능 여부 및 주차장 위치 안내"
+          rows={2}
         />
       </div>
+
+
+
+
 
       <div className="space-y-2">
         <Label htmlFor="classPreparation">준비물</Label>
@@ -137,24 +168,24 @@ function CreateClassForm({ onSubmit, onCancel }: {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="classInstructions">주의사항</Label>
+        <Label htmlFor="classInstructions">안내사항</Label>
         <Textarea
           id="classInstructions"
           value={instructions}
           onChange={(e) => setInstructions(e.target.value)}
-          placeholder="수강생에게 전달할 주의사항"
+          placeholder="수강생에게 전달할 추가 안내사항"
           rows={3}
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="classNotes">추가 안내</Label>
+        <Label htmlFor="classCancellationPolicy">취소/환불 규정</Label>
         <Textarea
-          id="classNotes"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="기타 안내사항"
-          rows={2}
+          id="classCancellationPolicy"
+          value={cancellationPolicy}
+          onChange={(e) => setCancellationPolicy(e.target.value)}
+          placeholder="취소 및 환불에 대한 규정"
+          rows={3}
         />
       </div>
 
@@ -171,6 +202,8 @@ function CreateClassForm({ onSubmit, onCancel }: {
 }
 
 // 클래스 수정 폼 컴포넌트
+// 클래스 수정 폼 컴포넌트
+// 클래스 수정 폼 컴포넌트
 function EditClassForm({ template, onSubmit, onCancel }: {
   template: ClassTemplate;
   onSubmit: (data: {
@@ -180,8 +213,10 @@ function EditClassForm({ template, onSubmit, onCancel }: {
     locationDetails: string;
     preparation: string;
     instructions: string;
-    notes: string;
-    capacity: number;
+    images?: string[];
+    price?: number;
+    parkingInfo?: string;
+    cancellationPolicy?: string;
   }) => void;
   onCancel: () => void;
 }) {
@@ -191,8 +226,10 @@ function EditClassForm({ template, onSubmit, onCancel }: {
   const [locationDetails, setLocationDetails] = useState(template.locationDetails || '');
   const [preparation, setPreparation] = useState(template.preparation || '');
   const [instructions, setInstructions] = useState(template.instructions || '');
-  const [notes, setNotes] = useState(template.notes || '');
-  const [capacity, setCapacity] = useState(template.capacity);
+  const [images, setImages] = useState<string[]>(template.images || []);
+  const [price, setPrice] = useState(template.price || 0);
+  const [parkingInfo, setParkingInfo] = useState(template.parkingInfo || '');
+  const [cancellationPolicy, setCancellationPolicy] = useState(template.cancellationPolicy || '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -203,13 +240,21 @@ function EditClassForm({ template, onSubmit, onCancel }: {
       locationDetails,
       preparation,
       instructions,
-      notes,
-      capacity,
+
+      images,
+      price,
+      parkingInfo,
+      cancellationPolicy,
     });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label>대표 이미지 (여러 장 선택 가능)</Label>
+        <ImageUpload values={images} onChange={setImages} />
+      </div>
+
       <div className="space-y-2">
         <Label htmlFor="editClassName">클래스명 *</Label>
         <Input
@@ -234,13 +279,23 @@ function EditClassForm({ template, onSubmit, onCancel }: {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="editClassLocation">장소 *</Label>
+        <Label htmlFor="editClassPrice">1인 가격 (원)</Label>
         <Input
-          id="editClassLocation"
+          id="editClassPrice"
+          type="number"
+          min="0"
+          value={price}
+          onChange={(e) => setPrice(parseInt(e.target.value) || 0)}
+          placeholder="0"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="editClassLocation">장소 *</Label>
+        <AddressSearchInput
           value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          placeholder="예: 서울시 강남구 테헤란로 123"
-          required
+          onChange={setLocation}
+          placeholder="주소 검색 (클릭)"
         />
       </div>
 
@@ -250,22 +305,25 @@ function EditClassForm({ template, onSubmit, onCancel }: {
           id="editClassLocationDetails"
           value={locationDetails}
           onChange={(e) => setLocationDetails(e.target.value)}
-          placeholder="건물 입구, 주차 정보 등"
+          placeholder="건물 입구, 주차 정보 등 상세 주소"
           rows={2}
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="editClassCapacity">정원 *</Label>
-        <Input
-          id="editClassCapacity"
-          type="number"
-          min="1"
-          value={capacity}
-          onChange={(e) => setCapacity(parseInt(e.target.value) || 1)}
-          required
+        <Label htmlFor="editClassParkingInfo">주차 안내</Label>
+        <Textarea
+          id="editClassParkingInfo"
+          value={parkingInfo}
+          onChange={(e) => setParkingInfo(e.target.value)}
+          placeholder="주차 가능 여부 및 주차장 위치 안내"
+          rows={2}
         />
       </div>
+
+
+
+
 
       <div className="space-y-2">
         <Label htmlFor="editClassPreparation">준비물</Label>
@@ -279,24 +337,24 @@ function EditClassForm({ template, onSubmit, onCancel }: {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="editClassInstructions">주의사항</Label>
+        <Label htmlFor="editClassInstructions">안내사항</Label>
         <Textarea
           id="editClassInstructions"
           value={instructions}
           onChange={(e) => setInstructions(e.target.value)}
-          placeholder="수강생에게 전달할 주의사항"
+          placeholder="수강생에게 전달할 추가 안내사항"
           rows={3}
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="editClassNotes">추가 안내</Label>
+        <Label htmlFor="editClassCancellationPolicy">취소/환불 규정</Label>
         <Textarea
-          id="editClassNotes"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="기타 안내사항"
-          rows={2}
+          id="editClassCancellationPolicy"
+          value={cancellationPolicy}
+          onChange={(e) => setCancellationPolicy(e.target.value)}
+          placeholder="취소 및 환불에 대한 규정"
+          rows={3}
         />
       </div>
 
@@ -314,15 +372,16 @@ function EditClassForm({ template, onSubmit, onCancel }: {
 
 // 세션 추가 폼 컴포넌트
 function AddSessionForm({ onSubmit }: {
-  onSubmit: (data: { date: string; startTime: string; endTime: string }) => void;
+  onSubmit: (data: { date: string; startTime: string; endTime: string; capacity: number }) => void;
 }) {
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
+  const [capacity, setCapacity] = useState(10);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ date, startTime, endTime });
+    onSubmit({ date, startTime, endTime, capacity });
   };
 
   return (
@@ -357,6 +416,17 @@ function AddSessionForm({ onSubmit }: {
             required
           />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>정원 *</Label>
+        <Input
+          type="number"
+          min="1"
+          value={capacity}
+          onChange={(e) => setCapacity(parseInt(e.target.value) || 1)}
+          required
+        />
       </div>
 
       <Button type="submit" className="w-full">세션 생성</Button>
@@ -601,8 +671,10 @@ export function InstructorDashboard() {
     locationDetails: string;
     preparation: string;
     instructions: string;
-    notes: string;
-    capacity: number;
+    images?: string[];
+    price?: number;
+    parkingInfo?: string;
+    cancellationPolicy?: string;
   }) => {
     if (!user) return;
 
@@ -613,8 +685,11 @@ export function InstructorDashboard() {
       locationDetails: data.locationDetails,
       preparation: data.preparation,
       instructions: data.instructions,
-      notes: data.notes,
-      capacity: data.capacity,
+
+      images: data.images,
+      price: data.price,
+      parkingInfo: data.parkingInfo,
+      cancellationPolicy: data.cancellationPolicy,
     });
 
     setCreateDialogOpen(false);
@@ -636,8 +711,10 @@ export function InstructorDashboard() {
     locationDetails: string;
     preparation: string;
     instructions: string;
-    notes: string;
-    capacity: number;
+    images?: string[];
+    price?: number;
+    parkingInfo?: string;
+    cancellationPolicy?: string;
   }) => {
     if (!user || !selectedTemplate) return;
 
@@ -648,8 +725,10 @@ export function InstructorDashboard() {
       locationDetails: data.locationDetails,
       preparation: data.preparation,
       instructions: data.instructions,
-      notes: data.notes,
-      capacity: data.capacity,
+      images: data.images,
+      price: data.price,
+      parkingInfo: data.parkingInfo,
+      cancellationPolicy: data.cancellationPolicy,
     });
 
     setEditDialogOpen(false);
@@ -657,7 +736,7 @@ export function InstructorDashboard() {
     await loadTemplates(user.id);
   };
 
-  const handleAddSession = async (data: { date: string; startTime: string; endTime: string }) => {
+  const handleAddSession = async (data: { date: string; startTime: string; endTime: string; capacity: number }) => {
     if (!selectedTemplate || !user) return;
 
     await sessionApi.create(user.id, {
@@ -665,6 +744,8 @@ export function InstructorDashboard() {
       date: data.date,
       startTime: data.startTime,
       endTime: data.endTime,
+      capacity: data.capacity,
+
     });
 
     setAddSessionDialogOpen(false);
@@ -836,7 +917,7 @@ export function InstructorDashboard() {
           <Card className="hover:shadow-md">
             <CardHeader className="p-5 md:p-6">
               <CardTitle className="text-base md:text-lg">신청자 목록</CardTitle>
-              <CardDescription className="text-sm">총 <span className="font-semibold text-[#3182F6]">{applications.length}명</span> / 정원 {selectedTemplate.capacity}명</CardDescription>
+              <CardDescription className="text-sm">총 <span className="font-semibold text-[#3182F6]">{applications.length}명</span> / 정원 {selectedSession.capacity}명</CardDescription>
             </CardHeader>
             <CardContent className="p-5 md:p-6 pt-0 md:pt-0">
               {applications.length === 0 ? (
@@ -910,7 +991,7 @@ export function InstructorDashboard() {
                   <CardDescription className="mt-2 text-sm">{selectedTemplate.description}</CardDescription>
                   <div className="mt-4 space-y-2 text-sm text-[#4E5968]">
                     <p><span className="font-semibold text-[#191F28]">장소:</span> {selectedTemplate.location}</p>
-                    <p><span className="font-semibold text-[#191F28]">정원:</span> {selectedTemplate.capacity}명</p>
+                    <p><span className="font-semibold text-[#191F28]">장소:</span> {selectedTemplate.location}</p>
                     {selectedTemplate.preparation && (
                       <p><span className="font-semibold text-[#191F28]">준비물:</span> {selectedTemplate.preparation}</p>
                     )}
@@ -999,7 +1080,7 @@ export function InstructorDashboard() {
                             </Badge>
                           </div>
                           <p className="text-xs md:text-sm text-[#6B7684]">
-                            신청 <span className="font-semibold text-[#3182F6]">{confirmedCount}명</span> / 정원 {selectedTemplate.capacity}명
+                            신청 <span className="font-semibold text-[#3182F6]">{confirmedCount}명</span> / 정원 {session.capacity}명
                           </p>
                         </div>
 
