@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Link2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -115,7 +116,9 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
         // TODO: Use real link
         const url = 'https://classhub-link.vercel.app/class/test';
         navigator.clipboard.writeText(url);
-        alert('테스트 링크가 복사되었습니다!');
+        toast.success("링크가 복사되었습니다", {
+            description: "수강생들에게 이 링크를 공유하여 신청을 받을 수 있어요."
+        });
     };
 
     if (!template) {
