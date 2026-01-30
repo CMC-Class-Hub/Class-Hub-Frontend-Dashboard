@@ -1,9 +1,7 @@
 // API 설정 - 백엔드 주소를 한 곳에서 관리
 
-// 백엔드 API URL (기본값: https://classhub.site)
-// 개발 시 .env.local에서 NEXT_PUBLIC_BACKEND_API_URL=http://localhost:8080 로 설정하면 로컬 서버 이용
-export const API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'https://classhub.site';
+// 백엔드 API URL (기본값: http://localhost:8080)
+export const API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:8080';
 
-// Mock 모드 설정 (기본값: false)
-// 개발 시 .env.local에서 NEXT_PUBLIC_USE_MOCK=true 로 설정하면 Mock 모드 활성화
-export const USE_MOCK = (process.env.NEXT_PUBLIC_USE_MOCK ?? 'true') === 'true'; // (임시) 백엔드 개발 전까지 기본값 false
+// Mock 모드 설정 (기본값: true. 'false'로 설정했을 때만 Real API 사용)
+export const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK !== 'false';
