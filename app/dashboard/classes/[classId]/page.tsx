@@ -1,0 +1,228 @@
+"use client";
+
+import { useState, useEffect, use } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Link2, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { api, templateApi, sessionApi, applicationApi, type ClassTemplate, type ClassSession } from "@/lib/api";
+import { EditClassForm } from "@/components/dashboard/EditClassForm";
+import { AddSessionForm } from "@/components/dashboard/AddSessionForm";
+import { SessionList } from "@/components/dashboard/SessionList";
+import { EditSessionForm } from "@/components/dashboard/EditSessionForm";
+
+export default function ClassDetailPage({ params }: { params: Promise<{ classId: string }> }) {
+    const router = useRouter();
+    const { classId } = use(params);
+    const [template, setTemplate] = useState<ClassTemplate | null>(null);
+    const [sessions, setSessions] = useState<ClassSession[]>([]);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [addSessionDialogOpen, setAddSessionDialogOpen] = useState(false);
+    const [editingSession, setEditingSession] = useState<ClassSession | null>(null);
+    const [sessionApplicationCounts, setSessionApplicationCounts] = useState<Record<string, number>>({});
+    const [user, setUser] = useState<any>(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const currentUser = await api.auth.getCurrentUser();
+            if (currentUser) {
+                setUser(currentUser);
+                // Fetch template details
+                // Since we don't have getById, we fetch all and find (Mock limitations)
+                // In real API, we should have getById
+                const templates = await templateApi.getAll(currentUser.id);
+                const found = templates.find(t => t.id === classId);
+                if (found) {
+                    setTemplate(found);
+                    loadSessions(found.id);
+                } else {
+                    // Handle not found
+                    router.push('/dashboard/classes');
+                }
+            }
+        };
+        fetchData();
+    }, [classId, router]);
+
+    const loadSessions = async (templateId: string) => {
+        const templateSessions = await sessionApi.getByTemplateId(templateId);
+        setSessions(templateSessions);
+    };
+
+    // 세션 목록의 신청자 수 로드
+    useEffect(() => {
+        const loadApplicationCounts = async () => {
+            if (sessions.length > 0) {
+                const counts: Record<string, number> = {};
+                for (const session of sessions) {
+                    const apps = await applicationApi.getBySessionId(session.id);
+                    counts[session.id] = apps.filter(a => a.status === 'CONFIRMED').length;
+                }
+                setSessionApplicationCounts(counts);
+            }
+        };
+
+        loadApplicationCounts();
+    }, [sessions]);
+
+
+    const handleEditTemplate = async (data: any) => {
+        if (!template || !user) return;
+
+        const updatedTemplate = await templateApi.update(template.id, data);
+        setTemplate(updatedTemplate);
+        setEditDialogOpen(false);
+    };
+
+    const handleAddSession = async (data: any) => {
+        if (!template || !user) return;
+
+        await sessionApi.create(user.id, {
+            templateId: template.id,
+            ...data
+        });
+
+        setAddSessionDialogOpen(false);
+        await loadSessions(template.id);
+    };
+
+    const handleEditSession = async (data: any) => {
+        if (!editingSession || !template) return;
+
+        await sessionApi.update(editingSession.id, data);
+        setEditingSession(null);
+        await loadSessions(template.id);
+    };
+
+    const handleDeleteSession = async (sessionId: string) => {
+        if (confirm('이 세션을 삭제하시겠습니까?')) {
+            await sessionApi.delete(sessionId);
+            if (template) {
+                await loadSessions(template.id);
+            }
+        }
+    };
+
+    const copyLink = () => {
+        // TODO: Use real link
+        const url = 'https://classhub-link.vercel.app/class/test';
+        navigator.clipboard.writeText(url);
+        alert('테스트 링크가 복사되었습니다!');
+    };
+
+    if (!template) {
+        return <div className="p-8 text-center text-[#8B95A1]">로딩 중...</div>;
+    }
+
+    return (
+        <div className="space-y-6">
+            <Button variant="ghost" onClick={() => router.push('/dashboard/classes')} className="px-3 text-[#6B7684] hover:text-[#191F28] -ml-2 mb-4 w-fit">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                클래스 목록으로
+            </Button>
+
+            {/* 클래스 정보 카드 */}
+            <Card>
+                <CardHeader className="p-5 md:p-6">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                        <div className="space-y-1 flex-1">
+                            <CardTitle className="text-xl md:text-2xl">{template.name}</CardTitle>
+                            <CardDescription className="text-sm md:text-base mt-2">
+                                {template.description}
+                            </CardDescription>
+
+                            <div className="mt-4 flex flex-wrap gap-2">
+                                <Badge variant="secondary" className="text-xs md:text-sm px-2 py-1">
+                                    {template.location}
+                                </Badge>
+                            </div>
+
+                            <div className="mt-4 space-y-2 text-sm text-[#4E5968]">
+                                {template.locationDetails && (
+                                    <p><span className="font-semibold text-[#191F28]">상세위치:</span> {template.locationDetails}</p>
+                                )}
+                                {(template.price !== undefined) && (
+                                    <p><span className="font-semibold text-[#191F28]">가격:</span> {template.price.toLocaleString()}원</p>
+                                )}
+                                {template.preparation && (
+                                    <p><span className="font-semibold text-[#191F28]">준비물:</span> {template.preparation}</p>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-2 min-w-fit">
+                            <Button variant="outline" onClick={copyLink} className="w-full sm:w-auto">
+                                <Link2 className="h-4 w-4 mr-2" />
+                                클래스 링크
+                            </Button>
+                            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline" className="w-full sm:w-auto">
+                                        수정
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4 md:mx-auto rounded-3xl">
+                                    <DialogHeader>
+                                        <DialogTitle className="text-xl font-bold text-[#191F28]">클래스 수정</DialogTitle>
+                                    </DialogHeader>
+                                    <EditClassForm
+                                        template={template}
+                                        onSubmit={handleEditTemplate}
+                                        onCancel={() => setEditDialogOpen(false)}
+                                    />
+                                </DialogContent>
+                            </Dialog>
+                        </div>
+                    </div>
+                </CardHeader>
+            </Card>
+
+            {/* 세션 목록 섹션 */}
+            <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                    <h2 className="text-lg md:text-xl font-bold text-[#191F28]">세션 목록</h2>
+                    <Dialog open={addSessionDialogOpen} onOpenChange={setAddSessionDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button className="w-full sm:w-auto">
+                                <Plus className="mr-2 h-4 w-4" />
+                                세션 추가
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="mx-4 md:mx-auto rounded-3xl">
+                            <DialogHeader>
+                                <DialogTitle className="text-xl font-bold text-[#191F28]">새 세션 추가</DialogTitle>
+                            </DialogHeader>
+                            <AddSessionForm onSubmit={handleAddSession} />
+                        </DialogContent>
+                    </Dialog>
+                </div>
+
+                <SessionList
+                    sessions={sessions}
+                    sessionApplicationCounts={sessionApplicationCounts}
+                    onDeleteSession={handleDeleteSession}
+                    onEditSession={setEditingSession}
+                    classId={classId}
+                />
+
+                {/* 세션 수정 다이얼로그 */}
+                <Dialog open={!!editingSession} onOpenChange={(open) => !open && setEditingSession(null)}>
+                    <DialogContent className="mx-4 md:mx-auto rounded-3xl">
+                        <DialogHeader>
+                            <DialogTitle className="text-xl font-bold text-[#191F28]">세션 수정</DialogTitle>
+                        </DialogHeader>
+                        {editingSession && (
+                            <EditSessionForm
+                                session={editingSession}
+                                onSubmit={handleEditSession}
+                                onCancel={() => setEditingSession(null)}
+                            />
+                        )}
+                    </DialogContent>
+                </Dialog>
+            </div>
+        </div>
+    );
+}

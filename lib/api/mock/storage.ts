@@ -96,8 +96,23 @@ export const setMessageTemplates = (templates: MessageTemplate[]): void =>
 // Utility Functions
 // ============================================================
 
+// Simple sequential ID generator
 export const generateId = (prefix: string): string => {
-  return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  if (typeof window === 'undefined') {
+    return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  const countersKey = 'ops_id_counters';
+  const countersStr = localStorage.getItem(countersKey);
+  const counters = countersStr ? JSON.parse(countersStr) : {};
+
+  const currentCount = counters[prefix] || 0;
+  const nextCount = currentCount + 1;
+
+  counters[prefix] = nextCount;
+  localStorage.setItem(countersKey, JSON.stringify(counters));
+
+  return String(nextCount);
 };
 
 export const generateLinkId = (): string => {

@@ -1,0 +1,157 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { Menu, X, LogOut, Calendar, MessageSquare, Settings } from "lucide-react";
+import { api } from "@/lib/api";
+import type { User } from "@/lib/api/types";
+
+export default function DashboardLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    const router = useRouter();
+    const pathname = usePathname();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [user, setUser] = useState<User | null>(null);
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            const currentUser = await api.auth.getCurrentUser();
+            if (!currentUser) {
+                router.push("/login");
+                return;
+            }
+            setUser(currentUser);
+        };
+        checkAuth();
+    }, [router]);
+
+    const handleLogout = async () => {
+        await api.auth.logout();
+        router.push("/login");
+    };
+
+    if (!user) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[#F2F4F6]">
+                <div className="w-12 h-12 border-4 border-[#E5E8EB] border-t-[#3182F6] rounded-full animate-spin mb-4"></div>
+                <p className="text-[#8B95A1] font-medium">로딩 중...</p>
+            </div>
+        );
+    }
+
+    // Helper to check active link
+    const isActive = (path: string) => pathname?.startsWith(path);
+
+    return (
+        <div className="min-h-screen bg-[#F2F4F6]">
+            {/* 모바일 오버레이 배경 */}
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
+
+            {/* 사이드바 */}
+            <div
+                className={`
+        w-72 bg-white border-r border-[#E5E8EB] h-screen fixed left-0 top-0 flex flex-col z-50
+        transform transition-transform duration-300 ease-out
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        md:translate-x-0
+      `}
+            >
+                <div className="p-6 border-b border-[#E5E8EB] flex items-center justify-between">
+                    <div>
+                        <h2 className="text-xl font-bold text-[#3182F6]">Class Hub</h2>
+                        <p className="text-sm text-[#8B95A1] mt-1">{user.name}님</p>
+                    </div>
+                    {/* 모바일 닫기 버튼 */}
+                    <button
+                        onClick={() => setSidebarOpen(false)}
+                        className="md:hidden p-2 rounded-xl hover:bg-[#F2F4F6] transition-colors"
+                    >
+                        <X className="h-5 w-5 text-[#6B7684]" />
+                    </button>
+                </div>
+
+                <nav className="flex-1 p-4">
+                    <div className="space-y-1">
+                        <button
+                            onClick={() => {
+                                router.push("/dashboard/classes");
+                                setSidebarOpen(false);
+                            }}
+                            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-200 ${isActive("/dashboard/classes")
+                                    ? "bg-[#E8F3FF] text-[#3182F6]"
+                                    : "text-[#4E5968] hover:bg-[#F2F4F6]"
+                                }`}
+                        >
+                            <Calendar className="h-5 w-5" />
+                            <span className="font-semibold">클래스 관리</span>
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                router.push("/dashboard/messages");
+                                setSidebarOpen(false);
+                            }}
+                            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-200 ${isActive("/dashboard/messages")
+                                    ? "bg-[#E8F3FF] text-[#3182F6]"
+                                    : "text-[#4E5968] hover:bg-[#F2F4F6]"
+                                }`}
+                        >
+                            <MessageSquare className="h-5 w-5" />
+                            <span className="font-semibold">메시지 템플릿</span>
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                router.push("/dashboard/profile");
+                                setSidebarOpen(false);
+                            }}
+                            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-200 ${isActive("/dashboard/profile")
+                                    ? "bg-[#E8F3FF] text-[#3182F6]"
+                                    : "text-[#4E5968] hover:bg-[#F2F4F6]"
+                                }`}
+                        >
+                            <Settings className="h-5 w-5" />
+                            <span className="font-semibold">정보 수정</span>
+                        </button>
+                    </div>
+                </nav>
+
+                <div className="p-4 border-t border-[#E5E8EB]">
+                    <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-[#6B7684] hover:bg-[#F2F4F6] transition-all duration-200"
+                    >
+                        <LogOut className="h-5 w-5" />
+                        <span className="font-semibold">로그아웃</span>
+                    </button>
+                </div>
+            </div>
+
+            {/* 모바일 헤더 */}
+            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-[#E5E8EB] z-30 flex items-center px-4 shadow-sm">
+                <button
+                    onClick={() => setSidebarOpen(true)}
+                    className="p-2.5 rounded-xl hover:bg-[#F2F4F6] transition-colors active:scale-95"
+                >
+                    <Menu className="h-6 w-6 text-[#4E5968]" />
+                </button>
+                <h1 className="ml-3 font-bold text-[#3182F6] text-lg">Class Hub</h1>
+            </div>
+
+            {/* 메인 컨텐츠 영역 */}
+            <div className="md:pl-72 pt-16 md:pt-0 min-h-screen">
+                <main className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+                    {children}
+                </main>
+            </div>
+        </div>
+    );
+}

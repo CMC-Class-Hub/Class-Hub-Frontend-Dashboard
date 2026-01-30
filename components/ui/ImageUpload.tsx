@@ -24,8 +24,23 @@ export function ImageUpload({ values = [], onChange, disabled }: ImageUploadProp
         if (files && files.length > 0) {
             const newImages: string[] = [];
             let processedCount = 0;
+            let hasError = false;
 
             Array.from(files).forEach((file) => {
+                // Check file size (e.g., 5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`파일 Size가 너무 큽니다: ${file.name} (5MB 이하만 가능)`);
+                    hasError = true;
+                    // Skip this file but continue others? Or abort?
+                    // For simplicity, we just count it as processed but don't add
+                    processedCount++;
+                    if (processedCount === files.length && !hasError) {
+                        // Only update if no error for now? Or partial?
+                        // Logic below assumes partial success allowed if we push
+                    }
+                    return;
+                }
+
                 const reader = new FileReader();
                 reader.onloadend = () => {
                     const base64String = reader.result as string;
@@ -103,7 +118,7 @@ export function ImageUpload({ values = [], onChange, disabled }: ImageUploadProp
                 type="file"
                 accept="image/*"
                 multiple
-                className="hidden"
+                style={{ display: 'none' }}
                 onChange={handleFileChange}
                 disabled={disabled}
             />

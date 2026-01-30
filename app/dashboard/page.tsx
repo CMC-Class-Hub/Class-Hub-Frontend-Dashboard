@@ -1,7 +1,5 @@
-"use client";
-
-import { InstructorDashboard } from "@/components/InstructorDashboard";
+import { redirect } from "next/navigation";
 
 export default function DashboardPage() {
-  return <InstructorDashboard />;
+  redirect("/dashboard/classes");
 }
