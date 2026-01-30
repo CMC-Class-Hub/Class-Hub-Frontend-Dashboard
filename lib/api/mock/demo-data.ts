@@ -39,7 +39,6 @@ export const initializeDemoData = async (instructorId: string): Promise<void> =>
     preparation: '요가매트, 편안한 운동복, 물',
     instructions: '수업 10분 전까지 도착해주세요.',
     notes: '처음 오시는 분들은 미리 말씀해주시면 기초부터 알려드립니다.',
-    capacity: 12,
     depositAmount: 15000,
     cancellationPolicy: '24시간 전 취소 시 전액 환급',
     noShowPolicy: '노쇼 시 보증금 환급 불가',
