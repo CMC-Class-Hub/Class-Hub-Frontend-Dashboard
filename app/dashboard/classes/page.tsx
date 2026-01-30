@@ -19,6 +19,7 @@ export default function ClassesPage() {
         const checkAuth = async () => {
             const currentUser = await api.auth.getCurrentUser();
             if (currentUser) {
+                await api.initializeDemoData(currentUser.id);
                 setUser(currentUser);
                 loadTemplates(currentUser.id);
             }
