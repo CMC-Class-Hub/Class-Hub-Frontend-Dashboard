@@ -22,7 +22,7 @@ yarn install
 # 1. 백엔드 API 주소 (기본값: http://localhost:8080)
 NEXT_PUBLIC_BACKEND_API_URL=http://localhost:8080
 
-# 2. API 모드 설정 (false: 실제 서버 사용, 그 외: Mock API 사용)
+# 2. API 모드 설정 (true: Mock API 사용, false: 실제 서버 API 사용)
 # 기본값은 true(Mock)이므로, 실제 서버를 사용할 때만 false로 설정하세요.
 NEXT_PUBLIC_USE_MOCK=false
 ```
