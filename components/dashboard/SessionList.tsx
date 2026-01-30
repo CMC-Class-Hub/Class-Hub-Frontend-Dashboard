@@ -9,18 +9,27 @@ import { ko } from "date-fns/locale";
 import type { ClassSession } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 interface SessionListProps {
     sessions: ClassSession[];
     sessionApplicationCounts: Record<string, number>;
     onDeleteSession: (sessionId: string) => void;
     onEditSession: (session: ClassSession) => void;
+    onStatusChange?: (sessionId: string, newStatus: 'RECRUITING' | 'CLOSED' | 'FINISHED') => void;
     classId: string;
 }
 
-export function SessionList({ sessions, sessionApplicationCounts, onDeleteSession, onEditSession, classId }: SessionListProps) {
+export function SessionList({ sessions, sessionApplicationCounts, onDeleteSession, onEditSession, onStatusChange, classId }: SessionListProps) {
     const router = useRouter();
 
     if (sessions.length === 0) {
+        // ... (unchanged)
         return (
             <Card className="hover:shadow-md">
                 <CardContent className="p-10 md:p-14 text-center">
@@ -55,9 +64,35 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                                         <Badge variant="outline" className="text-xs">
                                             {session.startTime} - {session.endTime}
                                         </Badge>
-                                        <Badge variant={session.status === 'RECRUITING' ? 'default' : 'secondary'} className="text-xs">
-                                            {session.status === 'RECRUITING' ? '모집중' : session.status === 'CLOSED' ? '마감' : '종료'}
-                                        </Badge>
+
+                                        {onStatusChange ? (
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Badge
+                                                        variant={session.status === 'RECRUITING' ? 'default' : 'secondary'}
+                                                        className={`text-xs cursor-pointer hover:opacity-80 transition-opacity min-w-[60px] justify-center ${session.status !== 'RECRUITING' ? 'bg-[#E5E8EB] text-[#4E5968] hover:bg-[#D1D6DB]' : ''
+                                                            }`}
+                                                    >
+                                                        {session.status === 'RECRUITING' ? '모집중' : session.status === 'CLOSED' ? '마감' : '종료'} ▾
+                                                    </Badge>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="start">
+                                                    <DropdownMenuItem onClick={() => onStatusChange(session.id, 'RECRUITING')}>
+                                                        모집중
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => onStatusChange(session.id, 'CLOSED')}>
+                                                        마감
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => onStatusChange(session.id, 'FINISHED')}>
+                                                        종료
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        ) : (
+                                            <Badge variant={session.status === 'RECRUITING' ? 'default' : 'secondary'} className="text-xs">
+                                                {session.status === 'RECRUITING' ? '모집중' : session.status === 'CLOSED' ? '마감' : '종료'}
+                                            </Badge>
+                                        )}
                                     </div>
                                     <p className="text-xs md:text-sm text-[#6B7684]">
                                         신청 <span className="font-semibold text-[#3182F6]">{confirmedCount}명</span> / 정원 {session.capacity}명

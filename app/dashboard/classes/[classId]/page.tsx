@@ -96,6 +96,12 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
         await loadSessions(template.id);
     };
 
+    const handleStatusChange = async (sessionId: string, newStatus: 'RECRUITING' | 'CLOSED' | 'FINISHED') => {
+        if (!template) return;
+        await sessionApi.update(sessionId, { status: newStatus });
+        await loadSessions(template.id);
+    };
+
     const handleDeleteSession = async (sessionId: string) => {
         if (confirm('이 세션을 삭제하시겠습니까?')) {
             await sessionApi.delete(sessionId);
@@ -204,6 +210,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                     sessionApplicationCounts={sessionApplicationCounts}
                     onDeleteSession={handleDeleteSession}
                     onEditSession={setEditingSession}
+                    onStatusChange={handleStatusChange}
                     classId={classId}
                 />
 
