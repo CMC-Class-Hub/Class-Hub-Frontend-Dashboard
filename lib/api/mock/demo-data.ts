@@ -55,6 +55,7 @@ export const initializeDemoData = async (instructorId: string): Promise<void> =>
     startTime: '10:00',
     endTime: '11:30',
     status: 'RECRUITING',
+    capacity: 12,
     linkId: generateLinkId(),
     createdAt: new Date().toISOString(),
   };
@@ -67,6 +68,7 @@ export const initializeDemoData = async (instructorId: string): Promise<void> =>
     startTime: '14:00',
     endTime: '15:30',
     status: 'RECRUITING',
+    capacity: 12,
     linkId: generateLinkId(),
     createdAt: new Date().toISOString(),
   };
