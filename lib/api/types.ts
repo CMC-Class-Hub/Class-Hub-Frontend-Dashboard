@@ -180,6 +180,12 @@ export interface SignUpRequest {
   phoneNumber: string;
 }
 
+export interface LoginResponse { // 백엔드에서 보내는거 맞춰서 추가함.
+  userId: number;
+  accessToken?: string;
+
+}
+
 export interface AuthResponse {
   user: User;
   token?: string;
@@ -312,8 +318,8 @@ export interface IMessageHistoryApi {
 }
 
 export interface IAuthApi {
-  login(data: LoginRequest): Promise<AuthResponse>;
-  signUp(data: SignUpRequest): Promise<AuthResponse>;
+  login(data: LoginRequest): Promise<LoginResponse>;
+  signUp(data: SignUpRequest): Promise<LoginResponse>;
   logout(): Promise<void>;
   getCurrentUser(): Promise<User | null>;
   isLoggedIn(): Promise<boolean>;
