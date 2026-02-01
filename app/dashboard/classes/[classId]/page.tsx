@@ -34,7 +34,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                 // Since we don't have getById, we fetch all and find (Mock limitations)
                 // In real API, we should have getById
                 const templates = await templateApi.getAll(currentUser.id);
-                const found = templates.find(t => t.id === classId);
+                const found = templates.find(t => String(t.id) === classId);
                 if (found) {
                     setTemplate(found);
                     loadSessions(found.id);
@@ -59,7 +59,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                 const counts: Record<string, number> = {};
                 for (const session of sessions) {
                     const apps = await applicationApi.getBySessionId(session.id);
-                    counts[session.id] = apps.filter(a => a.status === 'CONFIRMED').length;
+                    counts[session.id] = apps.length;
                 }
                 setSessionApplicationCounts(counts);
             }
@@ -97,9 +97,9 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
         await loadSessions(template.id);
     };
 
-    const handleStatusChange = async (sessionId: string, newStatus: 'RECRUITING' | 'CLOSED' | 'FINISHED') => {
+    const handleStatusChange = async (sessionId: string, newStatus: 'RECRUITING' | 'CLOSED' | 'FULL') => {
         if (!template) return;
-        await sessionApi.update(sessionId, { status: newStatus });
+        await sessionApi.updateStatus(sessionId, newStatus);
         await loadSessions(template.id);
     };
 
