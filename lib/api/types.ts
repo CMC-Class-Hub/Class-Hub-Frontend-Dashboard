@@ -3,7 +3,7 @@
 // ============================================================
 
 // Status Types
-export type ClassStatus = 'RECRUITING' | 'CLOSED' | 'FINISHED';
+export type ClassStatus = 'RECRUITING' | 'CLOSED' | 'FULL';
 export type ClassTemplateStatus = 'ACTIVE' | 'INACTIVE';
 export type ApplicationStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'TIMEOUT' | 'NO_SHOW' | 'ATTENDED';
 export type PaymentMethod = 'CARD' | 'ACCOUNT';
@@ -24,7 +24,6 @@ export interface ClassTemplate {
   preparation?: string;
   instructions?: string;
   notes?: string;
-
   depositAmount?: number;
   cancellationPolicy?: string;
   noShowPolicy?: string;
@@ -44,6 +43,7 @@ export interface ClassSession {
   startTime: string;
   endTime: string;
   status: ClassStatus;
+  currentNum: number;
   capacity: number;
   linkId: string;
   createdAt: string;
@@ -75,6 +75,9 @@ export interface Application {
   id: string;
   classId: string;
   studentId: string;
+  applicantName?: string;
+  phoneNumber?: string;
+  reservationId?: number;
   status: ApplicationStatus;
   paymentMethod?: PaymentMethod;
   paymentStatus: PaymentStatus;
@@ -276,7 +279,7 @@ export interface ApiError {
 
 export interface ITemplateApi {
   getAll(instructorId: string): Promise<ClassTemplate[]>;
-  getById(id: string): Promise<ClassTemplate | null>;
+  getById(id: string, instructorId: string): Promise<ClassTemplate | null>;
   create(instructorId: string, data: CreateTemplateRequest): Promise<ClassTemplate>;
   update(id: string, data: UpdateTemplateRequest): Promise<ClassTemplate>;
   delete(id: string): Promise<void>;
@@ -288,6 +291,7 @@ export interface ISessionApi {
   create(instructorId: string, data: CreateSessionRequest): Promise<ClassSession>;
   update(id: string, data: UpdateSessionRequest): Promise<ClassSession>;
   delete(id: string): Promise<void>;
+  updateStatus(id: string, status: 'RECRUITING' | 'CLOSED' | 'FULL'): Promise<ClassSession>;
 }
 
 export interface IStudentApi {
