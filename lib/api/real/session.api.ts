@@ -6,14 +6,14 @@ export const sessionApiReal: ISessionApi = {
     const response = await fetch(`${API_URL}/api/templates/${templateId}/sessions`);
     if (!response.ok) throw new Error('Failed to fetch sessions');
     const data = await response.json();
-    return data.data;
+    return data;
   },
 
   async getById(id: string): Promise<ClassSession | null> {
     const response = await fetch(`${API_URL}/api/sessions/${id}`);
     if (!response.ok) return null;
     const data = await response.json();
-    return data.data;
+    return data;
   },
 
   async create(instructorId: string, data: CreateSessionRequest): Promise<ClassSession> {
@@ -24,7 +24,7 @@ export const sessionApiReal: ISessionApi = {
     });
     if (!response.ok) throw new Error('Failed to create session');
     const result = await response.json();
-    return result.data;
+    return result;
   },
 
   async update(id: string, data: UpdateSessionRequest): Promise<ClassSession> {
@@ -35,7 +35,7 @@ export const sessionApiReal: ISessionApi = {
     });
     if (!response.ok) throw new Error('Failed to update session');
     const result = await response.json();
-    return result.data;
+    return result;
   },
 
   async delete(id: string): Promise<void> {
