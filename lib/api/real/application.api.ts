@@ -6,21 +6,22 @@ export const applicationApiReal: IApplicationApi = {
     const response = await fetch(`${API_URL}/api/applications`);
     if (!response.ok) throw new Error('Failed to fetch applications');
     const data = await response.json();
-    return data.data;
+    return data;
   },
 
   async getBySessionId(sessionId: string): Promise<Application[]> {
     const response = await fetch(`${API_URL}/api/sessions/${sessionId}/applications`);
     if (!response.ok) throw new Error('Failed to fetch applications');
     const data = await response.json();
-    return data.data;
+    console.log('API fetched applications:', data);
+    return data;
   },
 
   async getById(id: string): Promise<Application | null> {
     const response = await fetch(`${API_URL}/api/applications/${id}`);
     if (!response.ok) return null;
     const data = await response.json();
-    return data.data;
+    return data;
   },
 
   async create(data: CreateApplicationRequest): Promise<Application> {
@@ -31,7 +32,7 @@ export const applicationApiReal: IApplicationApi = {
     });
     if (!response.ok) throw new Error('Failed to create application');
     const result = await response.json();
-    return result.data;
+    return result;
   },
 
   async update(id: string, data: UpdateApplicationRequest): Promise<Application> {
@@ -42,6 +43,6 @@ export const applicationApiReal: IApplicationApi = {
     });
     if (!response.ok) throw new Error('Failed to update application');
     const result = await response.json();
-    return result.data;
+    return result;
   },
 };

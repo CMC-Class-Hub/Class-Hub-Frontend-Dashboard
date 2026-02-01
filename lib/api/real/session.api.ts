@@ -28,16 +28,23 @@ export const sessionApiReal: ISessionApi = {
   },
 
   async update(id: string, data: UpdateSessionRequest): Promise<ClassSession> {
-    const response = await fetch(`${API_URL}/api/sessions/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
+      console.log('Updating session with data:', data);
+      const response = await fetch(`${API_URL}/api/sessions/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
     if (!response.ok) throw new Error('Failed to update session');
     const result = await response.json();
     return result;
   },
-
+  async updateStatus(id: string, status: 'RECRUITING' | 'CLOSED' | 'FULL'): Promise<ClassSession> {
+  const response = await fetch(`${API_URL}/api/sessions/${id}/status?status=${encodeURIComponent(status)}`, {
+    method: 'PATCH',
+  });
+  if (!response.ok) throw new Error('Failed to update session status');
+  return await response.json();
+  },
   async delete(id: string): Promise<void> {
     const response = await fetch(`${API_URL}/api/sessions/${id}`, {
       method: 'DELETE',

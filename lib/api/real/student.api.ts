@@ -13,7 +13,8 @@ export const studentApiReal: IStudentApi = {
     const response = await fetch(`${API_URL}/api/students/${id}`);
     if (!response.ok) return null;
     const data = await response.json();
-    return data.data;
+    console.log('Fetched student by ID:', data);
+    return data;
   },
 
   async getByEmail(email: string): Promise<Student | null> {
