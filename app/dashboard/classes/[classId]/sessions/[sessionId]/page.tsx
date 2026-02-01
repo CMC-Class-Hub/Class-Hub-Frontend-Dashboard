@@ -30,7 +30,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ classI
             // Based on `templateMock`, `getById` was there. Let's assume `sessionMock` has it too or we use `getByTemplateId`.
 
             const allSessions = await sessionApi.getByTemplateId(classId);
-            const foundSession = allSessions.find(s => s.id === sessionId);
+            const foundSession = allSessions.find(s => String(s.id) === sessionId);
 
             if (foundSession) {
                 setSession(foundSession);
@@ -41,30 +41,29 @@ export default function SessionDetailPage({ params }: { params: Promise<{ classI
                 const currentUser = await api.auth.getCurrentUser();
                 if (currentUser) {
                     const templates = await templateApi.getAll(currentUser.id);
-                    const foundTemplate = templates.find(t => t.id === classId);
+                    const foundTemplate = templates.find(t => String(t.id) === classId);
                     setTemplate(foundTemplate || null);
                 }
 
                 // 3. Fetch Applications
-                const apps = await applicationApi.getBySessionId(foundSession.id);
+                const apps = await applicationApi.getBySessionId(foundSession.id);                
                 setApplications(apps);
-
+                console.log('Fetched applications:', apps);
                 // 4. Fetch Students
                 const studentIds = [...new Set(apps.map(a => a.studentId))];
                 const studentPromises = studentIds.map(id => studentApi.getById(id));
                 const studentResults = await Promise.all(studentPromises);
                 setStudents(studentResults.filter((s): s is Student => s !== null));
-
+               
                 // 5. Fetch Messages
-                const msgs = await api.messageHistory.getBySessionId(foundSession.id);
-                setSessionMessages(msgs);
+                //const msgs = await api.messageHistory.getBySessionId(foundSession.id);
+                //setSessionMessages(msgs);
             } else {
                 router.push(`/dashboard/classes/${classId}`);
             }
         };
         fetchData();
     }, [classId, sessionId, router]);
-
     if (!session || !template) {
         return <div className="p-8 text-center text-[#8B95A1]">로딩 중...</div>;
     }
