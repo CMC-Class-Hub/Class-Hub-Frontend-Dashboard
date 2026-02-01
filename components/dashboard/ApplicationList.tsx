@@ -15,6 +15,7 @@ interface ApplicationListProps {
 
 export function ApplicationList({ applications, students, sessionMessages, capacity }: ApplicationListProps) {
     const getStudentById = (studentId: string): Student | null => {
+        console.log('Looking for studentId:', applications);
         return students.find(s => s.id === studentId) || null;
     };
 
@@ -23,11 +24,11 @@ export function ApplicationList({ applications, students, sessionMessages, capac
             <CardHeader className="p-5 md:p-6">
                 <CardTitle className="text-base md:text-lg">신청자 목록</CardTitle>
                 <CardDescription className="text-sm">
-                    총 <span className="font-semibold text-[#3182F6]">{applications.filter(a => a.status === 'CONFIRMED').length}명</span> / 정원 {capacity}명
+                    총 <span className="font-semibold text-[#3182F6]">{students.length}명</span> / 정원 {capacity}명
                 </CardDescription>
             </CardHeader>
             <CardContent className="p-5 md:p-6 pt-0 md:pt-0">
-                {applications.length === 0 ? (
+                {students.length === 0 ? (
                     <div className="text-center py-10 md:py-12">
                         <div className="w-14 h-14 md:w-16 md:h-16 bg-[#F2F4F6] rounded-full flex items-center justify-center mx-auto mb-4">
                             <Users className="h-7 w-7 md:h-8 md:w-8 text-[#8B95A1]" />
@@ -39,7 +40,6 @@ export function ApplicationList({ applications, students, sessionMessages, capac
                         {applications.map((app) => {
                             const student = getStudentById(app.studentId);
                             if (!student) return null;
-
                             // 메시지 상태 확인
                             const d3Msg = sessionMessages.find(m => m.studentId === student.id && m.type === 'D-3');
                             const d1Msg = sessionMessages.find(m => m.studentId === student.id && m.type === 'D-1');
