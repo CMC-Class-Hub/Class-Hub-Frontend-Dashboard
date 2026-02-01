@@ -1,5 +1,5 @@
 // API 설정 - 백엔드 주소를 한 곳에서 관리
-.
+
 /*<<<<<<< HEAD
 // 백엔드 API URL (기본값: http://localhost:8080)
 exnst USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK !== 'false';
