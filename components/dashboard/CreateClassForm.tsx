@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ImageUpload } from "@/components/ui/ImageUpload";
+import { ImageUpload } from "@/components/ui/ImageUpload";  // ✅ 새 버전 사용
 import { AddressSearchInput } from "@/components/ui/AddressSearchInput";
 
 export function CreateClassForm({ onSubmit, onCancel }: {
@@ -16,7 +16,8 @@ export function CreateClassForm({ onSubmit, onCancel }: {
         locationDetails: string;
         preparation: string;
         instructions: string;
-        images?: string[];
+        imageUrl?: string;      // 첫 번째 이미지 (대표 이미지)
+        images?: string[];      // 전체 이미지 배열
         price?: number;
         parkingInfo?: string;
         cancellationPolicy?: string;
@@ -29,13 +30,16 @@ export function CreateClassForm({ onSubmit, onCancel }: {
     const [locationDetails, setLocationDetails] = useState('');
     const [preparation, setPreparation] = useState('');
     const [instructions, setInstructions] = useState('');
-    const [images, setImages] = useState<string[]>([]);
+    const [imageUrls, setImageUrls] = useState<string[]>([]);  // ✅ S3 URL 배열
     const [price, setPrice] = useState(0);
     const [parkingInfo, setParkingInfo] = useState('');
     const [cancellationPolicy, setCancellationPolicy] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        
+        console.log('📤 Form submit with image URLs:', imageUrls);
+        
         onSubmit({
             name,
             description,
@@ -43,7 +47,8 @@ export function CreateClassForm({ onSubmit, onCancel }: {
             locationDetails,
             preparation,
             instructions,
-            images,
+            imageUrl: imageUrls.length > 0 ? imageUrls[0] : undefined,  // 첫 번째 이미지
+            images: imageUrls,  // 전체 이미지
             price,
             parkingInfo,
             cancellationPolicy,
@@ -52,11 +57,23 @@ export function CreateClassForm({ onSubmit, onCancel }: {
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
+            {/* ✅ ImageUpload - S3 URL 사용 */}
             <div className="space-y-2">
                 <Label>대표 이미지 (여러 장 선택 가능)</Label>
-                <ImageUpload values={images} onChange={setImages} />
+                <ImageUpload 
+                    values={imageUrls}           // S3 URL 배열
+                    onChange={setImageUrls}      // URL 배열 업데이트
+                    maxImages={5}
+                    maxSizeMB={5}
+                />
+                {imageUrls.length > 0 && (
+                    <p className="text-xs text-gray-500">
+                        💡 첫 번째 이미지가 대표 이미지로 사용됩니다.
+                    </p>
+                )}
             </div>
 
+            {/* 나머지 필드는 동일... */}
             <div className="space-y-2">
                 <Label htmlFor="className">클래스명 *</Label>
                 <Input
@@ -65,11 +82,10 @@ export function CreateClassForm({ onSubmit, onCancel }: {
                     onChange={(e) => setName(e.target.value)}
                     placeholder="예: 요가 초급 클래스"
                     required
-                    autoFocus
                 />
             </div>
 
-            <div className="space-y-2">
+             <div className="space-y-2">
                 <Label htmlFor="classDescription">소개글</Label>
                 <Textarea
                     id="classDescription"
