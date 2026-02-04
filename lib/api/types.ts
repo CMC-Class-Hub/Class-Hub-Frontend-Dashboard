@@ -16,22 +16,25 @@ export type MessageTemplateType = 'D-3' | 'D-1' | 'APPLY_CONFIRMED';
 // Class Template
 export interface ClassTemplate {
   id: string;
-  instructorId: string;
   name: string;
   description?: string;
   location: string;
-  locationDetails?: string;
+  locationDescription?: string;
+  price?: number;
   preparation?: string;
   instructions?: string;
   notes?: string;
   depositAmount?: number;
   cancellationPolicy?: string;
   noShowPolicy?: string;
-  status: ClassTemplateStatus;
   images?: string[];
-  price?: number;
   parkingInfo?: string;
-  createdAt: string;
+  guidelines?: string;
+  policy?: string;
+  classCode?: string;
+  instructorId: string;
+  status?: ClassTemplateStatus; // Optional, might be used internally or deprecated
+  createdAt?: string; // Optional, might be deprecated
 }
 
 // Class Session

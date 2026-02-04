@@ -28,10 +28,10 @@ export function EditClassForm({ template, onSubmit, onCancel }: {
     const [name, setName] = useState(template.name);
     const [description, setDescription] = useState(template.description || '');
     const [location, setLocation] = useState(template.location);
-    const [locationDetails, setLocationDetails] = useState(template.locationDetails || '');
+    const [locationDetails, setLocationDetails] = useState(template.locationDescription || '');
     const [preparation, setPreparation] = useState(template.preparation || '');
     const [instructions, setInstructions] = useState(template.instructions || '');
-    const [images, setImages] = useState<string[]>(template.images || []);
+    const [imageUrls, setImageUrls] = useState<string[]>(template.images || []);
     const [price, setPrice] = useState(template.price || 0);
     const [parkingInfo, setParkingInfo] = useState(template.parkingInfo || '');
     const [cancellationPolicy, setCancellationPolicy] = useState(template.cancellationPolicy || '');
@@ -45,7 +45,7 @@ export function EditClassForm({ template, onSubmit, onCancel }: {
             locationDetails,
             preparation,
             instructions,
-            images,
+            images: imageUrls,
             price,
             parkingInfo,
             cancellationPolicy,
@@ -56,7 +56,7 @@ export function EditClassForm({ template, onSubmit, onCancel }: {
         <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
                 <Label>대표 이미지 (여러 장 선택 가능)</Label>
-                <ImageUpload values={images} onChange={setImages} />
+                <ImageUpload values={imageUrls} onChange={setImageUrls} />
             </div>
 
             <div className="space-y-2">
