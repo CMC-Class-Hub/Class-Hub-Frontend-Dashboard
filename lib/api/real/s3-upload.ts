@@ -3,7 +3,7 @@
  * Presigned URL을 사용하여 S3에 직접 업로드
  */
 
-import { API_URL } from '../api-config';
+import { fetchClient } from '../fetch-client';
 
 export interface UploadResult {
     url: string;
@@ -22,13 +22,9 @@ export async function uploadImageToS3(file: File): Promise<UploadResult> {
         console.log('   Type:', file.type);
 
         // 1. 백엔드에서 Presigned URL 요청
-        console.log('⏳ Step 1: Requesting presigned URL...');
-        console.log('   Request Payload:',  { fileName: file.name, fileType: file.type });
-        const presignedResponse = await fetch(`${API_URL}/api/upload/presigned-url`, {
+        console.log('   Request Payload:', { fileName: file.name, fileType: file.type });
+        const presignedResponse = await fetchClient('/api/upload/presigned-url', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: JSON.stringify({
                 fileName: file.name,
                 fileType: file.type,
@@ -37,17 +33,10 @@ export async function uploadImageToS3(file: File): Promise<UploadResult> {
 
         if (!presignedResponse.ok) {
             const errorText = await presignedResponse.text();
-            console.error('❌ Presigned URL request failed:', errorText);
             throw new Error(`Presigned URL 생성 실패: ${presignedResponse.status}`);
         }
 
         const { uploadUrl, fileUrl, fileName } = await presignedResponse.json();
-        console.log('✅ Step 1: Presigned URL received');
-        console.log('   Upload URL:', uploadUrl.substring(0, 100) + '...');
-        console.log('   File URL:', fileUrl);
-
-        // 2. S3에 직접 업로드
-        console.log('⏳ Step 2: Uploading to S3...');
         const uploadResponse = await fetch(uploadUrl, {
             method: 'PUT',
             body: file,
@@ -57,25 +46,17 @@ export async function uploadImageToS3(file: File): Promise<UploadResult> {
         });
 
         if (!uploadResponse.ok) {
-            console.error('❌ S3 upload failed:', uploadResponse.status);
             throw new Error(`S3 업로드 실패: ${uploadResponse.status}`);
         }
-
-        console.log('✅ Step 2: Upload to S3 successful');
         console.log('✅ Upload Complete!');
         console.log('   Final URL:', fileUrl);
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
         return {
             url: fileUrl,
             fileName: fileName,
         };
 
     } catch (error) {
-        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         console.error('❌ Upload Failed');
-        console.error('   Error:', error);
-        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         throw error;
     }
 }
@@ -85,7 +66,7 @@ export async function uploadImageToS3(file: File): Promise<UploadResult> {
  */
 export async function uploadMultipleImages(files: File[]): Promise<UploadResult[]> {
     console.log(`📦 Starting batch upload: ${files.length} files`);
-    
+
     try {
         const uploadPromises = files.map((file, index) => {
             console.log(`   [${index + 1}/${files.length}] Queued: ${file.name}`);
@@ -93,7 +74,7 @@ export async function uploadMultipleImages(files: File[]): Promise<UploadResult[
         });
 
         const results = await Promise.all(uploadPromises);
-        
+
         console.log(`✅ Batch upload complete: ${results.length} files uploaded`);
         return results;
 

@@ -1,25 +1,25 @@
 import type { ClassTemplate, ITemplateApi, CreateTemplateRequest, UpdateTemplateRequest } from '../types';
-import { API_URL } from '../api-config';
+import { fetchClient } from '../fetch-client';
 
 export const templateApiReal: ITemplateApi = {
   async getAll(instructorId: string): Promise<ClassTemplate[]> {
-    const response = await fetch(`${API_URL}/api/templates?instructorId=${instructorId}`);
+    const response = await fetchClient(`/api/classes?instructorId=${instructorId}`);
     if (!response.ok) throw new Error('Failed to fetch templates');
     const data = await response.json();
     return data;
   },
 
   async getById(id: string, instructorId: string): Promise<ClassTemplate | null> {
-    const response = await fetch(`${API_URL}/api/templates/${id}?instructorId=${instructorId}`);
+    const response = await fetchClient(`/api/classes/${id}?instructorId=${instructorId}`);
     if (!response.ok) return null;
     const data = await response.json();
     return data;
   },
 
   async create(instructorId: string, data: CreateTemplateRequest): Promise<ClassTemplate> {
-    const response = await fetch(`${API_URL}/api/templates?instructorId=${instructorId}`, {
+    console.log('Creating template with data:', data);
+    const response = await fetchClient(`/api/classes?instructorId=${instructorId}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...data, instructorId }),
     });
     if (!response.ok) throw new Error('Failed to create template');
@@ -28,9 +28,8 @@ export const templateApiReal: ITemplateApi = {
   },
 
   async update(id: string, data: UpdateTemplateRequest): Promise<ClassTemplate> {
-    const response = await fetch(`${API_URL}/api/templates/${id}`, {
+    const response = await fetchClient(`/api/classes/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
     if (!response.ok) throw new Error('Failed to update template');
@@ -39,7 +38,7 @@ export const templateApiReal: ITemplateApi = {
   },
 
   async delete(id: string): Promise<void> {
-    const response = await fetch(`${API_URL}/api/templates/${id}`, {
+    const response = await fetchClient(`/api/classes/${id}`, {
       method: 'DELETE',
     });
     if (!response.ok) throw new Error('Failed to delete template');
