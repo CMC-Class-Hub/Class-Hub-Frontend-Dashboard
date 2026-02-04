@@ -28,7 +28,7 @@ export function EditClassForm({ template, onSubmit, onCancel }: {
     const [name, setName] = useState(template.name);
     const [description, setDescription] = useState(template.description || '');
     const [location, setLocation] = useState(template.location);
-    const [locationDetails, setLocationDetails] = useState(template.locationDescription || '');
+    const [locationDetails, setLocationDetails] = useState(template.locationDetails || '');
     const [preparation, setPreparation] = useState(template.preparation || '');
     const [instructions, setInstructions] = useState(template.instructions || '');
     const [imageUrls, setImageUrls] = useState<string[]>(template.images || []);

@@ -19,7 +19,7 @@ export interface ClassTemplate {
   name: string;
   description?: string;
   location: string;
-  locationDescription?: string;
+  locationDetails?: string;
   price?: number;
   preparation?: string;
   instructions?: string;
@@ -29,12 +29,10 @@ export interface ClassTemplate {
   noShowPolicy?: string;
   images?: string[];
   parkingInfo?: string;
-  guidelines?: string;
-  policy?: string;
   classCode?: string;
   instructorId: string;
-  status?: ClassTemplateStatus; // Optional, might be used internally or deprecated
-  createdAt?: string; // Optional, might be deprecated
+  status?: ClassTemplateStatus;
+  createdAt?: string;
 }
 
 // Class Session

@@ -23,7 +23,7 @@ export const sessionApiMock: ISessionApi = {
       date: data.date,
       startTime: data.startTime,
       endTime: data.endTime,
-
+      currentNum: 0,
       capacity: data.capacity,
       status: 'RECRUITING',
       linkId: generateLinkId(),
@@ -47,6 +47,22 @@ export const sessionApiMock: ISessionApi = {
     }
 
     const updated = { ...sessions[index], ...data };
+    sessions[index] = updated;
+    setSessions(sessions);
+
+    return updated;
+  },
+
+  async updateStatus(id: string, status: 'RECRUITING' | 'CLOSED' | 'FULL'): Promise<ClassSession> {
+    await delay();
+    const sessions = getSessions();
+    const index = sessions.findIndex(s => s.id === id);
+
+    if (index === -1) {
+      throw new Error('Session not found');
+    }
+
+    const updated: ClassSession = { ...sessions[index], status };
     sessions[index] = updated;
     setSessions(sessions);
 
