@@ -25,6 +25,7 @@ export const sessionApiMock: ISessionApi = {
       endTime: data.endTime,
       currentNum: 0,
       capacity: data.capacity,
+      price: data.price,
       status: 'RECRUITING',
       linkId: generateLinkId(),
       createdAt: new Date().toISOString(),

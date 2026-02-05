@@ -6,16 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export function AddSessionForm({ onSubmit }: {
-    onSubmit: (data: { date: string; startTime: string; endTime: string; capacity: number }) => void;
+    onSubmit: (data: { date: string; startTime: string; endTime: string; capacity: number; price: number }) => void;
 }) {
     const [date, setDate] = useState('');
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
     const [capacity, setCapacity] = useState(10);
+    const [price, setPrice] = useState(0);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit({ date, startTime, endTime, capacity });
+        onSubmit({ date, startTime, endTime, capacity, price });
     };
 
     return (
@@ -52,15 +53,27 @@ export function AddSessionForm({ onSubmit }: {
                 </div>
             </div>
 
-            <div className="space-y-2">
-                <Label>정원 *</Label>
-                <Input
-                    type="number"
-                    min="1"
-                    value={capacity}
-                    onChange={(e) => setCapacity(parseInt(e.target.value) || 1)}
-                    required
-                />
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label>정원 *</Label>
+                    <Input
+                        type="number"
+                        min="1"
+                        value={capacity}
+                        onChange={(e) => setCapacity(parseInt(e.target.value) || 1)}
+                        required
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label>가격 *</Label>
+                    <Input
+                        type="number"
+                        min="0"
+                        value={price}
+                        onChange={(e) => setPrice(parseInt(e.target.value) || 0)}
+                        required
+                    />
+                </div>
             </div>
 
             <Button type="submit" className="w-full">세션 생성</Button>

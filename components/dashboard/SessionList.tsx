@@ -94,9 +94,14 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                                             </Badge>
                                         )}
                                     </div>
-                                    <p className="text-xs md:text-sm text-[#6B7684]">
-                                        신청 <span className="font-semibold text-[#3182F6]">{confirmedCount}명</span> / 정원 {session.capacity}명
-                                    </p>
+                                    <div className="space-y-1">
+                                        <p className="text-xs md:text-sm text-[#6B7684]">
+                                            신청 <span className="font-semibold text-[#3182F6]">{confirmedCount}명</span> / 정원 {session.capacity}명
+                                        </p>
+                                        <p className="text-xs md:text-sm text-[#6B7684]">
+                                            가격 <span className="font-semibold text-[#191F28]">{session.price.toLocaleString()}원</span>
+                                        </p>
+                                    </div>
                                 </div>
 
                                 <div className="flex gap-2">

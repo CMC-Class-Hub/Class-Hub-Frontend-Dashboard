@@ -18,7 +18,6 @@ export function CreateClassForm({ onSubmit, onCancel }: {
         instructions: string;
         imageUrl?: string;      // 첫 번째 이미지 (대표 이미지)
         images?: string[];      // 전체 이미지 배열
-        price?: number;
         parkingInfo?: string;
         cancellationPolicy?: string;
     }) => void;
@@ -31,15 +30,14 @@ export function CreateClassForm({ onSubmit, onCancel }: {
     const [preparation, setPreparation] = useState('');
     const [instructions, setInstructions] = useState('');
     const [imageUrls, setImageUrls] = useState<string[]>([]);  // ✅ S3 URL 배열
-    const [price, setPrice] = useState(0);
     const [parkingInfo, setParkingInfo] = useState('');
     const [cancellationPolicy, setCancellationPolicy] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         console.log('📤 Form submit with image URLs:', imageUrls);
-        
+
         onSubmit({
             name,
             description,
@@ -49,7 +47,6 @@ export function CreateClassForm({ onSubmit, onCancel }: {
             instructions,
             imageUrl: imageUrls.length > 0 ? imageUrls[0] : undefined,  // 첫 번째 이미지
             images: imageUrls,  // 전체 이미지
-            price,
             parkingInfo,
             cancellationPolicy,
         });
@@ -60,7 +57,7 @@ export function CreateClassForm({ onSubmit, onCancel }: {
             {/* ✅ ImageUpload - S3 URL 사용 */}
             <div className="space-y-2">
                 <Label>대표 이미지 (여러 장 선택 가능)</Label>
-                <ImageUpload 
+                <ImageUpload
                     values={imageUrls}           // S3 URL 배열
                     onChange={setImageUrls}      // URL 배열 업데이트
                     maxImages={5}
@@ -85,7 +82,7 @@ export function CreateClassForm({ onSubmit, onCancel }: {
                 />
             </div>
 
-             <div className="space-y-2">
+            <div className="space-y-2">
                 <Label htmlFor="classDescription">소개글</Label>
                 <Textarea
                     id="classDescription"
@@ -93,18 +90,6 @@ export function CreateClassForm({ onSubmit, onCancel }: {
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="클래스에 대한 간단한 설명"
                     rows={3}
-                />
-            </div>
-
-            <div className="space-y-2">
-                <Label htmlFor="classPrice">1인 가격 (원)</Label>
-                <Input
-                    id="classPrice"
-                    type="number"
-                    min="0"
-                    value={price}
-                    onChange={(e) => setPrice(parseInt(e.target.value) || 0)}
-                    placeholder="0"
                 />
             </div>
 

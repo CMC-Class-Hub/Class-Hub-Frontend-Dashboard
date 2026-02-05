@@ -57,6 +57,7 @@ export const initializeDemoData = async (instructorId: string): Promise<void> =>
     status: 'RECRUITING',
     currentNum: 0,
     capacity: 12,
+    price: 35000,
     linkId: generateLinkId(),
     createdAt: new Date().toISOString(),
   };
@@ -71,6 +72,7 @@ export const initializeDemoData = async (instructorId: string): Promise<void> =>
     status: 'RECRUITING',
     currentNum: 0,
     capacity: 12,
+    price: 35000,
     linkId: generateLinkId(),
     createdAt: new Date().toISOString(),
   };

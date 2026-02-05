@@ -19,7 +19,6 @@ export function EditClassForm({ template, onSubmit, onCancel }: {
         preparation: string;
         instructions: string;
         images?: string[];
-        price?: number;
         parkingInfo?: string;
         cancellationPolicy?: string;
     }) => void;
@@ -32,7 +31,6 @@ export function EditClassForm({ template, onSubmit, onCancel }: {
     const [preparation, setPreparation] = useState(template.preparation || '');
     const [instructions, setInstructions] = useState(template.instructions || '');
     const [imageUrls, setImageUrls] = useState<string[]>(template.images || []);
-    const [price, setPrice] = useState(template.price || 0);
     const [parkingInfo, setParkingInfo] = useState(template.parkingInfo || '');
     const [cancellationPolicy, setCancellationPolicy] = useState(template.cancellationPolicy || '');
 
@@ -46,7 +44,6 @@ export function EditClassForm({ template, onSubmit, onCancel }: {
             preparation,
             instructions,
             images: imageUrls,
-            price,
             parkingInfo,
             cancellationPolicy,
         });
@@ -79,18 +76,6 @@ export function EditClassForm({ template, onSubmit, onCancel }: {
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="클래스에 대한 간단한 설명"
                     rows={3}
-                />
-            </div>
-
-            <div className="space-y-2">
-                <Label htmlFor="editClassPrice">1인 가격 (원)</Label>
-                <Input
-                    id="editClassPrice"
-                    type="number"
-                    min="0"
-                    value={price}
-                    onChange={(e) => setPrice(parseInt(e.target.value) || 0)}
-                    placeholder="0"
                 />
             </div>
 

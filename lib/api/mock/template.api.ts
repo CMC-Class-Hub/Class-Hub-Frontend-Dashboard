@@ -26,12 +26,10 @@ export const templateApiMock: ITemplateApi = {
       preparation: data.preparation,
       instructions: data.instructions,
       notes: data.notes,
-
       depositAmount: data.depositAmount || 0,
       cancellationPolicy: data.cancellationPolicy || '',
       noShowPolicy: data.noShowPolicy || '',
       images: data.images || [],
-      price: data.price || 0,
       parkingInfo: data.parkingInfo || '',
       status: 'ACTIVE',
       createdAt: new Date().toISOString(),

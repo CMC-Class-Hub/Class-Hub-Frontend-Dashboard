@@ -144,9 +144,6 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
 
                             <div className="mt-4 space-y-2 text-sm text-[#4E5968]">
                                 <p><span className="font-semibold text-[#191F28]">장소:</span> {template.location}</p>
-                                {(template.price !== undefined) && (
-                                    <p><span className="font-semibold text-[#191F28]">가격:</span> {template.price.toLocaleString()}원</p>
-                                )}
                                 {template.preparation && (
                                     <p><span className="font-semibold text-[#191F28]">준비물:</span> {template.preparation}</p>
                                 )}
