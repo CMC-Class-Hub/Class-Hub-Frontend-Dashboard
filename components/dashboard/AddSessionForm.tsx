@@ -58,19 +58,24 @@ export function AddSessionForm({ onSubmit }: {
                     <Label>정원 *</Label>
                     <Input
                         type="number"
-                        min="1"
-                        value={capacity}
-                        onChange={(e) => setCapacity(parseInt(e.target.value) || 1)}
-                        required
+                        value={capacity === 0 ? "" : capacity}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setCapacity(value === "" ? 0 : Number(value));
+                        }}
+                        placeholder="0"required
                     />
                 </div>
                 <div className="space-y-2">
                     <Label>가격 *</Label>
                     <Input
                         type="number"
-                        min="0"
-                        value={price}
-                        onChange={(e) => setPrice(parseInt(e.target.value) || 0)}
+                        value={price === 0 ? "" : price}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setPrice(value === "" ? 0 : Number(value));
+                        }}
+                        placeholder="0"
                         required
                     />
                 </div>
