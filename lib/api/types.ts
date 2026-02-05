@@ -305,8 +305,23 @@ export interface IApplicationApi {
   update(id: string, data: UpdateApplicationRequest): Promise<Application>;
 }
 
+// Message Template List Item
+export interface MessageTemplateListItem {
+  title: string;
+  description: string;
+}
+
+// Message Template Detail
+export interface MessageTemplateDetail {
+  type: MessageTemplateType;
+  title: string;
+  description: string;
+  body: string;
+}
+
 export interface IMessageTemplateApi {
-  getDefault(type: MessageTemplateType, className?: string): string;
+  getTitles(): Promise<MessageTemplateListItem[]>; // Returns list of templates with metadata
+  getDetails(title: string): Promise<MessageTemplateDetail>; // Returns details for a title
 }
 
 export interface IMessageHistoryApi {

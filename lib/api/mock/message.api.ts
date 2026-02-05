@@ -1,6 +1,5 @@
-import type { IMessageTemplateApi, MessageTemplateType } from '../types';
+import type { IMessageTemplateApi, MessageTemplateType, MessageTemplateDetail, MessageTemplateListItem } from '../types';
 
-// 기본 메시지 템플릿
 const DEFAULT_TEMPLATES: Record<MessageTemplateType, string> = {
   'APPLY_CONFIRMED': `[Class Hub] 신청 완료 안내
 
@@ -46,8 +45,39 @@ const DEFAULT_TEMPLATES: Record<MessageTemplateType, string> = {
 감사합니다.`,
 };
 
+// ... (DEFAULT_TEMPLATES remains as internal helper)
+
 export const messageTemplateApiMock: IMessageTemplateApi = {
-  getDefault(type: MessageTemplateType): string {
-    return DEFAULT_TEMPLATES[type];
+
+
+  async getTitles(): Promise<MessageTemplateListItem[]> {
+    return [
+      { title: '예약 완료 안내', description: '수업 예약 직후 자동으로 발송됩니다' },
+      { title: 'D-3 리마인더', description: '수업 3일 전에 자동으로 발송됩니다' },
+      { title: 'D-1 리마인더', description: '수업 1일 전에 자동으로 발송됩니다' }
+    ];
   },
+
+  async getDetails(title: string): Promise<MessageTemplateDetail> {
+    // Simple mock mapping
+    if (title === '예약 완료 안내') return {
+      type: 'APPLY_CONFIRMED',
+      title,
+      description: '수업 예약 직후 자동으로 발송됩니다',
+      body: DEFAULT_TEMPLATES['APPLY_CONFIRMED']
+    };
+    if (title === 'D-3 리마인더') return {
+      type: 'D-3',
+      title,
+      description: '수업 3일 전에 자동으로 발송됩니다',
+      body: DEFAULT_TEMPLATES['D-3']
+    };
+    if (title === 'D-1 리마인더') return {
+      type: 'D-1',
+      title,
+      description: '수업 1일 전에 자동으로 발송됩니다',
+      body: DEFAULT_TEMPLATES['D-1']
+    };
+    throw new Error('Template not found');
+  }
 };

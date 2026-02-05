@@ -113,6 +113,8 @@ export type {
   SignUpRequest,
   AuthResponse,
   IAuthApi,
+  MessageTemplateListItem,
+  MessageTemplateDetail,
 } from './types';
 
 // Config

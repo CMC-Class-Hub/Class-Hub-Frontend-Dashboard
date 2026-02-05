@@ -1,34 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { messageTemplateApi, type MessageTemplateType } from "@/lib/api";
+import { messageTemplateApi, type MessageTemplateType, type MessageTemplateListItem } from "@/lib/api";
 
 export default function MessagesPage() {
-    const [expandedTemplate, setExpandedTemplate] = useState<MessageTemplateType | null>(null);
+    const [templates, setTemplates] = useState<MessageTemplateListItem[]>([]);
+    const [expandedTitle, setExpandedTitle] = useState<string | null>(null);
+    const [detailsCache, setDetailsCache] = useState<Record<string, { type: string, body: string }>>({});
+    const [loading, setLoading] = useState(true);
 
-    const templateTypes = [
-        {
-            type: 'APPLY_CONFIRMED' as const,
-            title: '신청 완료 안내',
-            description: '수업 신청 직후 자동으로 발송됩니다',
-            content: messageTemplateApi.getDefault('APPLY_CONFIRMED', '{클래스명}')
-        },
-        {
-            type: 'D-3' as const,
-            title: 'D-3 리마인더',
-            description: '수업 3일 전에 자동으로 발송됩니다',
-            content: messageTemplateApi.getDefault('D-3', '{클래스명}')
-        },
-        {
-            type: 'D-1' as const,
-            title: 'D-1 리마인더',
-            description: '수업 1일 전에 자동으로 발송됩니다',
-            content: messageTemplateApi.getDefault('D-1', '{클래스명}')
-        },
-    ];
+    useEffect(() => {
+        const fetchTemplates = async () => {
+            try {
+                const list = await messageTemplateApi.getTitles();
+                setTemplates(list);
+            } catch (error) {
+                console.error("Failed to fetch templates", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchTemplates();
+    }, []);
+
+    const handleExpand = async (title: string) => {
+        if (expandedTitle === title) {
+            setExpandedTitle(null);
+            return;
+        }
+
+        setExpandedTitle(title);
+
+        if (!detailsCache[title]) {
+            try {
+                const data = await messageTemplateApi.getDetails(title);
+                setDetailsCache(prev => ({
+                    ...prev,
+                    [title]: { type: data.type, body: data.body }
+                }));
+            } catch (error) {
+                console.error(`Failed to fetch details for ${title}`, error);
+            }
+        }
+    };
+
+    if (loading) return <div className="p-8 text-center text-[#8B95A1]">로딩 중...</div>;
 
     return (
         <div className="space-y-5 md:space-y-6">
@@ -38,39 +57,52 @@ export default function MessagesPage() {
             </div>
 
             <div className="space-y-4">
-                {templateTypes.map(({ type, title, description, content }) => {
-                    const isExpanded = expandedTemplate === type;
+                {templates.length === 0 ? (
+                    <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                        <p className="text-[#8B95A1]">등록된 메시지 템플릿이 없습니다.</p>
+                    </div>
+                ) : (
+                    templates.map((template) => {
+                        const isExpanded = expandedTitle === template.title;
+                        const detail = detailsCache[template.title];
 
-                    return (
-                        <Card key={type} className="hover:shadow-md transition-shadow">
-                            <CardHeader
-                                className="cursor-pointer p-5 md:p-6"
-                                onClick={() => setExpandedTemplate(isExpanded ? null : type)}
-                            >
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <CardTitle className="text-base md:text-lg flex items-center gap-2">
-                                            {isExpanded ? <ChevronDown className="h-4 w-4 md:h-5 md:w-5 text-[#3182F6]" /> : <ChevronRight className="h-4 w-4 md:h-5 md:w-5 text-[#8B95A1]" />}
-                                            {title}
-                                        </CardTitle>
-                                        <CardDescription className="ml-6 md:ml-7 text-xs md:text-sm">{description}</CardDescription>
+                        return (
+                            <Card key={template.title} className="hover:shadow-md transition-shadow">
+                                <CardHeader
+                                    className="cursor-pointer p-5 md:p-6"
+                                    onClick={() => handleExpand(template.title)}
+                                >
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <CardTitle className="text-base md:text-lg flex items-center gap-2">
+                                                {isExpanded ? <ChevronDown className="h-4 w-4 md:h-5 md:w-5 text-[#3182F6]" /> : <ChevronRight className="h-4 w-4 md:h-5 md:w-5 text-[#8B95A1]" />}
+                                                {template.title}
+                                            </CardTitle>
+                                            <CardDescription className="ml-6 md:ml-7 text-xs md:text-sm">
+                                                {template.description}
+                                            </CardDescription>
+                                        </div>
                                     </div>
-                                </div>
-                            </CardHeader>
+                                </CardHeader>
 
-                            {isExpanded && (
-                                <CardContent className="pt-0 p-5 md:p-6 md:pt-0">
-                                    <Textarea
-                                        value={content}
-                                        readOnly
-                                        rows={12}
-                                        className="mb-4 text-sm bg-[#F9FAFB]"
-                                    />
-                                </CardContent>
-                            )}
-                        </Card>
-                    );
-                })}
+                                {isExpanded && (
+                                    <CardContent className="pt-0 p-5 md:p-6 md:pt-0">
+                                        {detail ? (
+                                            <Textarea
+                                                value={detail.body}
+                                                readOnly
+                                                rows={12}
+                                                className="mb-4 text-sm bg-[#F9FAFB]"
+                                            />
+                                        ) : (
+                                            <div className="text-sm text-gray-500 py-4">불러오는 중...</div>
+                                        )}
+                                    </CardContent>
+                                )}
+                            </Card>
+                        );
+                    })
+                )}
             </div>
         </div>
     );
