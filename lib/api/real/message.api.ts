@@ -48,11 +48,16 @@ const DEFAULT_TEMPLATES: Record<MessageTemplateType, string> = {
 };
 
 export const messageTemplateApiReal: IMessageTemplateApi = {
-  async getByTemplateId(templateId: string): Promise<MessageTemplate[]> {
+  async getTitles(): Promise<string[]> {
     const response = await fetch(`${API_URL}/api/messages/templates`);
     if (!response.ok) throw new Error('Failed to fetch message templates');
-    const data = await response.json();
-    return data.data;
+    return response.json();
+  },
+
+  async getDetail(title: string): Promise<MessageTemplate> {
+    const response = await fetch(`${API_URL}/api/messages/templates/${encodeURIComponent(title)}`);
+    if (!response.ok) throw new Error('Failed to fetch message template detail');
+    return response.json(); // Direct return based on spec
   },
 
 

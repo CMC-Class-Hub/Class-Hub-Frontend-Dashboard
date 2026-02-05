@@ -48,13 +48,19 @@ const DEFAULT_TEMPLATES: Record<MessageTemplateType, string> = {
 };
 
 export const messageTemplateApiMock: IMessageTemplateApi = {
-  async getByTemplateId(templateId: string): Promise<MessageTemplate[]> {
+  async getTitles(): Promise<string[]> {
     await delay();
     const templates = getMessageTemplates();
-    return templates.filter(t => t.templateId === templateId);
+    return templates.map(t => t.title);
   },
 
-
+  async getDetail(title: string): Promise<MessageTemplate> {
+    await delay();
+    const templates = getMessageTemplates();
+    const template = templates.find(t => t.title === title);
+    if (!template) throw new Error('Template not found');
+    return template;
+  },
 
   getDefault(type: MessageTemplateType): string {
     return DEFAULT_TEMPLATES[type];

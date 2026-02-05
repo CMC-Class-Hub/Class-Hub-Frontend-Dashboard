@@ -106,12 +106,9 @@ export interface Student {
 
 // Message Template
 export interface MessageTemplate {
-  id: string;
-  templateId: string;
   type: MessageTemplateType;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
+  title: string;
+  body: string;
 }
 
 // Notification
@@ -178,6 +175,7 @@ export interface SignUpRequest {
   password: string;
   name: string;
   phoneNumber: string;
+  role: 'instructor';
 }
 
 export interface AuthResponse {
@@ -301,7 +299,8 @@ export interface IApplicationApi {
 }
 
 export interface IMessageTemplateApi {
-  getByTemplateId(templateId: string): Promise<MessageTemplate[]>;
+  getTitles(): Promise<string[]>;
+  getDetail(title: string): Promise<MessageTemplate>;
   getDefault(type: MessageTemplateType, className?: string): string;
 }
 
