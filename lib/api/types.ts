@@ -32,6 +32,7 @@ export interface ClassTemplate {
   instructorId: string;
   status?: ClassTemplateStatus;
   createdAt?: string;
+  guidelines?: string;
 }
 
 // Class Session
