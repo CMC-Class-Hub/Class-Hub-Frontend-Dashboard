@@ -6,14 +6,13 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { messageTemplateApi, type MessageTemplateType } from "@/lib/api";
-import { EditMessageTemplateForm } from "@/components/dashboard/EditMessageTemplateForm";
+
 
 export default function MessagesPage() {
     const [d3Template, setD3Template] = useState('');
     const [d1Template, setD1Template] = useState('');
     const [confirmedTemplate, setConfirmedTemplate] = useState('');
     const [expandedTemplate, setExpandedTemplate] = useState<MessageTemplateType | null>(null);
-    const [editingTemplate, setEditingTemplate] = useState<MessageTemplateType | null>(null);
 
     useEffect(() => {
         loadGlobalMessageTemplates();
@@ -48,20 +47,16 @@ export default function MessagesPage() {
                 {templateTypes.map(({ type, title, description }) => {
                     const isExpanded = expandedTemplate === type;
                     let content = '';
-                    let setContent: (val: string) => void = () => { };
 
                     switch (type) {
                         case 'APPLY_CONFIRMED':
                             content = confirmedTemplate;
-                            setContent = setConfirmedTemplate;
                             break;
                         case 'D-3':
                             content = d3Template;
-                            setContent = setD3Template;
                             break;
                         case 'D-1':
                             content = d1Template;
-                            setContent = setD1Template;
                             break;
                     }
 
@@ -79,44 +74,17 @@ export default function MessagesPage() {
                                         </CardTitle>
                                         <CardDescription className="ml-6 md:ml-7 text-xs md:text-sm">{description}</CardDescription>
                                     </div>
-                                    {isExpanded && editingTemplate !== type && (
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setEditingTemplate(type);
-                                            }}
-                                        >
-                                            수정하기
-                                        </Button>
-                                    )}
                                 </div>
                             </CardHeader>
 
                             {isExpanded && (
                                 <CardContent className="pt-0 p-5 md:p-6 md:pt-0">
-                                    {editingTemplate === type ? (
-                                        <EditMessageTemplateForm
-                                            type={type}
-                                            initialContent={content}
-                                            onSave={async (newContent) => {
-                                                setContent(newContent);
-                                                await messageTemplateApi.save('global', type, newContent);
-                                                await loadGlobalMessageTemplates();
-                                                alert(`${type} 메시지 템플릿이 저장되었습니다.`);
-                                                setEditingTemplate(null);
-                                            }}
-                                            onCancel={() => setEditingTemplate(null)}
-                                        />
-                                    ) : (
-                                        <Textarea
-                                            value={content}
-                                            readOnly
-                                            rows={6}
-                                            className="mb-4 text-sm bg-[#F9FAFB]"
-                                        />
-                                    )}
+                                    <Textarea
+                                        value={content}
+                                        readOnly
+                                        rows={6}
+                                        className="mb-4 text-sm bg-[#F9FAFB]"
+                                    />
                                 </CardContent>
                             )}
                         </Card>
