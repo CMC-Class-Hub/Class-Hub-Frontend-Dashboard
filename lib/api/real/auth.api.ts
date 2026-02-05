@@ -18,7 +18,7 @@ export const authApiReal: IAuthApi = {
         }
 
         const result: LoginResponse = await response.json();
-        
+
 
         // ✅ 토큰과 사용자 정보를 localStorage에 저장!
         if (result.accessToken) {
@@ -91,6 +91,7 @@ export const authApiReal: IAuthApi = {
 
     async isLoggedIn(): Promise<boolean> {
         const user = await this.getCurrentUser();
-        return user !== null;
+        console.log("isLoggedIn", user);
+        return user !== null && user.id !== 'demo-instructor';
     }
 };

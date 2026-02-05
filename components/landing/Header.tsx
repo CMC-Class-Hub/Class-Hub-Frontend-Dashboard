@@ -1,12 +1,29 @@
 "use client";
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
+import { api } from '@/lib/api';
 
 export function Header() {
+    const router = useRouter();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    useEffect(() => {
+        const checkLoginStatus = async () => {
+            const loggedIn = await api.auth.isLoggedIn();
+            setIsLoggedIn(loggedIn);
+        };
+        checkLoginStatus();
+    }, []);
+
+    const handleDashboardClick = () => {
+        router.push('/dashboard');
+        setMobileMenuOpen(false);
+    };
 
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
@@ -27,16 +44,27 @@ export function Header() {
                             요금제
                         </Link>
                         <div className="flex items-center space-x-4 ml-4">
-                            <Link href="/login">
-                                <Button variant="ghost" className="text-gray-600 hover:text-[#3182F6]">
-                                    로그인
+                            {isLoggedIn ? (
+                                <Button 
+                                    onClick={handleDashboardClick}
+                                    className="bg-[#3182F6] hover:bg-[#1B64DA] text-white"
+                                >
+                                    대시보드로 이동
                                 </Button>
-                            </Link>
-                            <Link href="/signup">
-                                <Button className="bg-[#3182F6] hover:bg-[#1B64DA] text-white">
-                                    무료로 시작하기
-                                </Button>
-                            </Link>
+                            ) : (
+                                <>
+                                    <Link href="/login">
+                                        <Button variant="ghost" className="text-gray-600 hover:text-[#3182F6]">
+                                            로그인
+                                        </Button>
+                                    </Link>
+                                    <Link href="/signup">
+                                        <Button className="bg-[#3182F6] hover:bg-[#1B64DA] text-white">
+                                            무료로 시작하기
+                                        </Button>
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     </nav>
 
@@ -71,16 +99,27 @@ export function Header() {
                             요금제
                         </Link>
                         <div className="pt-4 border-t border-gray-100 flex flex-col space-y-2">
-                            <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                                <Button variant="outline" className="w-full justify-center">
-                                    로그인
+                            {isLoggedIn ? (
+                                <Button 
+                                    onClick={handleDashboardClick}
+                                    className="w-full bg-[#3182F6] hover:bg-[#1B64DA] text-white justify-center"
+                                >
+                                    대시보드로 이동
                                 </Button>
-                            </Link>
-                            <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
-                                <Button className="w-full bg-[#3182F6] hover:bg-[#1B64DA] text-white justify-center">
-                                    무료로 시작하기
-                                </Button>
-                            </Link>
+                            ) : (
+                                <>
+                                    <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                                        <Button variant="outline" className="w-full justify-center">
+                                            로그인
+                                        </Button>
+                                    </Link>
+                                    <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
+                                        <Button className="w-full bg-[#3182F6] hover:bg-[#1B64DA] text-white justify-center">
+                                            무료로 시작하기
+                                        </Button>
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
