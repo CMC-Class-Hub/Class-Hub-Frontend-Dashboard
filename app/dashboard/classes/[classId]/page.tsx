@@ -191,7 +191,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                         </DialogTrigger>
                         <DialogContent className="mx-4 md:mx-auto rounded-3xl">
                             <DialogHeader>
-                                <DialogTitle className="text-xl font-bold text-[#191F28]">새 세션 추가</DialogTitle>
+                                <DialogTitle className="text-xl font-bold text-[#191F28]">세션 추가</DialogTitle>
                             </DialogHeader>
                             <AddSessionForm onSubmit={handleAddSession} />
                         </DialogContent>
