@@ -19,22 +19,22 @@ export const authApiReal: IAuthApi = {
 
         const result: LoginResponse = await response.json();
         
+
         // ✅ 토큰과 사용자 정보를 localStorage에 저장!
         if (result.accessToken) {
             localStorage.setItem(TOKEN_KEY, result.accessToken);
-            
             // 사용자 정보 저장
             const user: User = {
                 id: result.userId.toString(),
                 email: data.email,
-                name: '', // 백엔드에서 추가 정보가 없으면 빈 문자열
+                name: result.name, // 백엔드에서 추가 정보가 없으면 빈 문자열
                 phoneNumber: '',
                 role: 'instructor',
                 createdAt: new Date().toISOString(),
             };
             localStorage.setItem(AUTH_KEY, JSON.stringify(user));
         }
-        
+
         return result;
     },
 
@@ -58,7 +58,7 @@ export const authApiReal: IAuthApi = {
         // ✅ localStorage에서 토큰과 사용자 정보 삭제
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(AUTH_KEY);
-        
+
         // 백엔드 로그아웃 API가 있다면 호출 (선택사항)
         try {
             await fetch(`${API_URL}/api/auth/logout`, {
@@ -76,16 +76,16 @@ export const authApiReal: IAuthApi = {
     async getCurrentUser(): Promise<User | null> {
         // ✅ localStorage에서 사용자 정보 가져오기
         if (typeof window === 'undefined') return null;
-        
+
         const token = localStorage.getItem(TOKEN_KEY);
         const userData = localStorage.getItem(AUTH_KEY);
-        
+
         // 토큰이 없으면 로그아웃 상태
         if (!token) {
             localStorage.removeItem(AUTH_KEY);
             return null;
         }
-        
+
         return userData ? JSON.parse(userData) : null;
     },
 

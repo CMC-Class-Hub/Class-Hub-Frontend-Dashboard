@@ -20,7 +20,6 @@ export interface ClassTemplate {
   description?: string;
   location: string;
   locationDetails?: string;
-  price?: number;
   preparation?: string;
   instructions?: string;
   notes?: string;
@@ -46,6 +45,7 @@ export interface ClassSession {
   status: ClassStatus;
   currentNum: number;
   capacity: number;
+  price: number;
   linkId: string;
   createdAt: string;
 }
@@ -165,7 +165,7 @@ export interface InstructorSettings {
 export interface User {
   id: string;
   email: string;
-  name: string;
+  name?: string;
   phoneNumber?: string;
   role: 'instructor';
   createdAt: string;
@@ -184,10 +184,10 @@ export interface SignUpRequest {
   phoneNumber: string;
 }
 
-export interface LoginResponse { // 백엔드에서 보내는거 맞춰서 추가함.
+export interface LoginResponse { 
   userId: number;
   accessToken?: string;
-
+  name?: string;
 }
 
 export interface AuthResponse {
@@ -212,7 +212,6 @@ export interface CreateTemplateRequest {
   cancellationPolicy?: string;
   noShowPolicy?: string;
   images?: string[];
-  price?: number;
   parkingInfo?: string;
 }
 
@@ -227,6 +226,7 @@ export interface CreateSessionRequest {
 
   endTime: string;
   capacity: number;
+  price: number;
 }
 
 export interface UpdateSessionRequest {
@@ -234,6 +234,7 @@ export interface UpdateSessionRequest {
   startTime?: string;
   endTime?: string;
   capacity?: number;
+  price?: number;
   status?: ClassStatus;
 }
 
