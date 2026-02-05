@@ -1,4 +1,4 @@
-import type { IAuthApi, LoginRequest, SignUpRequest, AuthResponse, User } from '../types';
+import type { IAuthApi, LoginRequest, SignUpRequest, LoginResponse, User } from '../types';
 import { delay, generateId } from './storage';
 
 const AUTH_KEY = 'classhub_auth_user';
@@ -18,7 +18,7 @@ const saveUsers = (users: User[]): void => {
 };
 
 export const authApiMock: IAuthApi = {
-    async login({ email, password }: LoginRequest): Promise<AuthResponse> {
+    async login({ email, password }: LoginRequest): Promise<LoginResponse> {
         await delay(500); // Simulate network latency
 
         // 데모 계정 자동 생성 로직
@@ -42,7 +42,7 @@ export const authApiMock: IAuthApi = {
 
             // 세션 저장
             localStorage.setItem(AUTH_KEY, JSON.stringify(demoUser));
-            return { user: demoUser, token: 'mock-jwt-token' };
+            return { userId: parseInt(demoUser.id.split('-')[1]) || 1, accessToken: 'mock-jwt-token' };
         }
 
         const users = getUsers();
@@ -60,10 +60,10 @@ export const authApiMock: IAuthApi = {
         // Save session
         localStorage.setItem(AUTH_KEY, JSON.stringify(user));
 
-        return { user, token: 'mock-jwt-token' };
+        return { userId: parseInt(user.id.split('_')[1]) || 1, accessToken: 'mock-jwt-token' };
     },
 
-    async signUp({ email, name, password, phoneNumber }: SignUpRequest): Promise<AuthResponse> {
+    async signUp({ email, name, password, phoneNumber }: SignUpRequest): Promise<LoginResponse> {
         await delay(500);
         const users = getUsers();
 
@@ -86,7 +86,7 @@ export const authApiMock: IAuthApi = {
         // Save password separately (simple imitation)
         localStorage.setItem(`password_${email}`, password);
 
-        return { user: newUser };
+        return { userId: parseInt(newUser.id.split('_')[1]), accessToken: 'mock-jwt-token' };
     },
 
     async logout(): Promise<void> {

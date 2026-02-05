@@ -34,7 +34,8 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                 // Since we don't have getById, we fetch all and find (Mock limitations)
                 // In real API, we should have getById
                 const templates = await templateApi.getAll(currentUser.id);
-                const found = templates.find(t => t.id === classId);
+                const found = templates.find(t => String(t.id) === classId);
+                console.log(found);
                 if (found) {
                     setTemplate(found);
                     loadSessions(found.id);
@@ -59,7 +60,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                 const counts: Record<string, number> = {};
                 for (const session of sessions) {
                     const apps = await applicationApi.getBySessionId(session.id);
-                    counts[session.id] = apps.filter(a => a.status === 'CONFIRMED').length;
+                    counts[session.id] = apps.length;
                 }
                 setSessionApplicationCounts(counts);
             }
@@ -97,9 +98,9 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
         await loadSessions(template.id);
     };
 
-    const handleStatusChange = async (sessionId: string, newStatus: 'RECRUITING' | 'CLOSED' | 'FINISHED') => {
+    const handleStatusChange = async (sessionId: string, newStatus: 'RECRUITING' | 'CLOSED' | 'FULL') => {
         if (!template) return;
-        await sessionApi.update(sessionId, { status: newStatus });
+        await sessionApi.updateStatus(sessionId, newStatus);
         await loadSessions(template.id);
     };
 
@@ -113,8 +114,8 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
     };
 
     const copyLink = () => {
-        // TODO: Use real link
-        const url = 'https://classhub-link.vercel.app/class/test';
+        const url = `http://localhost:3001/class/${template?.classCode}`;
+       // const url = 'https://classhub-link.vercel.app/class/${template?.classCode}';
         navigator.clipboard.writeText(url);
         toast.success("링크가 복사되었습니다", {
             description: "수강생들에게 이 링크를 공유하여 신청을 받을 수 있어요."
@@ -144,9 +145,6 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
 
                             <div className="mt-4 space-y-2 text-sm text-[#4E5968]">
                                 <p><span className="font-semibold text-[#191F28]">장소:</span> {template.location}</p>
-                                {(template.price !== undefined) && (
-                                    <p><span className="font-semibold text-[#191F28]">가격:</span> {template.price.toLocaleString()}원</p>
-                                )}
                                 {template.preparation && (
                                     <p><span className="font-semibold text-[#191F28]">준비물:</span> {template.preparation}</p>
                                 )}

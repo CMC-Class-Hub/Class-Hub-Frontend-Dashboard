@@ -65,15 +65,12 @@ export default function DashboardLayout({
       `}
             >
                 <div className="p-6 border-b border-[#E5E8EB] flex items-center justify-between">
-                    <div>
+                    <button onClick={() => router.push('/')} className="text-left hover:opacity-80 transition-opacity">
                         <h2 className="text-xl font-bold text-[#3182F6]">Class Hub</h2>
                         <p className="text-sm text-[#8B95A1] mt-1">{user.name}님</p>
-                    </div>
+                    </button>
                     {/* 모바일 닫기 버튼 */}
-                    <button
-                        onClick={() => setSidebarOpen(false)}
-                        className="md:hidden p-2 rounded-xl hover:bg-[#F2F4F6] transition-colors"
-                    >
+                    <button onClick={() => setSidebarOpen(false)} className="md:hidden p-2 rounded-xl hover:bg-[#F2F4F6] transition-colors">
                         <X className="h-5 w-5 text-[#6B7684]" />
                     </button>
                 </div>

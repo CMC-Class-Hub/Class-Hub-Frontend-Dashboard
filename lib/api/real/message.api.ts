@@ -49,10 +49,10 @@ const DEFAULT_TEMPLATES: Record<MessageTemplateType, string> = {
 
 export const messageTemplateApiReal: IMessageTemplateApi = {
   async getByTemplateId(templateId: string): Promise<MessageTemplate[]> {
-    const response = await fetch(`${API_URL}/api/templates/${templateId}/message-templates`);
+    const response = await fetch(`${API_URL}/api/classes/${templateId}/message-templates`);
     if (!response.ok) throw new Error('Failed to fetch message templates');
     const data = await response.json();
-    return data.data;
+    return data;
   },
 
   async save(templateId: string, type: MessageTemplateType, content: string): Promise<MessageTemplate> {
@@ -63,7 +63,7 @@ export const messageTemplateApiReal: IMessageTemplateApi = {
     });
     if (!response.ok) throw new Error('Failed to save message template');
     const result = await response.json();
-    return result.data;
+    return result;
   },
 
   getDefault(type: MessageTemplateType): string {

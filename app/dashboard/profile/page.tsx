@@ -18,7 +18,8 @@ export default function ProfilePage() {
         const fetchUser = async () => {
             const user = await api.auth.getCurrentUser();
             if (user) {
-                setName(user.name);
+                setName(user.name ?? '');
+
                 setEmail(user.email);
                 setPhone(user.phoneNumber || '');
             }

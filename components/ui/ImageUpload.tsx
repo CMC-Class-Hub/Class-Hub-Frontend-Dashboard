@@ -1,88 +1,170 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { uploadMultipleImages, validateFile } from '@/lib/api/real/s3-upload';
 
 interface ImageUploadProps {
-    values?: string[];
-    onChange: (values: string[]) => void;
+    values?: string[];      // S3 URL 배열
+    onChange: (urls: string[]) => void;
     disabled?: boolean;
+    maxImages?: number;
+    maxSizeMB?: number;
 }
 
-export function ImageUpload({ values = [], onChange, disabled }: ImageUploadProps) {
-    const [previews, setPreviews] = useState<string[]>(values);
+export function ImageUpload({ 
+    values = [], 
+    onChange, 
+    disabled,
+    maxImages = 5,
+    maxSizeMB = 5
+}: ImageUploadProps) {
+    const [imageUrls, setImageUrls] = useState<string[]>(values);
+    const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState<string>('');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
-        setPreviews(values);
-    }, [values]);
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
-        if (files && files.length > 0) {
-            const newImages: string[] = [];
-            let processedCount = 0;
-            let hasError = false;
+        
+        console.log('📁 Files selected:', files?.length);
+        
+        if (!files || files.length === 0) {
+            console.log('❌ No files');
+            return;
+        }
 
-            Array.from(files).forEach((file) => {
-                // Check file size (e.g., 5MB limit)
-                if (file.size > 5 * 1024 * 1024) {
-                    alert(`파일 Size가 너무 큽니다: ${file.name} (5MB 이하만 가능)`);
-                    hasError = true;
-                    // Skip this file but continue others? Or abort?
-                    // For simplicity, we just count it as processed but don't add
-                    processedCount++;
-                    if (processedCount === files.length && !hasError) {
-                        // Only update if no error for now? Or partial?
-                        // Logic below assumes partial success allowed if we push
-                    }
+        // 최대 이미지 개수 체크
+        if (imageUrls.length + files.length > maxImages) {
+            const remaining = maxImages - imageUrls.length;
+            toast.error(`최대 ${maxImages}개까지 업로드 가능합니다.`, {
+                description: `현재 ${imageUrls.length}개, ${remaining}개 더 추가 가능`
+            });
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+            return;
+        }
+
+        setUploading(true);
+        setUploadProgress('파일 검증 중...');
+
+        try {
+            const fileArray = Array.from(files);
+            console.log('📋 Files to upload:', fileArray.map(f => f.name));
+
+            // 파일 검증
+            const validationResults = fileArray.map(file => validateFile(file, maxSizeMB));
+            const invalidFiles = validationResults.filter(r => !r.valid);
+
+            if (invalidFiles.length > 0) {
+                invalidFiles.forEach(result => {
+                    toast.error(result.error);
+                });
+                
+                // 유효한 파일만 필터링
+                const validFiles = fileArray.filter((_, index) => validationResults[index].valid);
+                
+                if (validFiles.length === 0) {
+                    console.log('❌ No valid files');
                     return;
                 }
+                
+                console.log(`⚠️ ${invalidFiles.length} invalid files filtered out`);
+                console.log(`✅ ${validFiles.length} valid files to upload`);
+            }
 
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    const base64String = reader.result as string;
-                    newImages.push(base64String);
-                    processedCount++;
+            const validFiles = fileArray.filter((_, index) => validationResults[index].valid);
+            
+            // S3에 업로드
+            setUploadProgress(`S3에 업로드 중... (0/${validFiles.length})`);
+            console.log('⏳ Uploading to S3...');
 
-                    if (processedCount === files.length) {
-                        const updatedImages = [...previews, ...newImages];
-                        setPreviews(updatedImages);
-                        onChange(updatedImages);
-                    }
-                };
-                reader.readAsDataURL(file);
+            const results = await uploadMultipleImages(validFiles);
+            
+            console.log('✅ Upload complete:', results);
+
+            // URL만 추출
+            const newUrls = results.map(r => r.url);
+            const updatedUrls = [...imageUrls, ...newUrls];
+            
+            setImageUrls(updatedUrls);
+            onChange(updatedUrls);
+
+            toast.success(`${newUrls.length}개 이미지가 업로드되었습니다.`);
+            console.log('✅ State updated:', updatedUrls);
+
+        } catch (error) {
+            console.error('❌ Upload error:', error);
+            toast.error('이미지 업로드에 실패했습니다.', {
+                description: error instanceof Error ? error.message : '알 수 없는 오류'
             });
-        }
-        // 입력을 초기화하여 동일한 파일 다시 선택 가능하게 함
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
+        } finally {
+            setUploading(false);
+            setUploadProgress('');
+            
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
         }
     };
 
-    const handleRemove = (index: number) => {
-        const updatedImages = previews.filter((_, i) => i !== index);
-        setPreviews(updatedImages);
-        onChange(updatedImages);
+    const handleRemove = (index: number, url: string) => {
+        console.log('🗑️ Removing image:', url);
+        
+        const updatedUrls = imageUrls.filter((_, i) => i !== index);
+        setImageUrls(updatedUrls);
+        onChange(updatedUrls);
+        
+        toast.success('이미지가 제거되었습니다.');
     };
 
     const handleUploadClick = () => {
+        if (disabled || uploading) {
+            console.log('❌ Upload click ignored (disabled or uploading)');
+            return;
+        }
+        console.log('📤 Upload button clicked');
         fileInputRef.current?.click();
     };
 
     return (
         <div className="flex flex-col gap-4">
+            {/* 업로드 진행 상태 */}
+            {uploading && (
+                <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                    <span className="text-sm text-blue-700">{uploadProgress}</span>
+                </div>
+            )}
+
+            {/* 이미지 개수 표시 */}
+            {imageUrls.length > 0 && (
+                <div className="text-sm text-gray-600">
+                    {imageUrls.length} / {maxImages}개 이미지
+                </div>
+            )}
+
+            {/* 이미지 그리드 */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {previews.map((preview, index) => (
-                    <div key={index} className="relative h-40 rounded-lg overflow-hidden border border-gray-200 group">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                {imageUrls.map((url, index) => (
+                    <div 
+                        key={index} 
+                        className="relative h-40 rounded-lg overflow-hidden border border-gray-200 group"
+                    >
                         <img
-                            src={preview}
-                            alt={`Preview ${index + 1}`}
+                            src={url}
+                            alt={`Image ${index + 1}`}
                             className="h-full w-full object-cover"
+                            onError={(e) => {
+                                console.error('❌ Image load error:', url);
+                                e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>';
+                            }}
                         />
+                        
                         {!disabled && (
                             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button
@@ -90,29 +172,50 @@ export function ImageUpload({ values = [], onChange, disabled }: ImageUploadProp
                                     variant="destructive"
                                     size="icon"
                                     className="h-6 w-6 rounded-full"
-                                    onClick={() => handleRemove(index)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRemove(index, url);
+                                    }}
+                                    disabled={uploading}
                                 >
                                     <X className="h-3 w-3" />
                                 </Button>
                             </div>
                         )}
+                        
+                        {/* 이미지 번호 */}
+                        <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                            {index + 1}
+                        </div>
                     </div>
                 ))}
 
-                {!disabled && (
+                {/* 업로드 버튼 */}
+                {!disabled && imageUrls.length < maxImages && (
                     <div
                         className={cn(
-                            "relative flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:bg-gray-100 cursor-pointer",
-                            disabled && "opacity-50 cursor-not-allowed hover:bg-gray-50"
+                            "relative flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors cursor-pointer",
+                            uploading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"
                         )}
                         onClick={handleUploadClick}
                     >
-                        <ImageIcon className="mb-2 h-8 w-8 text-gray-400" />
-                        <p className="text-xs text-gray-500 font-medium">Click to upload</p>
+                        {uploading ? (
+                            <>
+                                <Loader2 className="h-8 w-8 animate-spin text-gray-400 mb-2" />
+                                <p className="text-xs text-gray-500 font-medium">업로드 중...</p>
+                            </>
+                        ) : (
+                            <>
+                                <ImageIcon className="mb-2 h-8 w-8 text-gray-400" />
+                                <p className="text-xs text-gray-500 font-medium">이미지 추가</p>
+                                <p className="text-xs text-gray-400 mt-1">최대 {maxSizeMB}MB</p>
+                            </>
+                        )}
                     </div>
                 )}
             </div>
 
+            {/* 파일 입력 */}
             <input
                 ref={fileInputRef}
                 type="file"
@@ -120,8 +223,15 @@ export function ImageUpload({ values = [], onChange, disabled }: ImageUploadProp
                 multiple
                 style={{ display: 'none' }}
                 onChange={handleFileChange}
-                disabled={disabled}
+                disabled={disabled || uploading}
             />
+
+            {/* 안내 메시지 */}
+            {imageUrls.length === 0 && !uploading && (
+                <p className="text-xs text-gray-500 text-center">
+                    JPG, PNG, GIF, WebP 파일을 업로드할 수 있습니다
+                </p>
+            )}
         </div>
     );
 }

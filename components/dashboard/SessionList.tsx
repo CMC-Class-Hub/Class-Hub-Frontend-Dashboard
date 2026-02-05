@@ -21,7 +21,7 @@ interface SessionListProps {
     sessionApplicationCounts: Record<string, number>;
     onDeleteSession: (sessionId: string) => void;
     onEditSession: (session: ClassSession) => void;
-    onStatusChange?: (sessionId: string, newStatus: 'RECRUITING' | 'CLOSED' | 'FINISHED') => void;
+    onStatusChange?: (sessionId: string, newStatus: 'RECRUITING' | 'FULL' | 'CLOSED') => void;
     classId: string;
 }
 
@@ -73,17 +73,17 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                                                         className={`text-xs cursor-pointer hover:opacity-80 transition-opacity min-w-[60px] justify-center ${session.status !== 'RECRUITING' ? 'bg-[#E5E8EB] text-[#4E5968] hover:bg-[#D1D6DB]' : ''
                                                             }`}
                                                     >
-                                                        {session.status === 'RECRUITING' ? '모집중' : session.status === 'CLOSED' ? '마감' : '종료'} ▾
+                                                        {session.status === 'RECRUITING' ? '모집중' : session.status === 'FULL' ? '마감' : '종료'} ▾
                                                     </Badge>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="start">
                                                     <DropdownMenuItem onClick={() => onStatusChange(session.id, 'RECRUITING')}>
                                                         모집중
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => onStatusChange(session.id, 'CLOSED')}>
+                                                    <DropdownMenuItem onClick={() => onStatusChange(session.id, 'FULL')}>
                                                         마감
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => onStatusChange(session.id, 'FINISHED')}>
+                                                    <DropdownMenuItem onClick={() => onStatusChange(session.id, 'CLOSED')}>
                                                         종료
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
@@ -94,9 +94,14 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                                             </Badge>
                                         )}
                                     </div>
-                                    <p className="text-xs md:text-sm text-[#6B7684]">
-                                        신청 <span className="font-semibold text-[#3182F6]">{confirmedCount}명</span> / 정원 {session.capacity}명
-                                    </p>
+                                    <div className="space-y-1">
+                                        <p className="text-xs md:text-sm text-[#6B7684]">
+                                            신청 <span className="font-semibold text-[#3182F6]">{confirmedCount}명</span> / 정원 {session.capacity}명
+                                        </p>
+                                        <p className="text-xs md:text-sm text-[#6B7684]">
+                                            가격 <span className="font-semibold text-[#191F28]">{session.price.toLocaleString()}원</span>
+                                        </p>
+                                    </div>
                                 </div>
 
                                 <div className="flex gap-2">

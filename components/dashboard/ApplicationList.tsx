@@ -18,16 +18,18 @@ export function ApplicationList({ applications, students, sessionMessages, capac
         return students.find(s => s.id === studentId) || null;
     };
 
+    const validApplications = applications.filter(app => !!getStudentById(app.studentId));
+
     return (
         <Card className="hover:shadow-md">
             <CardHeader className="p-5 md:p-6">
                 <CardTitle className="text-base md:text-lg">신청자 목록</CardTitle>
                 <CardDescription className="text-sm">
-                    총 <span className="font-semibold text-[#3182F6]">{applications.filter(a => a.status === 'CONFIRMED').length}명</span> / 정원 {capacity}명
+                    총 <span className="font-semibold text-[#3182F6]">{validApplications.length}명</span> / 정원 {capacity}명
                 </CardDescription>
             </CardHeader>
             <CardContent className="p-5 md:p-6 pt-0 md:pt-0">
-                {applications.length === 0 ? (
+                {validApplications.length === 0 ? (
                     <div className="text-center py-10 md:py-12">
                         <div className="w-14 h-14 md:w-16 md:h-16 bg-[#F2F4F6] rounded-full flex items-center justify-center mx-auto mb-4">
                             <Users className="h-7 w-7 md:h-8 md:w-8 text-[#8B95A1]" />
@@ -36,16 +38,14 @@ export function ApplicationList({ applications, students, sessionMessages, capac
                     </div>
                 ) : (
                     <div className="space-y-3">
-                        {applications.map((app) => {
-                            const student = getStudentById(app.studentId);
-                            if (!student) return null;
-
+                        {validApplications.map((app) => {
+                            const student = getStudentById(app.studentId)!;
                             // 메시지 상태 확인
                             const d3Msg = sessionMessages.find(m => m.studentId === student.id && m.type === 'D-3');
                             const d1Msg = sessionMessages.find(m => m.studentId === student.id && m.type === 'D-1');
 
                             return (
-                                <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 md:p-5 bg-[#F9FAFB] rounded-2xl gap-4 hover:bg-[#F2F4F6] transition-colors">
+                                <div key={`app-${app.id}`} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 md:p-5 bg-[#F9FAFB] rounded-2xl gap-4 hover:bg-[#F2F4F6] transition-colors">
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center gap-2 mb-1">
                                             <p className="font-bold text-base text-[#191F28]">{student.name}</p>
