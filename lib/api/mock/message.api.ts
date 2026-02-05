@@ -1,5 +1,4 @@
-import type { MessageTemplate, IMessageTemplateApi, MessageTemplateType } from '../types';
-import { getMessageTemplates, setMessageTemplates, generateId, delay } from './storage';
+import type { IMessageTemplateApi, MessageTemplateType } from '../types';
 
 // 기본 메시지 템플릿
 const DEFAULT_TEMPLATES: Record<MessageTemplateType, string> = {
@@ -48,37 +47,6 @@ const DEFAULT_TEMPLATES: Record<MessageTemplateType, string> = {
 };
 
 export const messageTemplateApiMock: IMessageTemplateApi = {
-  async getByTemplateId(templateId: string): Promise<MessageTemplate[]> {
-    await delay();
-    const templates = getMessageTemplates();
-    return templates.filter(t => t.templateId === templateId);
-  },
-
-  async save(templateId: string, type: MessageTemplateType, content: string): Promise<MessageTemplate> {
-    await delay();
-    const templates = getMessageTemplates();
-    const existing = templates.find(t => t.templateId === templateId && t.type === type);
-
-    const messageTemplate: MessageTemplate = {
-      id: existing?.id || generateId('msg-template'),
-      templateId,
-      type,
-      content,
-      createdAt: existing?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    if (existing) {
-      const index = templates.findIndex(t => t.id === existing.id);
-      templates[index] = messageTemplate;
-    } else {
-      templates.push(messageTemplate);
-    }
-
-    setMessageTemplates(templates);
-    return messageTemplate;
-  },
-
   getDefault(type: MessageTemplateType): string {
     return DEFAULT_TEMPLATES[type];
   },

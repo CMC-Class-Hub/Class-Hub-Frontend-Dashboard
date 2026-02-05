@@ -109,15 +109,7 @@ export interface Student {
   createdAt: string;
 }
 
-// Message Template
-export interface MessageTemplate {
-  id: string;
-  templateId: string;
-  type: MessageTemplateType;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-}
+
 
 // Notification
 export interface Notification {
@@ -185,7 +177,7 @@ export interface SignUpRequest {
   phoneNumber: string;
 }
 
-export interface LoginResponse { 
+export interface LoginResponse {
   userId: number;
   accessToken?: string;
   name?: string;
@@ -314,8 +306,6 @@ export interface IApplicationApi {
 }
 
 export interface IMessageTemplateApi {
-  getByTemplateId(templateId: string): Promise<MessageTemplate[]>;
-  save(templateId: string, type: MessageTemplateType, content: string): Promise<MessageTemplate>;
   getDefault(type: MessageTemplateType, className?: string): string;
 }
 

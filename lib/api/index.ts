@@ -71,7 +71,6 @@ export type {
   ClassInfo,
   Application,
   Student,
-  MessageTemplate,
   Notification,
   // Status types
   ClassStatus,
