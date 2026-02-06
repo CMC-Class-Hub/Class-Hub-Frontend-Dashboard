@@ -189,11 +189,23 @@ export interface LoginResponse {
   userId: number;
   accessToken?: string;
   name?: string;
+  PhoneNumber?: string;
 }
 
 export interface AuthResponse {
   user: User;
   token?: string;
+}
+
+export interface InstructorUpdateRequest {
+    name?: string;
+    email?: string;
+    phoneNumber?: string;
+    password?: string;
+}
+
+export interface IInstructorApi {
+    updateProfile(instructorId: string, data: InstructorUpdateRequest): Promise<void>;
 }
 
 // ============================================================

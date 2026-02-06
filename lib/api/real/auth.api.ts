@@ -28,7 +28,7 @@ export const authApiReal: IAuthApi = {
                 id: result.userId.toString(),
                 email: data.email,
                 name: result.name, // 백엔드에서 추가 정보가 없으면 빈 문자열
-                phoneNumber: '',
+                phoneNumber: result.PhoneNumber,
                 role: 'instructor',
                 createdAt: new Date().toISOString(),
             };
@@ -79,7 +79,7 @@ export const authApiReal: IAuthApi = {
 
         const token = localStorage.getItem(TOKEN_KEY);
         const userData = localStorage.getItem(AUTH_KEY);
-
+        console.log("getCurrentUser", userData);
         // 토큰이 없으면 로그아웃 상태
         if (!token) {
             localStorage.removeItem(AUTH_KEY);
