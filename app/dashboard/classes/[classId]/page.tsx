@@ -60,7 +60,9 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                 const counts: Record<string, number> = {};
                 for (const session of sessions) {
                     const apps = await applicationApi.getBySessionId(session.id);
-                    counts[session.id] = apps.length;
+                    counts[session.id] = apps.filter(app => 
+                        (app as any).reservationStatus === 'CONFIRMED'
+                    ).length;
                 }
                 setSessionApplicationCounts(counts);
             }
