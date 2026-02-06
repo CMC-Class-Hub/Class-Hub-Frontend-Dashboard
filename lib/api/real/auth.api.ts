@@ -90,8 +90,18 @@ export const authApiReal: IAuthApi = {
     },
 
     async isLoggedIn(): Promise<boolean> {
-        const user = await this.getCurrentUser();
-        console.log("isLoggedIn", user);
-        return user !== null && user.id !== 'demo-instructor';
-    }
+        try {
+            const response = await fetch(`${API_URL}/api/auth/status`, {
+                method: 'GET',
+                credentials: 'include' // 쿠키/세션 포함
+            });
+
+            const data = await response.json();
+            console.log("isLoggedIn", data);
+            return data.isLoggedIn;
+        } catch (error) {
+            console.error("Login check failed", error);
+            return false;
+        }
+    },
 };
