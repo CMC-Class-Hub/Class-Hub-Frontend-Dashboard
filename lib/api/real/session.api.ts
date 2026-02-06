@@ -44,9 +44,17 @@ export const sessionApiReal: ISessionApi = {
     return await response.json();
   },
   async delete(id: string): Promise<void> {
-    const response = await fetchClient(`/api/sessions/${id}`, {
-      method: 'DELETE',
-    });
-    if (!response.ok) throw new Error('Failed to delete session');
-  },
+  const response = await fetchClient(`/api/sessions/${id}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    let message = '세션 삭제에 실패했습니다.';
+
+    const errorBody = await response.json();
+    message = errorBody.message ?? message;
+    
+    throw new Error(message);
+  }
+}
 };

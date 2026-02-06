@@ -107,12 +107,23 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
     };
 
     const handleDeleteSession = async (sessionId: string) => {
-        if (confirm('이 세션을 삭제하시겠습니까?')) {
+        if (!confirm('이 세션을 삭제하시겠습니까?')) return;
+
+        try {
             await sessionApi.delete(sessionId);
+
             if (template) {
                 await loadSessions(template.id);
             }
-        }
+
+            alert('세션이 삭제되었습니다.');
+        } catch (error) {
+            if (error instanceof Error) {
+                alert(error.message); // 👈 백엔드 메시지 그대로 출력
+            } else {
+                alert('세션 삭제 중 알 수 없는 오류가 발생했습니다.');
+            }
+    }
     };
 
     const copyLink = () => {

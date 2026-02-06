@@ -32,7 +32,7 @@ export const templateApiReal: ITemplateApi = {
       method: 'PUT',
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error('Failed to update template');
+    
     const result = await response.json();
     return result;
   },
@@ -41,6 +41,9 @@ export const templateApiReal: ITemplateApi = {
     const response = await fetchClient(`/api/classes/${id}`, {
       method: 'DELETE',
     });
-    if (!response.ok) throw new Error('Failed to delete template');
+    if (!response.ok) {
+      const errorBody = await response.json();
+      throw new Error(errorBody.message);
+    }
   },
 };
