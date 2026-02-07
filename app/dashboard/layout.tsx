@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Menu, X, LogOut, Calendar, MessageSquare, Settings } from "lucide-react";
 import { api } from "@/lib/api";
@@ -20,6 +20,7 @@ export default function DashboardLayout({
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [user, setUser] = useState<User | null>(null);
+    const onboardingProcessed = useRef(false);
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -39,8 +40,13 @@ export default function DashboardLayout({
     }, [router, ref]);
 
     const checkOnboarding = async (instructorId: string) => {
+        if (onboardingProcessed.current) return;
+
         const dataStr = localStorage.getItem('onboarding_class_data');
         if (!dataStr) return;
+
+        // Lock immediately to prevent double execution
+        onboardingProcessed.current = true;
 
         try {
             const data = JSON.parse(dataStr);
