@@ -109,15 +109,7 @@ export interface Student {
   createdAt: string;
 }
 
-// Message Template
-export interface MessageTemplate {
-  id: string;
-  templateId: string;
-  type: MessageTemplateType;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-}
+
 
 // Notification
 export interface Notification {
@@ -185,15 +177,27 @@ export interface SignUpRequest {
   phoneNumber: string;
 }
 
-export interface LoginResponse { 
+export interface LoginResponse {
   userId: number;
   accessToken?: string;
   name?: string;
+  PhoneNumber?: string;
 }
 
 export interface AuthResponse {
   user: User;
   token?: string;
+}
+
+export interface InstructorUpdateRequest {
+    name?: string;
+    email?: string;
+    phoneNumber?: string;
+    password?: string;
+}
+
+export interface IInstructorApi {
+    updateProfile(instructorId: string, data: InstructorUpdateRequest): Promise<void>;
 }
 
 // ============================================================
@@ -313,10 +317,23 @@ export interface IApplicationApi {
   update(id: string, data: UpdateApplicationRequest): Promise<Application>;
 }
 
+// Message Template List Item
+export interface MessageTemplateListItem {
+  title: string;
+  description: string;
+}
+
+// Message Template Detail
+export interface MessageTemplateDetail {
+  type: MessageTemplateType;
+  title: string;
+  description: string;
+  body: string;
+}
+
 export interface IMessageTemplateApi {
-  getByTemplateId(templateId: string): Promise<MessageTemplate[]>;
-  save(templateId: string, type: MessageTemplateType, content: string): Promise<MessageTemplate>;
-  getDefault(type: MessageTemplateType, className?: string): string;
+  getTitles(): Promise<MessageTemplateListItem[]>; // Returns list of templates with metadata
+  getDetails(title: string): Promise<MessageTemplateDetail>; // Returns details for a title
 }
 
 export interface IMessageHistoryApi {

@@ -1,7 +1,5 @@
-import type { MessageTemplate, IMessageTemplateApi, MessageTemplateType } from '../types';
-import { getMessageTemplates, setMessageTemplates, generateId, delay } from './storage';
+import type { IMessageTemplateApi, MessageTemplateType, MessageTemplateDetail, MessageTemplateListItem } from '../types';
 
-// 기본 메시지 템플릿
 const DEFAULT_TEMPLATES: Record<MessageTemplateType, string> = {
   'APPLY_CONFIRMED': `[Class Hub] 신청 완료 안내
 
@@ -47,39 +45,39 @@ const DEFAULT_TEMPLATES: Record<MessageTemplateType, string> = {
 감사합니다.`,
 };
 
+// ... (DEFAULT_TEMPLATES remains as internal helper)
+
 export const messageTemplateApiMock: IMessageTemplateApi = {
-  async getByTemplateId(templateId: string): Promise<MessageTemplate[]> {
-    await delay();
-    const templates = getMessageTemplates();
-    return templates.filter(t => t.templateId === templateId);
+
+
+  async getTitles(): Promise<MessageTemplateListItem[]> {
+    return [
+      { title: '예약 완료 안내', description: '수업 예약 직후 자동으로 발송됩니다' },
+      { title: 'D-3 리마인더', description: '수업 3일 전에 자동으로 발송됩니다' },
+      { title: 'D-1 리마인더', description: '수업 1일 전에 자동으로 발송됩니다' }
+    ];
   },
 
-  async save(templateId: string, type: MessageTemplateType, content: string): Promise<MessageTemplate> {
-    await delay();
-    const templates = getMessageTemplates();
-    const existing = templates.find(t => t.templateId === templateId && t.type === type);
-
-    const messageTemplate: MessageTemplate = {
-      id: existing?.id || generateId('msg-template'),
-      templateId,
-      type,
-      content,
-      createdAt: existing?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+  async getDetails(title: string): Promise<MessageTemplateDetail> {
+    // Simple mock mapping
+    if (title === '예약 완료 안내') return {
+      type: 'APPLY_CONFIRMED',
+      title,
+      description: '수업 예약 직후 자동으로 발송됩니다',
+      body: DEFAULT_TEMPLATES['APPLY_CONFIRMED']
     };
-
-    if (existing) {
-      const index = templates.findIndex(t => t.id === existing.id);
-      templates[index] = messageTemplate;
-    } else {
-      templates.push(messageTemplate);
-    }
-
-    setMessageTemplates(templates);
-    return messageTemplate;
-  },
-
-  getDefault(type: MessageTemplateType): string {
-    return DEFAULT_TEMPLATES[type];
-  },
+    if (title === 'D-3 리마인더') return {
+      type: 'D-3',
+      title,
+      description: '수업 3일 전에 자동으로 발송됩니다',
+      body: DEFAULT_TEMPLATES['D-3']
+    };
+    if (title === 'D-1 리마인더') return {
+      type: 'D-1',
+      title,
+      description: '수업 1일 전에 자동으로 발송됩니다',
+      body: DEFAULT_TEMPLATES['D-1']
+    };
+    throw new Error('Template not found');
+  }
 };

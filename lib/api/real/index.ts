@@ -6,3 +6,5 @@ export { applicationApiReal } from './application.api';
 export { messageTemplateApiReal } from './message.api';
 export { messageHistoryApiReal } from './message-history.api';
 export { authApiReal } from './auth.api';
+export { instructorApiReal } from './instructor-api';
+

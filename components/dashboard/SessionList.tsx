@@ -62,7 +62,7 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                                             {format(new Date(session.date), 'M월 d일 (EEE)', { locale: ko })}
                                         </h3>
                                         <Badge variant="outline" className="text-xs">
-                                            {session.startTime} - {session.endTime}
+                                            {session.startTime.slice(0, 5)} - {session.endTime.slice(0, 5)}
                                         </Badge>
 
                                         {onStatusChange ? (
