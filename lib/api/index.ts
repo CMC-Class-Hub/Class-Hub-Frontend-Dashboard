@@ -74,7 +74,6 @@ export type {
   ClassInfo,
   Application,
   Student,
-  MessageTemplate,
   Notification,
   // Status types
   ClassStatus,
@@ -117,6 +116,8 @@ export type {
   SignUpRequest,
   AuthResponse,
   IAuthApi,
+  MessageTemplateListItem,
+  MessageTemplateDetail,
   InstructorUpdateRequest,
 } from './types';
 
