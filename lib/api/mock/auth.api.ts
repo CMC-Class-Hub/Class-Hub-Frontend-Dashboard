@@ -21,29 +21,7 @@ export const authApiMock: IAuthApi = {
     async login({ email, password }: LoginRequest): Promise<LoginResponse> {
         await delay(500); // Simulate network latency
 
-        // 데모 계정 자동 생성 로직
-        if (email === 'demo@classhub.com' && password === '1234') {
-            const users = getUsers();
-            let demoUser = users.find(u => u.email === email);
 
-            if (!demoUser) {
-                demoUser = {
-                    id: 'demo-instructor',
-                    email: 'demo@classhub.com',
-                    name: '데모 강사',
-                    phoneNumber: '010-1234-5678',
-                    role: 'instructor',
-                    createdAt: new Date().toISOString(),
-                };
-                users.push(demoUser);
-                saveUsers(users);
-                localStorage.setItem(`password_${email}`, password);
-            }
-
-            // 세션 저장
-            localStorage.setItem(AUTH_KEY, JSON.stringify(demoUser));
-            return { userId: parseInt(demoUser.id.split('-')[1]) || 1, accessToken: 'mock-jwt-token' };
-        }
 
         const users = getUsers();
         const user = users.find(u => u.email === email);

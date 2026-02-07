@@ -91,7 +91,7 @@ export const authApiReal: IAuthApi = {
 
     async isLoggedIn(): Promise<boolean> {
         const user = await this.getCurrentUser();
-        console.log("isLoggedIn", user);
-        return user !== null && user.id !== 'demo-instructor';
+        // console.log("isLoggedIn", user);
+        return user !== null;
     }
 };

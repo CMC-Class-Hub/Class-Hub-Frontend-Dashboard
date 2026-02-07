@@ -6,6 +6,8 @@ import { Menu, X, LogOut, Calendar, MessageSquare, Settings } from "lucide-react
 import { api } from "@/lib/api";
 import type { User } from "@/lib/api/types";
 
+import { toast } from "sonner"; // Add import
+
 export default function DashboardLayout({
     children,
 }: {
@@ -24,9 +26,52 @@ export default function DashboardLayout({
                 return;
             }
             setUser(currentUser);
+            checkOnboarding(currentUser.id);
         };
         checkAuth();
     }, [router]);
+
+    const checkOnboarding = async (instructorId: string) => {
+        const dataStr = localStorage.getItem('onboarding_class_data');
+        if (!dataStr) return;
+
+        try {
+            const data = JSON.parse(dataStr);
+
+            // Create Template
+            const template = await api.templates.create(instructorId, {
+                name: data.name,
+                description: data.description,
+                location: data.location || "미정",
+                locationDetails: "",
+                preparation: data.materials,
+                parkingInfo: data.parking,
+                // category is not in API yet, skipping
+            });
+
+            // Create Session if date exists
+            if (data.date && data.startTime) {
+                // "2024.03.15 (토)" -> "2024-03-15"
+                const dateStr = data.date.split(' ')[0].replace(/\./g, '-');
+                const priceNum = data.price ? Number(String(data.price).replace(/,/g, '')) : 0;
+
+                await api.sessions.create(instructorId, {
+                    templateId: template.id,
+                    date: dateStr,
+                    startTime: data.startTime,
+                    endTime: "16:00", // Default 2 hours later
+                    capacity: Number(data.capacity) || 10,
+                    price: priceNum,
+                });
+            }
+
+            toast.success("작성하신 클래스가 자동으로 개설되었습니다.");
+            localStorage.removeItem('onboarding_class_data');
+            router.refresh(); // Refresh data
+        } catch (e) {
+            console.error("Onboarding Error:", e);
+        }
+    };
 
     const handleLogout = async () => {
         await api.auth.logout();
