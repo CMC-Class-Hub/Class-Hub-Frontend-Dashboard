@@ -1,9 +1,10 @@
+// app/dashboard/classes/[classId]/page.tsx
 "use client";
 
 import { useState, useEffect, use } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Link2, Plus } from "lucide-react";
+import { ArrowLeft, Link2, Plus, Link2Off } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,16 @@ import { EditClassForm } from "@/components/dashboard/EditClassForm";
 import { AddSessionForm } from "@/components/dashboard/AddSessionForm";
 import { SessionList } from "@/components/dashboard/SessionList";
 import { EditSessionForm } from "@/components/dashboard/EditSessionForm";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ClassDetailPage({ params }: { params: Promise<{ classId: string }> }) {
     const router = useRouter();
@@ -24,15 +35,13 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
     const [editingSession, setEditingSession] = useState<ClassSession | null>(null);
     const [sessionApplicationCounts, setSessionApplicationCounts] = useState<Record<string, number>>({});
     const [user, setUser] = useState<any>(null);
+    const [linkShareAlertOpen, setLinkShareAlertOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             const currentUser = await api.auth.getCurrentUser();
             if (currentUser) {
                 setUser(currentUser);
-                // Fetch template details
-                // Since we don't have getById, we fetch all and find (Mock limitations)
-                // In real API, we should have getById
                 const templates = await templateApi.getAll(currentUser.id);
                 const found = templates.find(t => String(t.id) === classId);
                 console.log(found);
@@ -40,7 +49,6 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                     setTemplate(found);
                     loadSessions(found.id);
                 } else {
-                    // Handle not found
                     router.push('/dashboard/classes');
                 }
             }
@@ -53,14 +61,13 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
         setSessions(templateSessions);
     };
 
-    // 세션 목록의 신청자 수 로드
     useEffect(() => {
         const loadApplicationCounts = async () => {
             if (sessions.length > 0) {
                 const counts: Record<string, number> = {};
                 for (const session of sessions) {
                     const apps = await applicationApi.getBySessionId(session.id);
-                    counts[session.id] = apps.filter(app => 
+                    counts[session.id] = apps.filter(app =>
                         (app as any).reservationStatus === 'CONFIRMED'
                     ).length;
                 }
@@ -70,7 +77,6 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
 
         loadApplicationCounts();
     }, [sessions]);
-
 
     const handleEditTemplate = async (data: any) => {
         if (!template || !user) return;
@@ -119,16 +125,41 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
             alert('세션이 삭제되었습니다.');
         } catch (error) {
             if (error instanceof Error) {
-                alert(error.message); // 👈 백엔드 메시지 그대로 출력
+                alert(error.message);
             } else {
                 alert('세션 삭제 중 알 수 없는 오류가 발생했습니다.');
             }
-    }
+        }
+    };
+
+    const toggleLinkShareStatus = async () => {
+        if (!template) return;
+
+        try {
+            const newStatus = template.linkShareStatus === 'ENABLED' ? 'DISABLED' : 'ENABLED';
+            const updatedTemplate = await templateApi.updateLinkShareStatus(template.id, newStatus);
+            setTemplate(updatedTemplate);
+            setLinkShareAlertOpen(false);
+
+            toast.success(
+                newStatus === 'ENABLED' ? "링크 공유가 활성화되었습니다" : "링크 공유가 비활성화되었습니다",
+                {
+                    description: newStatus === 'ENABLED'
+                        ? "이제 수강생들이 링크를 통해 신청할 수 있습니다."
+                        : "링크를 통한 신청이 차단되었습니다."
+                }
+            );
+        } catch (error) {
+            if (error instanceof Error) {
+                toast.error("상태 변경 실패", {
+                    description: error.message
+                });
+            }
+        }
     };
 
     const copyLink = () => {
         const url = `http://localhost:3001/class/${template?.classCode}`;
-       // const url = 'https://classhub-link.vercel.app/class/${template?.classCode}';
         navigator.clipboard.writeText(url);
         toast.success("링크가 복사되었습니다", {
             description: "수강생들에게 이 링크를 공유하여 신청을 받을 수 있어요."
@@ -138,6 +169,8 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
     if (!template) {
         return <div className="p-8 text-center text-[#8B95A1]">로딩 중...</div>;
     }
+
+    const isLinkEnabled = template.linkShareStatus === 'ENABLED';
 
     return (
         <div className="space-y-6">
@@ -151,7 +184,15 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                 <CardHeader className="p-5 md:p-6">
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                         <div className="space-y-1 flex-1">
-                            <CardTitle className="text-lg md:text-xl">{template.name}</CardTitle>
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <CardTitle className="text-lg md:text-xl">{template.name}</CardTitle>
+                                <Badge 
+                                    variant={isLinkEnabled ? "default" : "secondary"}
+                                    className={isLinkEnabled ? "" : "bg-[#F1F3F5] text-[#8B95A1]"}
+                                >
+                                    {isLinkEnabled ? "링크 공유 활성화" : "링크 공유 비활성화"}
+                                </Badge>
+                            </div>
                             <CardDescription className="text-sm mt-2">
                                 {template.description}
                             </CardDescription>
@@ -165,14 +206,44 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-2 min-w-fit">
-                            <Button variant="outline" onClick={copyLink} className="w-full sm:w-auto">
-                                <Link2 className="h-4 w-4 mr-2" />
-                                클래스 링크
+                            {/* 링크 활성화 상태일 때만 링크 복사 버튼 표시 */}
+                            {isLinkEnabled && (
+                                <Button
+                                    variant="outline"
+                                    onClick={copyLink}
+                                    className="w-full sm:w-auto"
+                                >
+                                    <Link2 className="h-4 w-4 mr-2" />
+                                    클래스 링크
+                                </Button>
+                            )}
+                            
+                            <Button
+                                variant={isLinkEnabled ? "destructive" : "outline"}
+                                onClick={() => setLinkShareAlertOpen(true)}
+                                className={`w-full sm:w-auto ${
+                                    !isLinkEnabled 
+                                        ? "border-[#E1E4E8] text-[#6B7684] hover:bg-[#F6F8FA] hover:text-[#191F28]" 
+                                        : ""
+                                }`}
+                            >
+                                {isLinkEnabled ? (
+                                    <>
+                                        <Link2Off className="h-4 w-4 mr-2" />
+                                        링크 공유 끄기
+                                    </>
+                                ) : (
+                                    <>
+                                        <Link2 className="h-4 w-4 mr-2" />
+                                        링크 공유 켜기
+                                    </>
+                                )}
                             </Button>
+                            
                             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
                                 <DialogTrigger asChild>
                                     <Button variant="outline" className="w-full sm:w-auto">
-                                        수정
+                                        클래스 수정
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4 md:mx-auto rounded-3xl">
@@ -190,6 +261,29 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                     </div>
                 </CardHeader>
             </Card>
+
+            {/* 링크 공유 상태 변경 확인 다이얼로그 */}
+            <AlertDialog open={linkShareAlertOpen} onOpenChange={setLinkShareAlertOpen}>
+                <AlertDialogContent className="mx-4 md:mx-auto rounded-3xl">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {isLinkEnabled ? "링크 공유를 끄시겠습니까?" : "링크 공유를 켜시겠습니까?"}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {isLinkEnabled
+                                ? "끄면 수강생들이 링크를 통해 신청할 수 없게 됩니다."
+                                : "켜면 수강생들이 링크를 통해 신청할 수 있게 됩니다."
+                            }
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>취소</AlertDialogCancel>
+                        <AlertDialogAction onClick={toggleLinkShareStatus}>
+                            {isLinkEnabled ? "끄기" : "켜기"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             {/* 세션 목록 섹션 */}
             <div className="space-y-4">
@@ -215,7 +309,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                     sessions={sessions}
                     sessionApplicationCounts={sessionApplicationCounts}
                     onDeleteSession={handleDeleteSession}
-                    onEditSession={setEditingSession}
+                    onEditSession={(session) => setEditingSession(session as any)}
                     onStatusChange={handleStatusChange}
                     classId={classId}
                 />
