@@ -28,7 +28,7 @@ export const authApiReal: IAuthApi = {
                 id: result.userId.toString(),
                 email: data.email,
                 name: result.name, // 백엔드에서 추가 정보가 없으면 빈 문자열
-                phoneNumber: '',
+                phoneNumber: result.PhoneNumber,
                 role: 'instructor',
                 createdAt: new Date().toISOString(),
             };
@@ -79,7 +79,7 @@ export const authApiReal: IAuthApi = {
 
         const token = localStorage.getItem(TOKEN_KEY);
         const userData = localStorage.getItem(AUTH_KEY);
-
+        console.log("getCurrentUser", userData);
         // 토큰이 없으면 로그아웃 상태
         if (!token) {
             localStorage.removeItem(AUTH_KEY);
@@ -90,8 +90,18 @@ export const authApiReal: IAuthApi = {
     },
 
     async isLoggedIn(): Promise<boolean> {
-        const user = await this.getCurrentUser();
-        console.log("isLoggedIn", user);
-        return user !== null && user.id !== 'demo-instructor';
-    }
+        try {
+            const response = await fetch(`${API_URL}/api/auth/status`, {
+                method: 'GET',
+                credentials: 'include' // 쿠키/세션 포함
+            });
+
+            const data = await response.json();
+            console.log("isLoggedIn", data);
+            return data.isLoggedIn;
+        } catch (error) {
+            console.error("Login check failed", error);
+            return false;
+        }
+    },
 };
