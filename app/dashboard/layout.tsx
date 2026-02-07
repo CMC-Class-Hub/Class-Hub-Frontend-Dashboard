@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Menu, X, LogOut, Calendar, MessageSquare, Settings } from "lucide-react";
 import { api } from "@/lib/api";
@@ -8,7 +8,7 @@ import type { User } from "@/lib/api/types";
 
 import { toast } from "sonner"; // Add import
 
-export default function DashboardLayout({
+function DashboardContent({
     children,
 }: {
     children: React.ReactNode;
@@ -216,5 +216,24 @@ export default function DashboardLayout({
                 </main>
             </div>
         </div>
+    );
+}
+
+export default function DashboardLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[#F2F4F6]">
+                <div className="w-12 h-12 border-4 border-[#E5E8EB] border-t-[#3182F6] rounded-full animate-spin mb-4"></div>
+                <p className="text-[#8B95A1] font-medium">로딩 중...</p>
+            </div>
+        }>
+            <DashboardContent>
+                {children}
+            </DashboardContent>
+        </Suspense>
     );
 }
