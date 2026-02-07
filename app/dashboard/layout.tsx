@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Menu, X, LogOut, Calendar, MessageSquare, Settings } from "lucide-react";
 import { api } from "@/lib/api";
 import type { User } from "@/lib/api/types";
@@ -15,6 +15,9 @@ export default function DashboardLayout({
 }) {
     const router = useRouter();
     const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const ref = searchParams.get('ref');
+
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [user, setUser] = useState<User | null>(null);
 
@@ -26,10 +29,14 @@ export default function DashboardLayout({
                 return;
             }
             setUser(currentUser);
-            checkOnboarding(currentUser.id);
+
+            // Only check onboarding if ref=landing
+            if (ref === 'landing') {
+                checkOnboarding(currentUser.id);
+            }
         };
         checkAuth();
-    }, [router]);
+    }, [router, ref]);
 
     const checkOnboarding = async (instructorId: string) => {
         const dataStr = localStorage.getItem('onboarding_class_data');
@@ -37,6 +44,13 @@ export default function DashboardLayout({
 
         try {
             const data = JSON.parse(dataStr);
+
+            // Validate Data
+            if (!data.name) {
+                console.warn("Onboarding data missing class name, skipping creation.");
+                localStorage.removeItem('onboarding_class_data');
+                return;
+            }
 
             // Create Template
             const template = await api.templates.create(instructorId, {
@@ -68,6 +82,7 @@ export default function DashboardLayout({
             toast.success("작성하신 클래스가 자동으로 개설되었습니다.");
             localStorage.removeItem('onboarding_class_data');
             router.refresh(); // Refresh data
+            router.replace("/dashboard"); // Clean up URL
         } catch (e) {
             console.error("Onboarding Error:", e);
         }

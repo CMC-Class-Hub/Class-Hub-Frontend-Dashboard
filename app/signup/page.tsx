@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,9 @@ import { api } from "@/lib/api";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const ref = searchParams.get("ref");
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -55,7 +58,12 @@ export default function SignUpPage() {
     try {
       // 자동 로그인
       await api.auth.login({ email, password });
-      router.push("/dashboard");
+
+      if (ref === "landing") {
+        router.push("/dashboard?ref=landing");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (err) {
       // 회원가입은 성공했지만 로그인 실패 시 로그인 페이지로
       router.push("/login");
