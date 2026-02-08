@@ -65,15 +65,25 @@ export function LandingContent() {
 
     // Auto-fill Logic
     // Auto-fill Logic
+    // Auto-fill Logic
+    const [showCopyToast, setShowCopyToast] = useState(false);
+
+    const handleCopyLink = () => {
+        // Just purely educational feedback, no actual copy
+        setShowCopyToast(true);
+        setTimeout(() => setShowCopyToast(false), 3000);
+    };
+
     const fillExampleData = () => {
         setClassName('힐링 요가 원데이 클래스');
         setLocation('강남역 7번 출구 요가스튜디오 3층');
         setDate('2024-03-15');
         setStartTime('14:00');
-        setEndTime('16:00');
-        setPrice('50000');
+        setEndTime('15:00');
+        setPrice('20000');
         setCapacity('8');
-        setDescription('지친 몸과 마음을 치유하는 시간입니다. 초보자도 환영합니다.');
+        setDescription('지친 몸과 마음을 치유하는 시간입니다. \n\n- 워밍업/호흡 (10분)\n- 기본 동작 플로우 (40분)\n- 쿨다운/이완 (10분)\n\n초보자도 무리 없이 따라올 수 있어요.');
+
     };
 
     const nextStep = () => {
@@ -143,7 +153,7 @@ export function LandingContent() {
                         <div className="flex justify-between items-center mb-6 flex-shrink-0">
                             <h2 className="text-xl font-bold text-gray-900">
                                 {currentStep === 0 && "클래스 정보 입력"}
-                                {currentStep === 1 && "공유 링크 생성 완료"}
+                                {currentStep === 1 && "클래스 신청 링크 생성 완료"}
                                 {currentStep === 2 && "자동 알림 설정"}
                                 {currentStep === 3 && "수강생 통합 관리"}
                             </h2>
@@ -160,7 +170,7 @@ export function LandingContent() {
 
                         {/* Content Area */}
                         <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                            <div className="space-y-6 pb-4">
+                            <div className={`space-y-6 pb-4 ${currentStep === 1 ? 'h-full flex flex-col justify-center' : ''}`}>
                                 {currentStep === 0 && (
                                     <>
                                         {/* Basic Info Section */}
@@ -294,19 +304,34 @@ export function LandingContent() {
                                 )}
 
                                 {currentStep === 1 && (
-                                    <div className="text-center py-10 space-y-6">
+                                    <div className="text-center space-y-6 w-full">
                                         <p className="text-base text-gray-600 leading-relaxed">
-                                            클래스가 생성되었습니다.<br />
-                                            <span className="font-bold text-gray-800">나만의 신청 링크</span>가 준비되었어요.
+                                            클래스가 생성되었어요.<br />
+                                            <span className="font-bold text-gray-800">클래스 신청 링크</span>를 공유해보세요!
                                         </p>
-                                        <div className="bg-gray-50 p-5 rounded-2xl flex flex-col items-center gap-3 border border-gray-200 w-full">
-                                            <div className="font-bold text-[#3182F6] text-lg">classhub.kr/yoga-class</div>
-                                            <Button variant="outline" size="sm" className="h-9 rounded-full px-5 border-[#3182F6] text-[#3182F6] hover:bg-blue-50 font-bold">
-                                                링크 복사하기
+                                        <div className="bg-gray-50 p-4 rounded-2xl flex items-center justify-between gap-3 border border-gray-200 w-full shadow-sm">
+                                            <span className="text-sm font-medium text-gray-600 truncate flex-1 text-left">
+                                                https://classhub-link.vercel.app/class/abc
+                                            </span>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="shrink-0 h-8 rounded-lg px-3 text-[#3182F6] border-[#3182F6] hover:bg-blue-50 font-bold text-xs"
+                                                onClick={handleCopyLink}
+                                            >
+                                                복사
                                             </Button>
+                                        </div>
+
+                                        {/* Educational Feedback */}
+                                        <div className={`transition-all duration-300 ${showCopyToast ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}`}>
+                                            <span className="bg-gray-800/90 text-white text-[11px] px-4 py-2 rounded-full shadow-lg leading-snug inline-block break-keep">
+                                                체험용입니다 :) 실제 서비스에서 신청 링크를 공유해 보세요! 🚀
+                                            </span>
                                         </div>
                                     </div>
                                 )}
+
 
                                 {currentStep === 2 && (
                                     <div className="space-y-5">
@@ -419,7 +444,10 @@ export function LandingContent() {
                         <div className="flex flex-col mb-6 flex-shrink-0">
                             <h3 className="text-lg font-bold text-[#191F28] mb-1.5 flex items-center gap-2">
                                 <span className="bg-[#3182F6] text-white text-[10px] px-2 py-0.5 rounded-full">미리보기</span>
-                                정보를 입력하면 신청 화면이 자동 생성돼요
+                                {currentStep === 0 && "정보를 입력하면 신청 화면이 자동 생성돼요"}
+                                {currentStep === 1 && "링크를 공유해 수강생을 간편하게 모을 수 있어요"}
+                                {currentStep === 2 && "신청이 완료되면 알림톡이 자동으로 발송돼요"}
+                                {currentStep === 3 && "신청자 명단이 자동으로 정리되고 관리돼요"}
                             </h3>
                         </div>
 
@@ -468,7 +496,7 @@ export function LandingContent() {
 
                 </div>
 
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
