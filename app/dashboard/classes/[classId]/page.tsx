@@ -4,26 +4,15 @@
 import { useState, useEffect, use } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Link2, Plus, Link2Off } from "lucide-react";
+import { ArrowLeft, Link2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { api, templateApi, sessionApi, applicationApi, type ClassTemplate, type ClassSession } from "@/lib/api";
 import { EditClassForm } from "@/components/dashboard/EditClassForm";
 import { AddSessionForm } from "@/components/dashboard/AddSessionForm";
 import { SessionList } from "@/components/dashboard/SessionList";
 import { EditSessionForm } from "@/components/dashboard/EditSessionForm";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 export default function ClassDetailPage({ params }: { params: Promise<{ classId: string }> }) {
     const router = useRouter();
@@ -35,7 +24,6 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
     const [editingSession, setEditingSession] = useState<ClassSession | null>(null);
     const [sessionApplicationCounts, setSessionApplicationCounts] = useState<Record<string, number>>({});
     const [user, setUser] = useState<any>(null);
-    const [linkShareAlertOpen, setLinkShareAlertOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -132,17 +120,15 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
         }
     };
 
-    const toggleLinkShareStatus = async () => {
+    const handleLinkShareStatusChange = async (newStatus: 'ENABLED' | 'DISABLED') => {
         if (!template) return;
 
         try {
-            const newStatus = template.linkShareStatus === 'ENABLED' ? 'DISABLED' : 'ENABLED';
             const updatedTemplate = await templateApi.updateLinkShareStatus(template.id, newStatus);
             setTemplate(updatedTemplate);
-            setLinkShareAlertOpen(false);
 
             toast.success(
-                newStatus === 'ENABLED' ? "링크 공유가 활성화되었습니다" : "링크 공유가 비활성화되었습니다",
+                newStatus === 'ENABLED' ? "판매중으로 변경되었습니다" : "판매종료로 변경되었습니다",
                 {
                     description: newStatus === 'ENABLED'
                         ? "이제 수강생들이 링크를 통해 신청할 수 있습니다."
@@ -184,15 +170,8 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                 <CardHeader className="p-5 md:p-6">
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                         <div className="space-y-1 flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <CardTitle className="text-lg md:text-xl">{template.name}</CardTitle>
-                                <Badge 
-                                    variant={isLinkEnabled ? "default" : "secondary"}
-                                    className={isLinkEnabled ? "" : "bg-[#F1F3F5] text-[#8B95A1]"}
-                                >
-                                    {isLinkEnabled ? "링크 공유 활성화" : "링크 공유 비활성화"}
-                                </Badge>
-                            </div>
+                            <CardTitle className="text-lg md:text-xl">{template.name}</CardTitle>
+                            
                             <CardDescription className="text-sm mt-2">
                                 {template.description}
                             </CardDescription>
@@ -206,44 +185,52 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-2 min-w-fit">
-                            {/* 링크 활성화 상태일 때만 링크 복사 버튼 표시 */}
-                            {isLinkEnabled && (
+                            {/* 클래스 링크 버튼 (내부에 공개 상태 포함) */}
+                            <div className="relative inline-flex">
                                 <Button
                                     variant="outline"
-                                    onClick={copyLink}
-                                    className="w-full sm:w-auto"
+                                    onClick={(e) => {
+                                        // 스위치 영역이 아닐 때만 링크 복사
+                                        if (isLinkEnabled && !(e.target as HTMLElement).closest('.toggle-switch')) {
+                                            copyLink();
+                                        }
+                                    }}
+                                    className={`flex items-center gap-2 ${!isLinkEnabled ? 'opacity-60' : ''}`}
                                 >
-                                    <Link2 className="h-4 w-4 mr-2" />
+                                    <Link2 className="h-4 w-4" />
                                     클래스 링크
+                                    
+                                    {/* 공개 상태와 스위치 */}
+                                    <div className="flex items-center gap-2 ml-4 pl-4 border-l">
+                                        <span className="text-sm text-gray-600">
+                                            {isLinkEnabled ? '공개중' : '비공개'}
+                                        </span>
+                                        <div
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                e.preventDefault();
+                                                handleLinkShareStatusChange(isLinkEnabled ? 'DISABLED' : 'ENABLED');
+                                            }}
+                                            onMouseDown={(e) => {
+                                                e.stopPropagation();
+                                                e.preventDefault();
+                                            }}
+                                            className={`toggle-switch relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+                                                isLinkEnabled ? 'bg-blue-600' : 'bg-gray-300'
+                                            }`}
+                                        >
+                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                                isLinkEnabled ? 'translate-x-6' : 'translate-x-1'
+                                            }`} />
+                                        </div>
+                                    </div>
                                 </Button>
-                            )}
-                            
-                            <Button
-                                variant={isLinkEnabled ? "destructive" : "outline"}
-                                onClick={() => setLinkShareAlertOpen(true)}
-                                className={`w-full sm:w-auto ${
-                                    !isLinkEnabled 
-                                        ? "border-[#E1E4E8] text-[#6B7684] hover:bg-[#F6F8FA] hover:text-[#191F28]" 
-                                        : ""
-                                }`}
-                            >
-                                {isLinkEnabled ? (
-                                    <>
-                                        <Link2Off className="h-4 w-4 mr-2" />
-                                        링크 공유 끄기
-                                    </>
-                                ) : (
-                                    <>
-                                        <Link2 className="h-4 w-4 mr-2" />
-                                        링크 공유 켜기
-                                    </>
-                                )}
-                            </Button>
+                            </div>
                             
                             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
                                 <DialogTrigger asChild>
                                     <Button variant="outline" className="w-full sm:w-auto">
-                                        클래스 수정
+                                        수정
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4 md:mx-auto rounded-3xl">
@@ -261,29 +248,6 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                     </div>
                 </CardHeader>
             </Card>
-
-            {/* 링크 공유 상태 변경 확인 다이얼로그 */}
-            <AlertDialog open={linkShareAlertOpen} onOpenChange={setLinkShareAlertOpen}>
-                <AlertDialogContent className="mx-4 md:mx-auto rounded-3xl">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>
-                            {isLinkEnabled ? "링크 공유를 끄시겠습니까?" : "링크 공유를 켜시겠습니까?"}
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                            {isLinkEnabled
-                                ? "끄면 수강생들이 링크를 통해 신청할 수 없게 됩니다."
-                                : "켜면 수강생들이 링크를 통해 신청할 수 있게 됩니다."
-                            }
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>취소</AlertDialogCancel>
-                        <AlertDialogAction onClick={toggleLinkShareStatus}>
-                            {isLinkEnabled ? "끄기" : "켜기"}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
 
             {/* 세션 목록 섹션 */}
             <div className="space-y-4">
