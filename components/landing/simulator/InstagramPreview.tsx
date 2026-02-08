@@ -28,7 +28,7 @@ export const InstagramPreview = ({
                 {/* Header */}
                 <div className="w-full px-4 h-11 flex items-center justify-between z-20 bg-white border-b border-gray-50">
                     <ChevronLeft className="w-6 h-6 -ml-2 text-black" />
-                    <span className="text-sm font-bold truncate flex-1 mx-2 text-center text-black">{className ? `class_${className}` : "class_hub_official"}</span>
+                    <span className="text-sm font-bold truncate flex-1 mx-2 text-center text-black">{className ? `class_${className}` : "class_클래스명"}</span>
                     <MoreHorizontal className="w-6 h-6 -mr-1 text-black" />
                 </div>
 
@@ -74,7 +74,7 @@ export const InstagramPreview = ({
 
                         {/* Bio */}
                         <div className="space-y-1 mb-4">
-                            <div className="font-bold text-sm">{className || "클래스 허브"} | 원데이 클래스</div>
+                            <div className="font-bold text-sm">{className || "클래스명"} | 원데이 클래스</div>
                             <div className="text-xs text-gray-500">교육</div>
                             <div className="text-xs text-gray-900 whitespace-pre-wrap leading-snug">
                                 ✨ 새로운 클래스 오픈! <br />
@@ -142,7 +142,7 @@ export const InstagramPreview = ({
                             </div>
                             <div className="flex flex-col">
                                 <div className="flex items-center gap-1">
-                                    <span className="text-xs font-bold">{className ? `class_${className}` : "class_hub_official"}</span>
+                                    <span className="text-xs font-bold">{className ? `class_${className}` : "class_클래스명"}</span>
                                     <span className="text-[10px] text-white/80">12h</span>
                                 </div>
                                 <span className="text-[10px] opacity-80">Sponsored</span>

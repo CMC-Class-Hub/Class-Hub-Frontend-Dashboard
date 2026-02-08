@@ -471,12 +471,12 @@ export function LandingContent() {
                                     </div>
 
                                     <div className={`absolute inset-0 transition-opacity duration-500 ${currentStep === 1 ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
-                                        <InstagramPreview className={className || "클래스 이름"} />
+                                        <InstagramPreview className={className} />
                                     </div>
 
                                     <div className={`absolute inset-0 transition-opacity duration-500 ${currentStep === 2 ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
                                         <KakaoPreview
-                                            className={className || "클래스 이름"}
+                                            className={className}
                                             location={location}
                                             date={date}
                                             startTime={startTime}
