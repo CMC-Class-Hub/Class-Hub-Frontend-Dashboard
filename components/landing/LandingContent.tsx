@@ -484,8 +484,13 @@ export function LandingContent() {
                                         />
                                     </div>
 
-                                    <div className={`absolute inset-0 transition-opacity duration-500 bg-[#F9FAFB] p-3 ${currentStep === 3 ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
-                                        <DashboardPreview />
+                                    <div className={`absolute inset-0 transition-opacity duration-500 ${currentStep === 3 ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
+                                        <DashboardPreview
+                                            className={className}
+                                            location={location}
+                                            date={date}
+                                            startTime={startTime}
+                                        />
                                     </div>
 
                                 </div>
