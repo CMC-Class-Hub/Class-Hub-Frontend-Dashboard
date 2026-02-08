@@ -12,6 +12,8 @@ interface StudentPagePreviewProps {
     date: string;
     startTime: string;
     endTime: string;
+    price?: string;
+    capacity?: string;
     image?: string;
 }
 
@@ -22,9 +24,17 @@ export const StudentPagePreview = ({
     date = "",
     startTime = "",
     endTime = "",
+    price = "",
+    capacity = "",
 }: StudentPagePreviewProps) => {
     const [step, setStep] = useState<'SELECTION' | 'INPUT'>('SELECTION');
     const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
+    const [showToast, setShowToast] = useState(false);
+
+    const handleSubmit = () => {
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 2000);
+    };
 
     return (
         <div className="w-full h-full bg-[#F2F4F6] flex flex-col items-center overflow-hidden relative">
@@ -44,13 +54,13 @@ export const StudentPagePreview = ({
                 )}
                 <span className="font-bold text-[#191F28] text-sm mx-auto">클래스 예약</span>
                 <button className="absolute right-4 text-[10px] font-bold text-[#8B95A1] bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
-                    내역
+                    예약내역
                 </button>
             </div>
 
             <div className="w-full flex-1 overflow-y-auto bg-white scrollbar-hide pb-20">
                 {/* Image */}
-                <div className="w-full h-48 relative bg-gray-100">
+                <div className="w-full h-40 relative bg-gray-100">
                     <div className="w-full h-full bg-blue-100 flex items-center justify-center text-blue-300 font-bold text-3xl">
                         CLASS IMAGE
                     </div>
@@ -62,11 +72,11 @@ export const StudentPagePreview = ({
                         <span className="inline-block px-2 py-0.5 bg-[#E8F3FF] text-[#3182F6] text-[10px] font-bold rounded-sm">
                             원데이
                         </span>
-                        <h1 className="text-xl font-bold text-[#191F28] leading-tight break-keep">
+                        <h1 className="text-lg font-bold text-[#191F28] leading-tight break-keep">
                             {className || "클래스 이름을 입력해보세요"}
                         </h1>
-                        <p className="text-[#4E5968] text-sm flex items-start gap-1.5 font-medium break-keep">
-                            <span className="text-base shrink-0">📍</span> {location || "장소를 입력하세요"}
+                        <p className="text-[#4E5968] text-xs flex items-start gap-1.5 font-medium break-keep">
+                            <span className="text-sm shrink-0">📍</span> {location || "장소를 입력하세요"}
                         </p>
                     </div>
 
@@ -84,28 +94,34 @@ export const StudentPagePreview = ({
                         /* Session Selection */
                         <section>
                             <h3 className="font-bold text-[#191F28] mb-3 text-sm">📅 일정 선택</h3>
-                            <button
-                                onClick={() => setSelectedSessionId(1)}
-                                className={`w-full p-3 rounded-xl border text-left transition-all flex justify-between items-center mb-2 ${selectedSessionId === 1
-                                    ? 'border-[#3182F6] bg-[#E8F3FF] ring-1 ring-[#3182F6]'
-                                    : 'border-gray-200 bg-white hover:bg-gray-50'
-                                    }`}
-                            >
-                                <div>
-                                    <div className={`font-bold text-sm ${selectedSessionId === 1 ? 'text-[#1B64DA]' : 'text-[#333D4B]'}`}>
-                                        {date || "2024.03.15 (토)"}
+                            {date ? (
+                                <button
+                                    onClick={() => setSelectedSessionId(1)}
+                                    className={`w-full p-3 rounded-xl border text-left transition-all flex justify-between items-center mb-2 ${selectedSessionId === 1
+                                        ? 'border-[#3182F6] bg-[#E8F3FF] ring-1 ring-[#3182F6]'
+                                        : 'border-gray-200 bg-white hover:bg-gray-50'
+                                        }`}
+                                >
+                                    <div>
+                                        <div className={`font-bold text-sm ${selectedSessionId === 1 ? 'text-[#1B64DA]' : 'text-[#333D4B]'}`}>
+                                            {date}
+                                        </div>
+                                        <div className="text-[10px] text-[#8B95A1] mt-0.5">
+                                            {startTime} ~ {endTime}
+                                        </div>
+                                        <div className={`text-[10px] font-bold mt-1 ${selectedSessionId === 1 ? 'text-[#3182F6]' : 'text-[#191F28]'}`}>
+                                            {price ? Number(price).toLocaleString() : '0'}원
+                                        </div>
                                     </div>
-                                    <div className="text-[10px] text-[#8B95A1] mt-0.5">
-                                        {startTime || "14:00"} ~ {endTime || "16:00"}
+                                    <div className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${selectedSessionId === 1 ? 'bg-[#3182F6] text-white' : 'bg-[#F2F4F6] text-[#6B7684]'}`}>
+                                        0/{capacity || '0'}명
                                     </div>
-                                    <div className={`text-[10px] font-bold mt-1 ${selectedSessionId === 1 ? 'text-[#3182F6]' : 'text-[#191F28]'}`}>
-                                        50,000원
-                                    </div>
+                                </button>
+                            ) : (
+                                <div className="text-center py-6 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                                    <p className="text-xs text-gray-400">일정을 등록하면 여기에 표시됩니다.</p>
                                 </div>
-                                <div className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${selectedSessionId === 1 ? 'bg-[#3182F6] text-white' : 'bg-[#F2F4F6] text-[#6B7684]'}`}>
-                                    3/8명
-                                </div>
-                            </button>
+                            )}
                         </section>
                     )}
 
@@ -148,11 +164,16 @@ export const StudentPagePreview = ({
                 ) : (
                     <Button
                         className="w-full h-10 text-sm font-bold bg-[#3182F6] hover:bg-[#1B64DA]"
-                        onClick={() => alert("이것은 체험 화면입니다!")}
+                        onClick={handleSubmit}
                     >
                         제출하기
                     </Button>
                 )}
+            </div>
+
+            {/* Custom Toast */}
+            <div className={`absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-[11px] px-4 py-2 rounded-full transition-opacity duration-300 pointer-events-none z-30 whitespace-nowrap ${showToast ? 'opacity-100' : 'opacity-0'}`}>
+                체험 화면입니다 :)
             </div>
 
             {/* Home Indicator */}

@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowRight, ChevronRight, Info, RefreshCw, Plus, Calendar, Clock, DollarSign, Users, MapPin, Image as ImageIcon } from 'lucide-react';
+import { AddressSearchInput } from '@/components/ui/AddressSearchInput';
+import { ArrowRight, ChevronRight, Info, RefreshCw, Plus, Calendar, Clock, DollarSign, Users, MapPin, Image as ImageIcon, ArrowLeft, ArrowUp, ChevronsRight } from 'lucide-react';
 import Link from 'next/link';
 
 import { StudentPagePreview } from './simulator/StudentPagePreview';
@@ -32,16 +33,14 @@ const STEPS = [
 export function LandingContent() {
     // Shared State
     const [className, setClassName] = useState('');
-    const [category, setCategory] = useState('');
     const [location, setLocation] = useState('');
     const [date, setDate] = useState('');
     const [startTime, setStartTime] = useState('');
+    const [endTime, setEndTime] = useState('');
     const [price, setPrice] = useState('');
     const [capacity, setCapacity] = useState('');
     const [description, setDescription] = useState('');
-    const [materials, setMaterials] = useState('');
-    const [parking, setParking] = useState('');
-
+    // Removed unused fields
 
     const [currentStep, setCurrentStep] = useState(0);
     const [showSignupDialog, setShowSignupDialog] = useState(false);
@@ -51,14 +50,12 @@ export function LandingContent() {
     const handleSignupWithClass = () => {
         const classData = {
             name: className,
-            category,
             location,
             description,
-            materials,
-            parking,
             // Session Data
             date,
             startTime,
+            endTime,
             price,
             capacity,
         };
@@ -67,17 +64,16 @@ export function LandingContent() {
     };
 
     // Auto-fill Logic
+    // Auto-fill Logic
     const fillExampleData = () => {
         setClassName('힐링 요가 원데이 클래스');
-        setCategory('운동/스포츠');
         setLocation('강남역 7번 출구 요가스튜디오 3층');
-        setDate('2024.03.15 (토)');
+        setDate('2024-03-15');
         setStartTime('14:00');
-        setPrice('50,000');
+        setEndTime('16:00');
+        setPrice('50000');
         setCapacity('8');
         setDescription('지친 몸과 마음을 치유하는 시간입니다. 초보자도 환영합니다.');
-        setMaterials('편안한 복장, 텀블러');
-        setParking('건물 내 무료 주차 가능');
     };
 
     const nextStep = () => {
@@ -134,7 +130,11 @@ export function LandingContent() {
 
             {/* 2. Main Split Layout */}
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid lg:grid-cols-2 gap-6 h-auto lg:h-[640px]">
+                <div className="grid lg:grid-cols-2 gap-6 h-auto lg:h-[640px] relative">
+                    {/* Arrow Indicator (Desktop Only) */}
+                    <div className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-lg border border-gray-100 z-10 items-center justify-center text-[#3182F6]">
+                        <ArrowRight className="w-5 h-5" />
+                    </div>
 
                     {/* LEFT PANEL */}
                     <div className="bg-white rounded-[24px] border border-gray-100 shadow-xl p-6 sm:p-8 flex flex-col h-full relative overflow-hidden">
@@ -169,7 +169,7 @@ export function LandingContent() {
                                                 <Info className="w-4 h-4 text-[#3182F6]" /> 기본 정보
                                             </h3>
 
-                                            <div className="space-y-1.5">
+                                            <div className="space-y-1.5 px-0.5">
                                                 <Label className="text-[13px] font-bold text-gray-600">클래스명</Label>
                                                 <Input
                                                     value={className}
@@ -179,67 +179,34 @@ export function LandingContent() {
                                                 />
                                             </div>
 
-                                            <div className="space-y-1.5">
-                                                <Label className="text-[13px] font-bold text-gray-600">카테고리</Label>
-                                                <Input
-                                                    value={category}
-                                                    onChange={(e) => setCategory(e.target.value)}
+                                            <div className="space-y-1.5 px-0.5">
+                                                <Label className="text-[13px] font-bold text-gray-600">장소</Label>
+                                                <AddressSearchInput
+                                                    value={location}
+                                                    onChange={setLocation}
+                                                    placeholder="주소 검색"
                                                     className="h-10 bg-gray-50 border-0 focus:ring-2 focus:ring-[#3182F6] focus:bg-white transition-all rounded-xl text-sm"
-                                                    placeholder="예: 공예 / DIY"
                                                 />
                                             </div>
 
-                                            <div className="space-y-1.5">
-                                                <Label className="text-[13px] font-bold text-gray-600">대표 이미지</Label>
-                                                <div className="w-full h-24 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 gap-1 hover:bg-gray-100 transition-colors cursor-pointer">
-                                                    <ImageIcon className="w-5 h-5" />
-                                                    <span className="text-xs">이미지 업로드</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-1.5">
-                                                <Label className="text-[13px] font-bold text-gray-600">장소</Label>
-                                                <div className="relative">
-                                                    <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-                                                    <Input
-                                                        value={location}
-                                                        onChange={(e) => setLocation(e.target.value)}
-                                                        className="h-10 pl-9 bg-gray-50 border-0 focus:ring-2 focus:ring-[#3182F6] focus:bg-white transition-all rounded-xl text-sm"
-                                                        placeholder="주소 검색"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div className="space-y-1.5">
-                                                    <Label className="text-[13px] font-bold text-gray-600">준비물</Label>
-                                                    <Input
-                                                        value={materials}
-                                                        onChange={(e) => setMaterials(e.target.value)}
-                                                        className="h-10 bg-gray-50 border-0 focus:ring-2 focus:ring-[#3182F6] focus:bg-white transition-all rounded-xl text-sm"
-                                                        placeholder="예: 편한 복장"
-                                                    />
-                                                </div>
-                                                <div className="space-y-1.5">
-                                                    <Label className="text-[13px] font-bold text-gray-600">주차 정보</Label>
-                                                    <Input
-                                                        value={parking}
-                                                        onChange={(e) => setParking(e.target.value)}
-                                                        className="h-10 bg-gray-50 border-0 focus:ring-2 focus:ring-[#3182F6] focus:bg-white transition-all rounded-xl text-sm"
-                                                        placeholder="예: 가능, 불가"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-1.5">
-                                                <Label className="text-[13px] font-bold text-gray-600">상세 설명 / 공지사항</Label>
+                                            <div className="space-y-1.5 px-0.5">
+                                                <Label className="text-[13px] font-bold text-gray-600">클래스 소개</Label>
                                                 <Textarea
                                                     value={description}
                                                     onChange={(e) => setDescription(e.target.value)}
                                                     className="min-h-[80px] bg-gray-50 border-0 focus:ring-2 focus:ring-[#3182F6] focus:bg-white transition-all rounded-xl resize-none p-3 text-sm"
-                                                    placeholder="커리큘럼이나 유의사항을 입력해주세요."
+                                                    placeholder="어떤 수업인지 수강생들에게 알려주세요."
                                                 />
                                             </div>
+
+                                            <div className="bg-blue-50/50 p-3 rounded-xl border border-blue-100/50 flex items-start gap-2 mt-2">
+                                                <span className="text-blue-500 mt-0.5 text-xs">💡</span>
+                                                <p className="text-xs text-slate-600 leading-snug">
+                                                    <span className="font-bold text-slate-800">Tip:</span> 회원가입 후 더 많은 정보를 입력할 수 있어요.
+                                                </p>
+                                            </div>
+
+
                                         </div>
 
                                         <div className="h-px bg-gray-100 w-full" />
@@ -247,61 +214,80 @@ export function LandingContent() {
                                         {/* Session Info Section */}
                                         <div className="space-y-4">
                                             <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                                                <Calendar className="w-4 h-4 text-[#3182F6]" /> 세션(일정) 추가
+                                                <Calendar className="w-4 h-4 text-[#3182F6]" /> 세션 목록
                                             </h3>
 
-                                            <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100 space-y-3">
+                                            <div className="space-y-3">
+                                                <div className="space-y-1.5 px-0.5">
+                                                    <Label className="text-[13px] font-bold text-gray-600">날짜 *</Label>
+                                                    <Input
+                                                        type="date"
+                                                        value={date}
+                                                        onChange={(e) => setDate(e.target.value)}
+                                                        className="h-10 bg-gray-50 border-0 focus:ring-2 focus:ring-[#3182F6] focus:bg-white transition-all rounded-xl text-sm"
+                                                    />
+                                                </div>
+
                                                 <div className="grid grid-cols-2 gap-3">
-                                                    <div className="space-y-1.5">
-                                                        <Label className="text-[11px] font-bold text-gray-600">날짜</Label>
+                                                    <div className="space-y-1.5 px-0.5">
+                                                        <Label className="text-[13px] font-bold text-gray-600">시작 시간 *</Label>
                                                         <Input
-                                                            value={date}
-                                                            onChange={(e) => setDate(e.target.value)}
-                                                            className="h-9 bg-white border border-gray-200 rounded-lg text-xs"
-                                                            placeholder="YYYY-MM-DD"
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-1.5">
-                                                        <Label className="text-[11px] font-bold text-gray-600">시간</Label>
-                                                        <Input
+                                                            type="time"
                                                             value={startTime}
                                                             onChange={(e) => setStartTime(e.target.value)}
-                                                            className="h-9 bg-white border border-gray-200 rounded-lg text-xs"
-                                                            placeholder="HH:MM"
+                                                            className="h-10 bg-gray-50 border-0 focus:ring-2 focus:ring-[#3182F6] focus:bg-white transition-all rounded-xl text-sm"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1.5 px-0.5">
+                                                        <Label className="text-[13px] font-bold text-gray-600">종료 시간 *</Label>
+                                                        <Input
+                                                            type="time"
+                                                            value={endTime}
+                                                            onChange={(e) => setEndTime(e.target.value)}
+                                                            className="h-10 bg-gray-50 border-0 focus:ring-2 focus:ring-[#3182F6] focus:bg-white transition-all rounded-xl text-sm"
                                                         />
                                                     </div>
                                                 </div>
 
                                                 <div className="grid grid-cols-2 gap-3">
-                                                    <div className="space-y-1.5">
-                                                        <Label className="text-[11px] font-bold text-gray-600">가격</Label>
-                                                        <div className="relative">
-                                                            <DollarSign className="absolute left-2.5 top-2 w-3.5 h-3.5 text-gray-400" />
-                                                            <Input
-                                                                value={price}
-                                                                onChange={(e) => setPrice(e.target.value)}
-                                                                className="h-9 pl-8 bg-white border border-gray-200 rounded-lg text-xs"
-                                                                placeholder="0"
-                                                            />
-                                                        </div>
+                                                    <div className="space-y-1.5 px-0.5">
+                                                        <Label className="text-[13px] font-bold text-gray-600">정원 *</Label>
+                                                        <Input
+                                                            type="number"
+                                                            value={capacity}
+                                                            onChange={(e) => {
+                                                                const val = parseInt(e.target.value);
+                                                                if (!isNaN(val) && val < 0) return;
+                                                                setCapacity(e.target.value);
+                                                            }}
+                                                            className="h-10 bg-gray-50 border-0 focus:ring-2 focus:ring-[#3182F6] focus:bg-white transition-all rounded-xl text-sm"
+                                                            placeholder="10"
+                                                        />
                                                     </div>
-                                                    <div className="space-y-1.5">
-                                                        <Label className="text-[11px] font-bold text-gray-600">정원</Label>
-                                                        <div className="relative">
-                                                            <Users className="absolute left-2.5 top-2 w-3.5 h-3.5 text-gray-400" />
-                                                            <Input
-                                                                value={capacity}
-                                                                onChange={(e) => setCapacity(e.target.value)}
-                                                                className="h-9 pl-8 bg-white border border-gray-200 rounded-lg text-xs"
-                                                                placeholder="명"
-                                                            />
-                                                        </div>
+                                                    <div className="space-y-1.5 px-0.5">
+                                                        <Label className="text-[13px] font-bold text-gray-600">가격 *</Label>
+                                                        <Input
+                                                            type="number"
+                                                            value={price}
+                                                            onChange={(e) => {
+                                                                const val = parseInt(e.target.value);
+                                                                if (!isNaN(val) && val < 0) return;
+                                                                setPrice(e.target.value);
+                                                            }}
+                                                            className="h-10 bg-gray-50 border-0 focus:ring-2 focus:ring-[#3182F6] focus:bg-white transition-all rounded-xl text-sm"
+                                                            placeholder="50000"
+                                                        />
                                                     </div>
                                                 </div>
 
-                                                <Button size="sm" variant="outline" className="w-full h-8 text-xs bg-white text-blue-600 border-blue-200 hover:bg-blue-50">
-                                                    <Plus className="w-3 h-3 mr-1" /> 세션 목록에 추가
-                                                </Button>
+                                                <div className="bg-blue-50/50 p-3 rounded-xl border border-blue-100/50 flex items-start gap-2 mt-2">
+                                                    <span className="text-blue-500 mt-0.5 text-xs">💡</span>
+                                                    <p className="text-xs text-slate-600 leading-snug">
+                                                        <span className="font-bold text-slate-800">Tip:</span> 회원가입 후 여러 세션을 추가할 수 있어요.
+                                                    </p>
+                                                </div>
+
+
                                             </div>
                                         </div>
                                     </>
@@ -430,8 +416,11 @@ export function LandingContent() {
                     {/* RIGHT PANEL: Preview */}
                     <div className="bg-[#E8F3FF] rounded-[24px] border border-blue-100 p-6 sm:p-8 flex flex-col h-full relative overflow-hidden">
 
-                        <div className="flex justify-between items-center mb-6 flex-shrink-0">
-                            <h3 className="text-base font-bold text-[#191F28]">수강생 화면 미리보기</h3>
+                        <div className="flex flex-col mb-6 flex-shrink-0">
+                            <h3 className="text-lg font-bold text-[#191F28] mb-1.5 flex items-center gap-2">
+                                <span className="bg-[#3182F6] text-white text-[10px] px-2 py-0.5 rounded-full">미리보기</span>
+                                정보를 입력하면 신청 화면이 자동 생성돼요
+                            </h3>
                         </div>
 
                         <div className="flex-1 flex items-center justify-center relative min-h-[400px]">
@@ -446,7 +435,9 @@ export function LandingContent() {
                                             location={location}
                                             date={date}
                                             startTime={startTime}
-                                            endTime=""
+                                            endTime={endTime}
+                                            price={price}
+                                            capacity={capacity}
                                             description={description}
                                         />
                                     </div>
@@ -462,8 +453,6 @@ export function LandingContent() {
                                             date={date}
                                             startTime={startTime}
                                             studentName="김철수"
-                                            materials={materials}
-                                            parking={parking}
                                         />
                                     </div>
 
