@@ -58,6 +58,15 @@ export const DashboardPreview = ({
         },
         {
             id: 3,
+            name: "박지민",
+            phone: "010-3333-2222",
+            status: "CONFIRMED",
+            appliedAt: "24.03.11",
+            d3Status: "SENT",
+            d1Status: "PENDING"
+        },
+        {
+            id: 4,
             name: "홍길동",
             phone: "010-5555-4444",
             status: "CANCELED",
