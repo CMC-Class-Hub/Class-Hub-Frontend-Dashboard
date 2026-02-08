@@ -95,7 +95,7 @@ export function LandingContent() {
 
             {/* Section Header */}
             {/* Section Header */}
-            <div className="max-w-5xl mx-auto px-4 mb-16 text-center">
+            <div id="features" className="max-w-5xl mx-auto px-4 mb-16 text-center">
                 <h2 className="text-3xl sm:text-4xl font-bold text-[#191F28] mb-4 tracking-tight">
                     지금 바로 <span className="text-[#3182F6]">클래스를 운영해보세요.</span>
                 </h2>
