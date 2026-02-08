@@ -1,3 +1,4 @@
+// app/dashboard/classes/[classId]/page.tsx
 "use client";
 
 import { useState, useEffect, use } from "react";
@@ -6,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Link2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { api, templateApi, sessionApi, applicationApi, type ClassTemplate, type ClassSession } from "@/lib/api";
 import { EditClassForm } from "@/components/dashboard/EditClassForm";
@@ -30,9 +30,6 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
             const currentUser = await api.auth.getCurrentUser();
             if (currentUser) {
                 setUser(currentUser);
-                // Fetch template details
-                // Since we don't have getById, we fetch all and find (Mock limitations)
-                // In real API, we should have getById
                 const templates = await templateApi.getAll(currentUser.id);
                 const found = templates.find(t => String(t.id) === classId);
                 console.log(found);
@@ -40,7 +37,6 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                     setTemplate(found);
                     loadSessions(found.id);
                 } else {
-                    // Handle not found
                     router.push('/dashboard/classes');
                 }
             }
@@ -53,14 +49,13 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
         setSessions(templateSessions);
     };
 
-    // 세션 목록의 신청자 수 로드
     useEffect(() => {
         const loadApplicationCounts = async () => {
             if (sessions.length > 0) {
                 const counts: Record<string, number> = {};
                 for (const session of sessions) {
                     const apps = await applicationApi.getBySessionId(session.id);
-                    counts[session.id] = apps.filter(app => 
+                    counts[session.id] = apps.filter(app =>
                         (app as any).reservationStatus === 'CONFIRMED'
                     ).length;
                 }
@@ -70,7 +65,6 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
 
         loadApplicationCounts();
     }, [sessions]);
-
 
     const handleEditTemplate = async (data: any) => {
         if (!template || !user) return;
@@ -119,16 +113,39 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
             alert('세션이 삭제되었습니다.');
         } catch (error) {
             if (error instanceof Error) {
-                alert(error.message); // 👈 백엔드 메시지 그대로 출력
+                alert(error.message);
             } else {
                 alert('세션 삭제 중 알 수 없는 오류가 발생했습니다.');
             }
-    }
+        }
+    };
+
+    const handleLinkShareStatusChange = async (newStatus: 'ENABLED' | 'DISABLED') => {
+        if (!template) return;
+
+        try {
+            const updatedTemplate = await templateApi.updateLinkShareStatus(template.id, newStatus);
+            setTemplate(updatedTemplate);
+
+            toast.success(
+                newStatus === 'ENABLED' ? "판매중으로 변경되었습니다" : "판매종료로 변경되었습니다",
+                {
+                    description: newStatus === 'ENABLED'
+                        ? "이제 수강생들이 링크를 통해 신청할 수 있습니다."
+                        : "링크를 통한 신청이 차단되었습니다."
+                }
+            );
+        } catch (error) {
+            if (error instanceof Error) {
+                toast.error("상태 변경 실패", {
+                    description: error.message
+                });
+            }
+        }
     };
 
     const copyLink = () => {
         const url = `http://localhost:3001/class/${template?.classCode}`;
-       // const url = 'https://classhub-link.vercel.app/class/${template?.classCode}';
         navigator.clipboard.writeText(url);
         toast.success("링크가 복사되었습니다", {
             description: "수강생들에게 이 링크를 공유하여 신청을 받을 수 있어요."
@@ -138,6 +155,8 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
     if (!template) {
         return <div className="p-8 text-center text-[#8B95A1]">로딩 중...</div>;
     }
+
+    const isLinkEnabled = template.linkShareStatus === 'ENABLED';
 
     return (
         <div className="space-y-6">
@@ -152,6 +171,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                         <div className="space-y-1 flex-1">
                             <CardTitle className="text-lg md:text-xl">{template.name}</CardTitle>
+                            
                             <CardDescription className="text-sm mt-2">
                                 {template.description}
                             </CardDescription>
@@ -165,10 +185,48 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-2 min-w-fit">
-                            <Button variant="outline" onClick={copyLink} className="w-full sm:w-auto">
-                                <Link2 className="h-4 w-4 mr-2" />
-                                클래스 링크
-                            </Button>
+                            {/* 클래스 링크 버튼 (내부에 공개 상태 포함) */}
+                            <div className="relative inline-flex">
+                                <Button
+                                    variant="outline"
+                                    onClick={(e) => {
+                                        // 스위치 영역이 아닐 때만 링크 복사
+                                        if (isLinkEnabled && !(e.target as HTMLElement).closest('.toggle-switch')) {
+                                            copyLink();
+                                        }
+                                    }}
+                                    className={`flex items-center gap-2 ${!isLinkEnabled ? 'opacity-60' : ''}`}
+                                >
+                                    <Link2 className="h-4 w-4" />
+                                    클래스 링크
+                                    
+                                    {/* 공개 상태와 스위치 */}
+                                    <div className="flex items-center gap-2 ml-4 pl-4 border-l">
+                                        <span className="text-sm text-gray-600">
+                                            {isLinkEnabled ? '공개중' : '비공개'}
+                                        </span>
+                                        <div
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                e.preventDefault();
+                                                handleLinkShareStatusChange(isLinkEnabled ? 'DISABLED' : 'ENABLED');
+                                            }}
+                                            onMouseDown={(e) => {
+                                                e.stopPropagation();
+                                                e.preventDefault();
+                                            }}
+                                            className={`toggle-switch relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+                                                isLinkEnabled ? 'bg-blue-600' : 'bg-gray-300'
+                                            }`}
+                                        >
+                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                                isLinkEnabled ? 'translate-x-6' : 'translate-x-1'
+                                            }`} />
+                                        </div>
+                                    </div>
+                                </Button>
+                            </div>
+                            
                             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
                                 <DialogTrigger asChild>
                                     <Button variant="outline" className="w-full sm:w-auto">
@@ -215,7 +273,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                     sessions={sessions}
                     sessionApplicationCounts={sessionApplicationCounts}
                     onDeleteSession={handleDeleteSession}
-                    onEditSession={setEditingSession}
+                    onEditSession={(session) => setEditingSession(session as any)}
                     onStatusChange={handleStatusChange}
                     classId={classId}
                 />

@@ -68,4 +68,27 @@ export const templateApiMock: ITemplateApi = {
     const filteredSessions = sessions.filter(s => s.templateId !== id);
     setSessions(filteredSessions);
   },
+  async updateLinkShareStatus(
+    templateId: string,
+    status: 'ENABLED' | 'DISABLED'
+  ): Promise<ClassTemplate> {
+    await delay();
+
+    const templates = getTemplates();
+    const index = templates.findIndex(t => t.id === templateId);
+
+    if (index === -1) {
+      throw new Error('Template not found');
+    }
+
+    const updated = {
+      ...templates[index],
+      linkShareStatus: status,
+    };
+
+    templates[index] = updated;
+    setTemplates(templates);
+
+    return updated;
+  },
 };

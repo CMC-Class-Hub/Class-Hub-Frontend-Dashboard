@@ -13,6 +13,7 @@ export const templateApiReal: ITemplateApi = {
     const response = await fetchClient(`/api/classes/${id}?instructorId=${instructorId}`);
     if (!response.ok) return null;
     const data = await response.json();
+    console.log('API fetched template:', data);
     return data;
   },
 
@@ -46,4 +47,18 @@ export const templateApiReal: ITemplateApi = {
       throw new Error(errorBody.message);
     }
   },
+
+  async updateLinkShareStatus(templateId: string, status: 'ENABLED' | 'DISABLED'): Promise<ClassTemplate> {
+    const response = await fetchClient(`/api/classes/${templateId}/link-share-status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ linkShareStatus: status })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || '링크 공유 상태 변경에 실패했습니다.');
+    }
+
+    return response.json();
+  }
 };

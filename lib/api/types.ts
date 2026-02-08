@@ -33,6 +33,7 @@ export interface ClassTemplate {
   status?: ClassTemplateStatus;
   createdAt?: string;
   guidelines?: string;
+  linkShareStatus?: string;
 }
 
 // Class Session
@@ -290,6 +291,7 @@ export interface ITemplateApi {
   create(instructorId: string, data: CreateTemplateRequest): Promise<ClassTemplate>;
   update(id: string, data: UpdateTemplateRequest): Promise<ClassTemplate>;
   delete(id: string): Promise<void>;
+  updateLinkShareStatus(templateId: string, status: 'ENABLED' | 'DISABLED'): Promise<ClassTemplate>;
 }
 
 export interface ISessionApi {
