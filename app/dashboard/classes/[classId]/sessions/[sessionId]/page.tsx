@@ -48,7 +48,6 @@ export default function SessionDetailPage({ params }: { params: Promise<{ classI
                 // 3. Fetch Applications
                 const apps = await applicationApi.getBySessionId(foundSession.id);                
                 setApplications(apps);
-                console.log('Fetched applications:', apps);
                 // 4. Fetch Students
                 const studentIds = [...new Set(apps.map(a => a.studentId))];
                 const studentPromises = studentIds.map(id => studentApi.getById(id));

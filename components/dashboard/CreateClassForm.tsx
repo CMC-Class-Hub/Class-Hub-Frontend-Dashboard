@@ -36,7 +36,6 @@ export function CreateClassForm({ onSubmit, onCancel }: {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        console.log('📤 Form submit with image URLs:', imageUrls);
 
         onSubmit({
             name,

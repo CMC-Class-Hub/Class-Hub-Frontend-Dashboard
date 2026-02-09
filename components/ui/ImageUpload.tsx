@@ -35,10 +35,8 @@ export function ImageUpload({
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         
-        console.log('📁 Files selected:', files?.length);
         
         if (!files || files.length === 0) {
-            console.log('❌ No files');
             return;
         }
 
@@ -59,7 +57,6 @@ export function ImageUpload({
 
         try {
             const fileArray = Array.from(files);
-            console.log('📋 Files to upload:', fileArray.map(f => f.name));
 
             // 파일 검증
             const validationResults = fileArray.map(file => validateFile(file, maxSizeMB));
@@ -74,24 +71,17 @@ export function ImageUpload({
                 const validFiles = fileArray.filter((_, index) => validationResults[index].valid);
                 
                 if (validFiles.length === 0) {
-                    console.log('❌ No valid files');
                     return;
                 }
                 
-                console.log(`⚠️ ${invalidFiles.length} invalid files filtered out`);
-                console.log(`✅ ${validFiles.length} valid files to upload`);
             }
 
             const validFiles = fileArray.filter((_, index) => validationResults[index].valid);
             
             // S3에 업로드
             setUploadProgress(`S3에 업로드 중... (0/${validFiles.length})`);
-            console.log('⏳ Uploading to S3...');
-
             const results = await uploadMultipleImages(validFiles);
             
-            console.log('✅ Upload complete:', results);
-
             // URL만 추출
             const newUrls = results.map(r => r.url);
             const updatedUrls = [...imageUrls, ...newUrls];
@@ -100,10 +90,7 @@ export function ImageUpload({
             onChange(updatedUrls);
 
             toast.success(`${newUrls.length}개 이미지가 업로드되었습니다.`);
-            console.log('✅ State updated:', updatedUrls);
-
         } catch (error) {
-            console.error('❌ Upload error:', error);
             toast.error('이미지 업로드에 실패했습니다.', {
                 description: error instanceof Error ? error.message : '알 수 없는 오류'
             });
@@ -118,7 +105,6 @@ export function ImageUpload({
     };
 
     const handleRemove = (index: number, url: string) => {
-        console.log('🗑️ Removing image:', url);
         
         const updatedUrls = imageUrls.filter((_, i) => i !== index);
         setImageUrls(updatedUrls);
@@ -129,10 +115,8 @@ export function ImageUpload({
 
     const handleUploadClick = () => {
         if (disabled || uploading) {
-            console.log('❌ Upload click ignored (disabled or uploading)');
             return;
         }
-        console.log('📤 Upload button clicked');
         fileInputRef.current?.click();
     };
 
@@ -165,7 +149,6 @@ export function ImageUpload({
                             alt={`Image ${index + 1}`}
                             className="h-full w-full object-cover"
                             onError={(e) => {
-                                console.error('❌ Image load error:', url);
                                 e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>';
                             }}
                         />

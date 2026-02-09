@@ -58,7 +58,6 @@ export const authApiReal: IAuthApi = {
             localStorage.removeItem(TOKEN_KEY);
             localStorage.removeItem(AUTH_KEY);
         } catch (error) {
-            console.error("Logout failed", error);
         }
     },
 
@@ -99,7 +98,6 @@ export const authApiReal: IAuthApi = {
             const data = await response.json();
             return data.loggedIn;
         } catch (error) {
-            console.error("Login check failed", error);
             return false;
         }
     }

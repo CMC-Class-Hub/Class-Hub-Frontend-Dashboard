@@ -56,7 +56,6 @@ export default function ClassesPage() {
             setCreateDialogOpen(false);
             await loadTemplates(user.id);
         } catch (error) {
-            console.error('Failed to create class:', error);
             alert('클래스 생성 중 오류가 발생했습니다. 이미지가 너무 크거나 저장 공간이 부족할 수 있습니다.');
         }
     };

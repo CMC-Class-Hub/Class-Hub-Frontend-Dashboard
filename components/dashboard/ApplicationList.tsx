@@ -19,13 +19,11 @@ export function ApplicationList({ applications, students, sessionMessages, capac
     };
 
     const validApplications = applications.filter(app => !!getStudentById(app.studentId));
-    console.log('신청자입니다.', validApplications);
     
     // reservationStatus 필드를 사용하여 CONFIRMED만 카운트
     const confirmedCount = validApplications.filter(app => 
         (app as any).reservationStatus === 'CONFIRMED'
     ).length;
-    console.log('확정된 신청자입니다.', confirmedCount);
     return (
         <Card className="hover:shadow-md">
             <CardHeader className="p-5 md:p-6">

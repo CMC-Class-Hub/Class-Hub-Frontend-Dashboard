@@ -32,7 +32,6 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                 setUser(currentUser);
                 const templates = await templateApi.getAll(currentUser.id);
                 const found = templates.find(t => String(t.id) === classId);
-                console.log(found);
                 if (found) {
                     setTemplate(found);
                     loadSessions(found.id);

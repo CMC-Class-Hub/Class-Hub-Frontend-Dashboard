@@ -14,7 +14,6 @@ export function Hero() {
             await api.auth.login({ email: 'demo@classhub.com', password: '1234' });
             router.push('/dashboard');
         } catch (error) {
-            console.error('Demo login failed:', error);
             alert('데모 로그인 중 오류가 발생했습니다.');
         }
     };

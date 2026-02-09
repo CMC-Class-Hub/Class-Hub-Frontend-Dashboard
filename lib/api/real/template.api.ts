@@ -13,12 +13,10 @@ export const templateApiReal: ITemplateApi = {
     const response = await fetchClient(`/api/classes/${id}?instructorId=${instructorId}`);
     if (!response.ok) return null;
     const data = await response.json();
-    console.log('API fetched template:', data);
     return data;
   },
 
   async create(instructorId: string, data: CreateTemplateRequest): Promise<ClassTemplate> {
-    console.log('Creating template with data:', data);
     const response = await fetchClient(`/api/classes?instructorId=${instructorId}`, {
       method: 'POST',
       body: JSON.stringify({ ...data, instructorId }),
