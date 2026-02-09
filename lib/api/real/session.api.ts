@@ -27,7 +27,6 @@ export const sessionApiReal: ISessionApi = {
   },
 
   async update(id: string, data: UpdateSessionRequest): Promise<ClassSession> {
-    console.log('Updating session with data:', data);
     const response = await fetchClient(`/api/sessions/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),

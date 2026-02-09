@@ -13,7 +13,6 @@ export const studentApiReal: IStudentApi = {
     const response = await fetchClient(`/api/members/${id}`);
     if (!response.ok) return null;
     const data = await response.json();
-    console.log('Fetched member by ID:', data);
     return data;
   },
 

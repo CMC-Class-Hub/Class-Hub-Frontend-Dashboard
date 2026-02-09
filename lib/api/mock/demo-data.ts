@@ -131,6 +131,8 @@ export const initializeDemoData = async (instructorId: string): Promise<void> =>
       depositAmount: 15000,
       refundEligible: true,
       appliedAt: new Date().toISOString(),
+      sentD3Notification: true,
+      sentD1Notification: false,
     },
     {
       id: generateId('app'),
@@ -141,6 +143,8 @@ export const initializeDemoData = async (instructorId: string): Promise<void> =>
       depositAmount: 15000,
       refundEligible: true,
       appliedAt: new Date().toISOString(),
+      sentD3Notification: true,
+      sentD1Notification: true,
     },
     {
       id: generateId('app'),
@@ -151,6 +155,8 @@ export const initializeDemoData = async (instructorId: string): Promise<void> =>
       depositAmount: 15000,
       refundEligible: true,
       appliedAt: new Date().toISOString(),
+      sentD3Notification: false,
+      sentD1Notification: false,
     },
     {
       id: generateId('app'),
@@ -161,6 +167,8 @@ export const initializeDemoData = async (instructorId: string): Promise<void> =>
       depositAmount: 15000,
       refundEligible: true,
       appliedAt: new Date().toISOString(),
+      sentD3Notification: false,
+      sentD1Notification: false,
     },
   ];
 

@@ -13,7 +13,6 @@ export const applicationApiReal: IApplicationApi = {
     const response = await fetchClient(`/api/sessions/${sessionId}/applications`);
     if (!response.ok) throw new Error('Failed to fetch applications');
     const data = await response.json();
-    console.log('API fetched applications:', data);
     return data;
   },
 

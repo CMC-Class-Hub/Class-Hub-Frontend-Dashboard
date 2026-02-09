@@ -15,14 +15,8 @@ export interface UploadResult {
  */
 export async function uploadImageToS3(file: File): Promise<UploadResult> {
     try {
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log('📤 S3 Upload Started');
-        console.log('   File:', file.name);
-        console.log('   Size:', (file.size / 1024 / 1024).toFixed(2), 'MB');
-        console.log('   Type:', file.type);
-
+       
         // 1. 백엔드에서 Presigned URL 요청
-        console.log('   Request Payload:', { fileName: file.name, fileType: file.type });
         const presignedResponse = await fetchClient('/api/upload/presigned-url', {
             method: 'POST',
             body: JSON.stringify({
@@ -48,15 +42,13 @@ export async function uploadImageToS3(file: File): Promise<UploadResult> {
         if (!uploadResponse.ok) {
             throw new Error(`S3 업로드 실패: ${uploadResponse.status}`);
         }
-        console.log('✅ Upload Complete!');
-        console.log('   Final URL:', fileUrl);
+       
         return {
             url: fileUrl,
             fileName: fileName,
         };
 
     } catch (error) {
-        console.error('❌ Upload Failed');
         throw error;
     }
 }
@@ -65,21 +57,17 @@ export async function uploadImageToS3(file: File): Promise<UploadResult> {
  * 여러 이미지를 동시에 S3에 업로드
  */
 export async function uploadMultipleImages(files: File[]): Promise<UploadResult[]> {
-    console.log(`📦 Starting batch upload: ${files.length} files`);
 
     try {
         const uploadPromises = files.map((file, index) => {
-            console.log(`   [${index + 1}/${files.length}] Queued: ${file.name}`);
             return uploadImageToS3(file);
         });
 
         const results = await Promise.all(uploadPromises);
 
-        console.log(`✅ Batch upload complete: ${results.length} files uploaded`);
         return results;
 
     } catch (error) {
-        console.error('❌ Batch upload failed:', error);
         throw error;
     }
 }
