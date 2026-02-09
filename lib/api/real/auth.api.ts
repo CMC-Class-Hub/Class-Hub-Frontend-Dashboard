@@ -19,7 +19,6 @@ export const authApiReal: IAuthApi = {
 
         const result: LoginResponse = await response.json();
 
-
         // ✅ 토큰과 사용자 정보를 localStorage에 저장!
         if (result.accessToken) {
             localStorage.setItem(TOKEN_KEY, result.accessToken);
@@ -27,7 +26,7 @@ export const authApiReal: IAuthApi = {
             const user: User = {
                 id: result.userId.toString(),
                 email: data.email,
-                name: result.name, // 백엔드에서 추가 정보가 없으면 빈 문자열
+                name: result.name,
                 phoneNumber: result.PhoneNumber,
                 role: 'instructor',
                 createdAt: new Date().toISOString(),
@@ -51,25 +50,15 @@ export const authApiReal: IAuthApi = {
         }
 
         const result = await response.json();
-        return result;  // result.data가 아닌 result 직접 반환
+        return result;
     },
 
-    async logout(): Promise<void> {
-        // ✅ localStorage에서 토큰과 사용자 정보 삭제
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(AUTH_KEY);
-
-        // 백엔드 로그아웃 API가 있다면 호출 (선택사항)
+   async logout(): Promise<void> {
         try {
-            await fetch(`${API_URL}/api/auth/logout`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
-                },
-            });
-        } catch (err) {
-            // 로그아웃 실패해도 로컬 데이터는 이미 삭제됨
-            console.error('Logout API failed:', err);
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(AUTH_KEY);
+        } catch (error) {
+            console.error("Logout failed", error);
         }
     },
 
@@ -78,8 +67,7 @@ export const authApiReal: IAuthApi = {
         if (typeof window === 'undefined') return null;
 
         const token = localStorage.getItem(TOKEN_KEY);
-        const userData = localStorage.getItem(AUTH_KEY);
-        console.log("getCurrentUser", userData);
+        const userData = localStorage.getItem(AUTH_KEY);        
         // 토큰이 없으면 로그아웃 상태
         if (!token) {
             localStorage.removeItem(AUTH_KEY);
@@ -91,17 +79,28 @@ export const authApiReal: IAuthApi = {
 
     async isLoggedIn(): Promise<boolean> {
         try {
+            const token = localStorage.getItem(TOKEN_KEY);
+            
+            if (!token) {
+                return false;
+            }
+            
             const response = await fetch(`${API_URL}/api/auth/status`, {
                 method: 'GET',
-                credentials: 'include' // 쿠키/세션 포함
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                }
             });
 
+            if (!response.ok) {
+                return false;
+            }
+
             const data = await response.json();
-            console.log("isLoggedIn", data);
-            return data.isLoggedIn;
+            return data.loggedIn;
         } catch (error) {
             console.error("Login check failed", error);
             return false;
         }
-    },
+    }
 };
