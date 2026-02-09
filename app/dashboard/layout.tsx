@@ -1,20 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useState, useEffect, useRef, Suspense } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Menu, X, LogOut, Calendar, MessageSquare, Settings } from "lucide-react";
 import { api } from "@/lib/api";
 import type { User } from "@/lib/api/types";
 
-export default function DashboardLayout({
+import { toast } from "sonner"; // Add import
+
+function DashboardContent({
     children,
 }: {
     children: React.ReactNode;
 }) {
     const router = useRouter();
     const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const ref = searchParams.get('ref');
+
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [user, setUser] = useState<User | null>(null);
+    const onboardingProcessed = useRef(false);
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -24,9 +30,69 @@ export default function DashboardLayout({
                 return;
             }
             setUser(currentUser);
+
+            // Only check onboarding if ref=landing
+            if (ref === 'landing') {
+                checkOnboarding(currentUser.id);
+            }
         };
         checkAuth();
-    }, [router]);
+    }, [router, ref]);
+
+    const checkOnboarding = async (instructorId: string) => {
+        if (onboardingProcessed.current) return;
+
+        const dataStr = localStorage.getItem('onboarding_class_data');
+        if (!dataStr) return;
+
+        // Lock immediately to prevent double execution
+        onboardingProcessed.current = true;
+
+        try {
+            const data = JSON.parse(dataStr);
+
+            // Validate Data
+            if (!data.name) {
+                console.warn("Onboarding data missing class name, skipping creation.");
+                localStorage.removeItem('onboarding_class_data');
+                return;
+            }
+
+            // Create Template
+            const template = await api.templates.create(instructorId, {
+                name: data.name,
+                description: data.description,
+                location: data.location || "미정",
+                locationDetails: "",
+                preparation: data.materials,
+                parkingInfo: data.parking,
+                // category is not in API yet, skipping
+            });
+
+            // Create Session if date exists
+            if (data.date && data.startTime) {
+                // "2024.03.15 (토)" -> "2024-03-15"
+                const dateStr = data.date.split(' ')[0].replace(/\./g, '-');
+                const priceNum = data.price ? Number(String(data.price).replace(/,/g, '')) : 0;
+
+                await api.sessions.create(instructorId, {
+                    templateId: template.id,
+                    date: dateStr,
+                    startTime: data.startTime,
+                    endTime: "16:00", // Default 2 hours later
+                    capacity: Number(data.capacity) || 10,
+                    price: priceNum,
+                });
+            }
+
+            toast.success("작성하신 클래스가 자동으로 개설되었습니다.");
+            localStorage.removeItem('onboarding_class_data');
+            router.refresh(); // Refresh data
+            router.replace("/dashboard"); // Clean up URL
+        } catch (e) {
+            console.error("Onboarding Error:", e);
+        }
+    };
 
     const handleLogout = async () => {
         await api.auth.logout();
@@ -65,15 +131,12 @@ export default function DashboardLayout({
       `}
             >
                 <div className="p-6 border-b border-[#E5E8EB] flex items-center justify-between">
-                    <div>
+                    <button onClick={() => router.push('/')} className="text-left hover:opacity-80 transition-opacity">
                         <h2 className="text-xl font-bold text-[#3182F6]">Class Hub</h2>
                         <p className="text-sm text-[#8B95A1] mt-1">{user.name}님</p>
-                    </div>
+                    </button>
                     {/* 모바일 닫기 버튼 */}
-                    <button
-                        onClick={() => setSidebarOpen(false)}
-                        className="md:hidden p-2 rounded-xl hover:bg-[#F2F4F6] transition-colors"
-                    >
+                    <button onClick={() => setSidebarOpen(false)} className="md:hidden p-2 rounded-xl hover:bg-[#F2F4F6] transition-colors">
                         <X className="h-5 w-5 text-[#6B7684]" />
                     </button>
                 </div>
@@ -153,5 +216,24 @@ export default function DashboardLayout({
                 </main>
             </div>
         </div>
+    );
+}
+
+export default function DashboardLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[#F2F4F6]">
+                <div className="w-12 h-12 border-4 border-[#E5E8EB] border-t-[#3182F6] rounded-full animate-spin mb-4"></div>
+                <p className="text-[#8B95A1] font-medium">로딩 중...</p>
+            </div>
+        }>
+            <DashboardContent>
+                {children}
+            </DashboardContent>
+        </Suspense>
     );
 }

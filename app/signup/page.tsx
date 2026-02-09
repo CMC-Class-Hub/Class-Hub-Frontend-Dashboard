@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,8 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 
-export default function SignUpPage() {
+function SignUpForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const ref = searchParams.get("ref");
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -55,7 +58,12 @@ export default function SignUpPage() {
     try {
       // 자동 로그인
       await api.auth.login({ email, password });
-      router.push("/dashboard");
+
+      if (ref === "landing") {
+        router.push("/dashboard?ref=landing");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (err) {
       // 회원가입은 성공했지만 로그인 실패 시 로그인 페이지로
       router.push("/login");
@@ -159,5 +167,17 @@ export default function SignUpPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#F2F4F6]">
+        <div className="w-8 h-8 border-4 border-[#E5E8EB] border-t-[#3182F6] rounded-full animate-spin"></div>
+      </div>
+    }>
+      <SignUpForm />
+    </Suspense>
   );
 }

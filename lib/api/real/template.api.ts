@@ -1,47 +1,64 @@
 import type { ClassTemplate, ITemplateApi, CreateTemplateRequest, UpdateTemplateRequest } from '../types';
-import { API_URL } from '../api-config';
+import { fetchClient } from '../fetch-client';
 
 export const templateApiReal: ITemplateApi = {
   async getAll(instructorId: string): Promise<ClassTemplate[]> {
-    const response = await fetch(`${API_URL}/api/templates?instructorId=${instructorId}`);
+    const response = await fetchClient(`/api/classes?instructorId=${instructorId}`);
     if (!response.ok) throw new Error('Failed to fetch templates');
     const data = await response.json();
-    return data.data;
+    return data;
   },
 
-  async getById(id: string): Promise<ClassTemplate | null> {
-    const response = await fetch(`${API_URL}/api/templates/${id}`);
+  async getById(id: string, instructorId: string): Promise<ClassTemplate | null> {
+    const response = await fetchClient(`/api/classes/${id}?instructorId=${instructorId}`);
     if (!response.ok) return null;
     const data = await response.json();
-    return data.data;
+    console.log('API fetched template:', data);
+    return data;
   },
 
   async create(instructorId: string, data: CreateTemplateRequest): Promise<ClassTemplate> {
-    const response = await fetch(`${API_URL}/api/templates`, {
+    console.log('Creating template with data:', data);
+    const response = await fetchClient(`/api/classes?instructorId=${instructorId}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...data, instructorId }),
     });
     if (!response.ok) throw new Error('Failed to create template');
     const result = await response.json();
-    return result.data;
+    return result;
   },
 
   async update(id: string, data: UpdateTemplateRequest): Promise<ClassTemplate> {
-    const response = await fetch(`${API_URL}/api/templates/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetchClient(`/api/classes/${id}`, {
+      method: 'PUT',
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error('Failed to update template');
+    
     const result = await response.json();
-    return result.data;
+    return result;
   },
 
   async delete(id: string): Promise<void> {
-    const response = await fetch(`${API_URL}/api/templates/${id}`, {
+    const response = await fetchClient(`/api/classes/${id}`, {
       method: 'DELETE',
     });
-    if (!response.ok) throw new Error('Failed to delete template');
+    if (!response.ok) {
+      const errorBody = await response.json();
+      throw new Error(errorBody.message);
+    }
   },
+
+  async updateLinkShareStatus(templateId: string, status: 'ENABLED' | 'DISABLED'): Promise<ClassTemplate> {
+    const response = await fetchClient(`/api/classes/${templateId}/link-share-status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ linkShareStatus: status })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || '링크 공유 상태 변경에 실패했습니다.');
+    }
+
+    return response.json();
+  }
 };

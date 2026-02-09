@@ -19,7 +19,6 @@ export function EditClassForm({ template, onSubmit, onCancel }: {
         preparation: string;
         instructions: string;
         images?: string[];
-        price?: number;
         parkingInfo?: string;
         cancellationPolicy?: string;
     }) => void;
@@ -31,8 +30,7 @@ export function EditClassForm({ template, onSubmit, onCancel }: {
     const [locationDetails, setLocationDetails] = useState(template.locationDetails || '');
     const [preparation, setPreparation] = useState(template.preparation || '');
     const [instructions, setInstructions] = useState(template.instructions || '');
-    const [images, setImages] = useState<string[]>(template.images || []);
-    const [price, setPrice] = useState(template.price || 0);
+    const [imageUrls, setImageUrls] = useState<string[]>(template.images || []);
     const [parkingInfo, setParkingInfo] = useState(template.parkingInfo || '');
     const [cancellationPolicy, setCancellationPolicy] = useState(template.cancellationPolicy || '');
 
@@ -45,8 +43,7 @@ export function EditClassForm({ template, onSubmit, onCancel }: {
             locationDetails,
             preparation,
             instructions,
-            images,
-            price,
+            images: imageUrls,
             parkingInfo,
             cancellationPolicy,
         });
@@ -56,7 +53,7 @@ export function EditClassForm({ template, onSubmit, onCancel }: {
         <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
                 <Label>대표 이미지 (여러 장 선택 가능)</Label>
-                <ImageUpload values={images} onChange={setImages} />
+                <ImageUpload values={imageUrls} onChange={setImageUrls} />
             </div>
 
             <div className="space-y-2">
@@ -79,18 +76,6 @@ export function EditClassForm({ template, onSubmit, onCancel }: {
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="클래스에 대한 간단한 설명"
                     rows={3}
-                />
-            </div>
-
-            <div className="space-y-2">
-                <Label htmlFor="editClassPrice">1인 가격 (원)</Label>
-                <Input
-                    id="editClassPrice"
-                    type="number"
-                    min="0"
-                    value={price}
-                    onChange={(e) => setPrice(parseInt(e.target.value) || 0)}
-                    placeholder="0"
                 />
             </div>
 

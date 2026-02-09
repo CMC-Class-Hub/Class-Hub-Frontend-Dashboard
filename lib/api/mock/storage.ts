@@ -9,7 +9,6 @@ import type {
   ClassSession,
   Student,
   Application,
-  MessageTemplate,
   Message,
 } from '../types';
 
@@ -85,12 +84,12 @@ export const getApplications = (): Application[] =>
 export const setApplications = (applications: Application[]): void =>
   setItem(STORAGE_KEYS.APPLICATIONS, applications);
 
-// Message Templates
-export const getMessageTemplates = (): MessageTemplate[] =>
-  getItem<MessageTemplate>(STORAGE_KEYS.MESSAGE_TEMPLATES);
+// Message Templates (Deprecated/Removed)
+// export const getMessageTemplates = (): MessageTemplate[] =>
+//   getItem<MessageTemplate>(STORAGE_KEYS.MESSAGE_TEMPLATES);
 
-export const setMessageTemplates = (templates: MessageTemplate[]): void =>
-  setItem(STORAGE_KEYS.MESSAGE_TEMPLATES, templates);
+// export const setMessageTemplates = (templates: MessageTemplate[]): void =>
+//   setItem(STORAGE_KEYS.MESSAGE_TEMPLATES, templates);
 
 // ============================================================
 // Utility Functions

@@ -2,16 +2,18 @@
 
 import { Header } from "@/components/landing/Header";
 import { Hero } from "@/components/landing/Hero";
-import { Features } from "@/components/landing/Features";
+import { LandingContent } from "@/components/landing/LandingContent";
+import { GrowthLoops } from "@/components/landing/GrowthLoops";
 import { Footer } from "@/components/landing/Footer";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white selection:bg-blue-100 selection:text-blue-900">
+    <div className="flex min-h-screen flex-col">
       <Header />
       <main>
         <Hero />
-        <Features />
+        <LandingContent />
+        <GrowthLoops />
       </main>
       <Footer />
     </div>

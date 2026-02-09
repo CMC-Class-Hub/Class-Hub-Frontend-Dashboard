@@ -3,7 +3,7 @@
 // ============================================================
 
 // Status Types
-export type ClassStatus = 'RECRUITING' | 'CLOSED' | 'FINISHED';
+export type ClassStatus = 'RECRUITING' | 'CLOSED' | 'FULL';
 export type ClassTemplateStatus = 'ACTIVE' | 'INACTIVE';
 export type ApplicationStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'TIMEOUT' | 'NO_SHOW' | 'ATTENDED';
 export type PaymentMethod = 'CARD' | 'ACCOUNT';
@@ -16,7 +16,6 @@ export type MessageTemplateType = 'D-3' | 'D-1' | 'APPLY_CONFIRMED';
 // Class Template
 export interface ClassTemplate {
   id: string;
-  instructorId: string;
   name: string;
   description?: string;
   location: string;
@@ -24,15 +23,17 @@ export interface ClassTemplate {
   preparation?: string;
   instructions?: string;
   notes?: string;
-
   depositAmount?: number;
   cancellationPolicy?: string;
   noShowPolicy?: string;
-  status: ClassTemplateStatus;
   images?: string[];
-  price?: number;
   parkingInfo?: string;
-  createdAt: string;
+  classCode?: string;
+  instructorId: string;
+  status?: ClassTemplateStatus;
+  createdAt?: string;
+  guidelines?: string;
+  linkShareStatus?: string;
 }
 
 // Class Session
@@ -44,7 +45,9 @@ export interface ClassSession {
   startTime: string;
   endTime: string;
   status: ClassStatus;
+  currentNum: number;
   capacity: number;
+  price: number;
   linkId: string;
   createdAt: string;
 }
@@ -75,6 +78,9 @@ export interface Application {
   id: string;
   classId: string;
   studentId: string;
+  applicantName?: string;
+  phoneNumber?: string;
+  reservationId?: number;
   status: ApplicationStatus;
   paymentMethod?: PaymentMethod;
   paymentStatus: PaymentStatus;
@@ -104,15 +110,7 @@ export interface Student {
   createdAt: string;
 }
 
-// Message Template
-export interface MessageTemplate {
-  id: string;
-  templateId: string;
-  type: MessageTemplateType;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-}
+
 
 // Notification
 export interface Notification {
@@ -161,7 +159,7 @@ export interface InstructorSettings {
 export interface User {
   id: string;
   email: string;
-  name: string;
+  name?: string;
   phoneNumber?: string;
   role: 'instructor';
   createdAt: string;
@@ -180,9 +178,27 @@ export interface SignUpRequest {
   phoneNumber: string;
 }
 
+export interface LoginResponse {
+  userId: number;
+  accessToken?: string;
+  name?: string;
+  PhoneNumber?: string;
+}
+
 export interface AuthResponse {
   user: User;
   token?: string;
+}
+
+export interface InstructorUpdateRequest {
+    name?: string;
+    email?: string;
+    phoneNumber?: string;
+    password?: string;
+}
+
+export interface IInstructorApi {
+    updateProfile(instructorId: string, data: InstructorUpdateRequest): Promise<void>;
 }
 
 // ============================================================
@@ -202,7 +218,6 @@ export interface CreateTemplateRequest {
   cancellationPolicy?: string;
   noShowPolicy?: string;
   images?: string[];
-  price?: number;
   parkingInfo?: string;
 }
 
@@ -217,6 +232,7 @@ export interface CreateSessionRequest {
 
   endTime: string;
   capacity: number;
+  price: number;
 }
 
 export interface UpdateSessionRequest {
@@ -224,6 +240,7 @@ export interface UpdateSessionRequest {
   startTime?: string;
   endTime?: string;
   capacity?: number;
+  price?: number;
   status?: ClassStatus;
 }
 
@@ -270,10 +287,11 @@ export interface ApiError {
 
 export interface ITemplateApi {
   getAll(instructorId: string): Promise<ClassTemplate[]>;
-  getById(id: string): Promise<ClassTemplate | null>;
+  getById(id: string, instructorId: string): Promise<ClassTemplate | null>;
   create(instructorId: string, data: CreateTemplateRequest): Promise<ClassTemplate>;
   update(id: string, data: UpdateTemplateRequest): Promise<ClassTemplate>;
   delete(id: string): Promise<void>;
+  updateLinkShareStatus(templateId: string, status: 'ENABLED' | 'DISABLED'): Promise<ClassTemplate>;
 }
 
 export interface ISessionApi {
@@ -282,6 +300,7 @@ export interface ISessionApi {
   create(instructorId: string, data: CreateSessionRequest): Promise<ClassSession>;
   update(id: string, data: UpdateSessionRequest): Promise<ClassSession>;
   delete(id: string): Promise<void>;
+  updateStatus(id: string, status: 'RECRUITING' | 'CLOSED' | 'FULL'): Promise<ClassSession>;
 }
 
 export interface IStudentApi {
@@ -300,10 +319,23 @@ export interface IApplicationApi {
   update(id: string, data: UpdateApplicationRequest): Promise<Application>;
 }
 
+// Message Template List Item
+export interface MessageTemplateListItem {
+  title: string;
+  description: string;
+}
+
+// Message Template Detail
+export interface MessageTemplateDetail {
+  type: MessageTemplateType;
+  title: string;
+  description: string;
+  body: string;
+}
+
 export interface IMessageTemplateApi {
-  getByTemplateId(templateId: string): Promise<MessageTemplate[]>;
-  save(templateId: string, type: MessageTemplateType, content: string): Promise<MessageTemplate>;
-  getDefault(type: MessageTemplateType, className?: string): string;
+  getTitles(): Promise<MessageTemplateListItem[]>; // Returns list of templates with metadata
+  getDetails(title: string): Promise<MessageTemplateDetail>; // Returns details for a title
 }
 
 export interface IMessageHistoryApi {
@@ -312,8 +344,8 @@ export interface IMessageHistoryApi {
 }
 
 export interface IAuthApi {
-  login(data: LoginRequest): Promise<AuthResponse>;
-  signUp(data: SignUpRequest): Promise<AuthResponse>;
+  login(data: LoginRequest): Promise<LoginResponse>;
+  signUp(data: SignUpRequest): Promise<LoginResponse>;
   logout(): Promise<void>;
   getCurrentUser(): Promise<User | null>;
   isLoggedIn(): Promise<boolean>;

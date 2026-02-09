@@ -26,12 +26,10 @@ export const templateApiMock: ITemplateApi = {
       preparation: data.preparation,
       instructions: data.instructions,
       notes: data.notes,
-
       depositAmount: data.depositAmount || 0,
       cancellationPolicy: data.cancellationPolicy || '',
       noShowPolicy: data.noShowPolicy || '',
       images: data.images || [],
-      price: data.price || 0,
       parkingInfo: data.parkingInfo || '',
       status: 'ACTIVE',
       createdAt: new Date().toISOString(),
@@ -69,5 +67,28 @@ export const templateApiMock: ITemplateApi = {
     const sessions = getSessions();
     const filteredSessions = sessions.filter(s => s.templateId !== id);
     setSessions(filteredSessions);
+  },
+  async updateLinkShareStatus(
+    templateId: string,
+    status: 'ENABLED' | 'DISABLED'
+  ): Promise<ClassTemplate> {
+    await delay();
+
+    const templates = getTemplates();
+    const index = templates.findIndex(t => t.id === templateId);
+
+    if (index === -1) {
+      throw new Error('Template not found');
+    }
+
+    const updated = {
+      ...templates[index],
+      linkShareStatus: status,
+    };
+
+    templates[index] = updated;
+    setTemplates(templates);
+
+    return updated;
   },
 };

@@ -61,11 +61,21 @@ export default function ClassesPage() {
         }
     };
 
-    const handleDeleteTemplate = async (e: React.MouseEvent, templateId: string) => {
+    const handleDeleteTemplate = async (
+        e: React.MouseEvent,
+        templateId: string
+    ) => {
         e.stopPropagation();
-        if (confirm('정말로 이 클래스를 삭제하시겠습니까? 관련된 모든 세션도 함께 삭제됩니다.')) {
+
+        if (!confirm('정말로 이 클래스를 삭제하시겠습니까? 관련된 모든 세션도 함께 삭제됩니다.')) {
+            return;
+        }
+
+        try {
             await templateApi.delete(templateId);
             if (user) await loadTemplates(user.id);
+        } catch (err: any) {
+            alert(err.message ?? '클래스 삭제에 실패했습니다.');
         }
     };
 

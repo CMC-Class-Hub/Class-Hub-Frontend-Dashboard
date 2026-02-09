@@ -1,4 +1,4 @@
-import type { IAuthApi, LoginRequest, SignUpRequest, AuthResponse, User } from '../types';
+import type { IAuthApi, LoginRequest, SignUpRequest, LoginResponse, User } from '../types';
 import { delay, generateId } from './storage';
 
 const AUTH_KEY = 'classhub_auth_user';
@@ -18,32 +18,10 @@ const saveUsers = (users: User[]): void => {
 };
 
 export const authApiMock: IAuthApi = {
-    async login({ email, password }: LoginRequest): Promise<AuthResponse> {
+    async login({ email, password }: LoginRequest): Promise<LoginResponse> {
         await delay(500); // Simulate network latency
 
-        // 데모 계정 자동 생성 로직
-        if (email === 'demo@classhub.com' && password === '1234') {
-            const users = getUsers();
-            let demoUser = users.find(u => u.email === email);
 
-            if (!demoUser) {
-                demoUser = {
-                    id: 'demo-instructor',
-                    email: 'demo@classhub.com',
-                    name: '데모 강사',
-                    phoneNumber: '010-1234-5678',
-                    role: 'instructor',
-                    createdAt: new Date().toISOString(),
-                };
-                users.push(demoUser);
-                saveUsers(users);
-                localStorage.setItem(`password_${email}`, password);
-            }
-
-            // 세션 저장
-            localStorage.setItem(AUTH_KEY, JSON.stringify(demoUser));
-            return { user: demoUser, token: 'mock-jwt-token' };
-        }
 
         const users = getUsers();
         const user = users.find(u => u.email === email);
@@ -60,10 +38,10 @@ export const authApiMock: IAuthApi = {
         // Save session
         localStorage.setItem(AUTH_KEY, JSON.stringify(user));
 
-        return { user, token: 'mock-jwt-token' };
+        return { userId: parseInt(user.id.split('_')[1]) || 1, accessToken: 'mock-jwt-token' };
     },
 
-    async signUp({ email, name, password, phoneNumber }: SignUpRequest): Promise<AuthResponse> {
+    async signUp({ email, name, password, phoneNumber }: SignUpRequest): Promise<LoginResponse> {
         await delay(500);
         const users = getUsers();
 
@@ -86,7 +64,7 @@ export const authApiMock: IAuthApi = {
         // Save password separately (simple imitation)
         localStorage.setItem(`password_${email}`, password);
 
-        return { user: newUser };
+        return { userId: parseInt(newUser.id.split('_')[1]), accessToken: 'mock-jwt-token' };
     },
 
     async logout(): Promise<void> {

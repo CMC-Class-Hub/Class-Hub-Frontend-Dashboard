@@ -21,6 +21,7 @@ interface AddressSearchInputProps {
     onChange: (value: string) => void;
     placeholder?: string;
     disabled?: boolean;
+    className?: string;
 }
 
 export function AddressSearchInput({
@@ -28,6 +29,7 @@ export function AddressSearchInput({
     onChange,
     placeholder = "주소 검색",
     disabled,
+    className,
 }: AddressSearchInputProps) {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -56,7 +58,7 @@ export function AddressSearchInput({
                 readOnly
                 placeholder={placeholder}
                 disabled={disabled}
-                className="flex-1 cursor-pointer"
+                className={`flex-1 cursor-pointer ${className}`}
                 onClick={() => !disabled && setIsOpen(true)}
             />
             <Dialog open={isOpen} onOpenChange={setIsOpen}>

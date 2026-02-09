@@ -8,7 +8,7 @@ import type { ClassSession } from "@/lib/api";
 
 interface EditSessionFormProps {
     session: ClassSession;
-    onSubmit: (data: { date: string; startTime: string; endTime: string; capacity: number }) => void;
+    onSubmit: (data: { date: string; startTime: string; endTime: string; capacity: number; price: number }) => void;
     onCancel: () => void;
 }
 
@@ -17,10 +17,11 @@ export function EditSessionForm({ session, onSubmit, onCancel }: EditSessionForm
     const [startTime, setStartTime] = useState(session.startTime || '');
     const [endTime, setEndTime] = useState(session.endTime || '');
     const [capacity, setCapacity] = useState(session.capacity || 0);
+    const [price, setPrice] = useState(session.price || 0);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit({ date, startTime, endTime, capacity });
+        onSubmit({ date, startTime, endTime, capacity, price });
     };
 
     return (
@@ -57,15 +58,27 @@ export function EditSessionForm({ session, onSubmit, onCancel }: EditSessionForm
                 </div>
             </div>
 
-            <div className="space-y-2">
-                <Label>정원 *</Label>
-                <Input
-                    type="number"
-                    min="1"
-                    value={capacity}
-                    onChange={(e) => setCapacity(parseInt(e.target.value) || 1)}
-                    required
-                />
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label>정원 *</Label>
+                    <Input
+                        type="number"
+                        min="1"
+                        value={capacity}
+                        onChange={(e) => setCapacity(parseInt(e.target.value) || 1)}
+                        required
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label>가격 *</Label>
+                    <Input
+                        type="number"
+                        min="0"
+                        value={price}
+                        onChange={(e) => setPrice(parseInt(e.target.value) || 0)}
+                        required
+                    />
+                </div>
             </div>
 
             <div className="flex gap-2 pt-2">
