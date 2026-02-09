@@ -146,7 +146,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
 
     const copyLink = () => {
         //const url = `http://localhost:3001/class/${template?.classCode}`;
-        const url = `https://classhub-link.vercel.app/${template?.classCode}`;  
+        const url = `https://classhub-link.vercel.app/class/${template?.classCode}`;
         navigator.clipboard.writeText(url);
         toast.success("링크가 복사되었습니다", {
             description: "수강생들에게 이 링크를 공유하여 신청을 받을 수 있어요."
