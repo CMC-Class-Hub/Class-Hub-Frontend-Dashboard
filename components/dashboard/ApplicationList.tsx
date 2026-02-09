@@ -19,9 +19,9 @@ export function ApplicationList({ applications, students, sessionMessages, capac
     };
 
     const validApplications = applications.filter(app => !!getStudentById(app.studentId));
-    
+
     // reservationStatus 필드를 사용하여 CONFIRMED만 카운트
-    const confirmedCount = validApplications.filter(app => 
+    const confirmedCount = validApplications.filter(app =>
         (app as any).reservationStatus === 'CONFIRMED'
     ).length;
     return (
@@ -45,13 +45,13 @@ export function ApplicationList({ applications, students, sessionMessages, capac
                         {validApplications.map((app) => {
                             const student = getStudentById(app.studentId)!;
                             const appStatus = (app as any).reservationStatus || app.status;
-                            
-                            // 메시지 상태 확인
-                            const d3Msg = sessionMessages.find(m => m.studentId === student.id && m.type === 'D-3');
-                            const d1Msg = sessionMessages.find(m => m.studentId === student.id && m.type === 'D-1');
+
+                            // 메시지 상태 확인 (API에서 직접 제공하는 상태 사용)
+                            const isD3Sent = app.sentD3Notification;
+                            const isD1Sent = app.sentD1Notification;
 
                             return (
-                               <div
+                                <div
                                     key={`app-${app.reservationId}`}
                                     className="flex flex-col sm:flex-row sm:items-center justify-between p-4 md:p-5 bg-[#F9FAFB] rounded-2xl gap-4 hover:bg-[#F2F4F6] transition-colors"
                                 >
@@ -69,13 +69,13 @@ export function ApplicationList({ applications, students, sessionMessages, capac
                                     </div>
 
                                     <div className="flex gap-2 text-xs">
-                                        <div className={`px-3 py-2 rounded-xl ${d3Msg ? 'bg-[#E8F3FF] text-[#3182F6]' : 'bg-[#F2F4F6] text-[#8B95A1]'}`}>
+                                        <div className={`px-3 py-2 rounded-xl ${isD3Sent ? 'bg-[#E8F3FF] text-[#3182F6]' : 'bg-[#F2F4F6] text-[#8B95A1]'}`}>
                                             <p className="font-bold mb-0.5">D-3</p>
-                                            <p className="text-xs">{d3Msg ? (d3Msg.status === 'SENT' ? '전송완료' : '전송예정') : '미발송'}</p>
+                                            <p className="text-xs">{isD3Sent ? '발송됨' : '미발송'}</p>
                                         </div>
-                                        <div className={`px-3 py-2 rounded-xl ${d1Msg ? 'bg-[#E8F3FF] text-[#3182F6]' : 'bg-[#F2F4F6] text-[#8B95A1]'}`}>
+                                        <div className={`px-3 py-2 rounded-xl ${isD1Sent ? 'bg-[#E8F3FF] text-[#3182F6]' : 'bg-[#F2F4F6] text-[#8B95A1]'}`}>
                                             <p className="font-bold mb-0.5">D-1</p>
-                                            <p className="text-xs">{d1Msg ? (d1Msg.status === 'SENT' ? '전송완료' : '전송예정') : '미발송'}</p>
+                                            <p className="text-xs">{isD1Sent ? '발송됨' : '미발송'}</p>
                                         </div>
                                     </div>
                                 </div>

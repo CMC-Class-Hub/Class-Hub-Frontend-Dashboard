@@ -34,7 +34,7 @@ export interface ClassTemplate {
   createdAt?: string;
   guidelines?: string;
   linkShareStatus?: string;
-  imageUrls?: string[]; 
+  imageUrls?: string[];
 }
 
 // Class Session
@@ -93,6 +93,8 @@ export interface Application {
   attendanceResponse?: AttendanceResponse;
   responseTime?: string;
   appliedAt: string;
+  sentD3Notification?: boolean;
+  sentD1Notification?: boolean;
 }
 
 // Student
@@ -192,14 +194,14 @@ export interface AuthResponse {
 }
 
 export interface InstructorUpdateRequest {
-    name?: string;
-    email?: string;
-    phoneNumber?: string;
-    password?: string;
+  name?: string;
+  email?: string;
+  phoneNumber?: string;
+  password?: string;
 }
 
 export interface IInstructorApi {
-    updateProfile(instructorId: string, data: InstructorUpdateRequest): Promise<void>;
+  updateProfile(instructorId: string, data: InstructorUpdateRequest): Promise<void>;
 }
 
 // ============================================================
