@@ -30,12 +30,13 @@ export function EditClassForm({ template, onSubmit, onCancel }: {
     const [locationDetails, setLocationDetails] = useState(template.locationDetails || '');
     const [preparation, setPreparation] = useState(template.preparation || '');
     const [instructions, setInstructions] = useState(template.instructions || '');
-    const [imageUrls, setImageUrls] = useState<string[]>(template.images || []);
+    const [imageUrls, setImageUrls] = useState<string[]>(template.imageUrls || []); // 여기 수정!
     const [parkingInfo, setParkingInfo] = useState(template.parkingInfo || '');
     const [cancellationPolicy, setCancellationPolicy] = useState(template.cancellationPolicy || '');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
         onSubmit({
             name,
             description,

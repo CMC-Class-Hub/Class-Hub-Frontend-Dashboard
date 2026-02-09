@@ -48,7 +48,6 @@ export default function ProfilePage() {
 
             const updateData: any = {
                 name,
-                email,
                 phoneNumber: phone,
             };
 
@@ -65,7 +64,6 @@ export default function ProfilePage() {
                 const updatedUser = {
                     ...currentUser,
                     name,
-                    email,
                     phoneNumber: phone,
                 };
                 localStorage.setItem('classhub_auth_user', JSON.stringify(updatedUser));
@@ -100,6 +98,15 @@ export default function ProfilePage() {
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="profile-email">이메일</Label>
+                            <Input
+                                id="profile-email"
+                                value={email}
+                                disabled
+                                className="bg-gray-50 cursor-not-allowed"
                             />
                         </div>
                         <div className="space-y-2">

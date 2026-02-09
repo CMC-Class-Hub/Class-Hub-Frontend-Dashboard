@@ -34,6 +34,7 @@ export interface ClassTemplate {
   createdAt?: string;
   guidelines?: string;
   linkShareStatus?: string;
+  imageUrls?: string[]; 
 }
 
 // Class Session
