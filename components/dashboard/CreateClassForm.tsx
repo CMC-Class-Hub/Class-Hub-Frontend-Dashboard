@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { MonitorSmartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/ui/ImageUpload";  // ✅ 새 버전 사용
 import { AddressSearchInput } from "@/components/ui/AddressSearchInput";
 
-export function CreateClassForm({ onSubmit, onCancel }: {
+export function CreateClassForm({ onSubmit, onCancel, onPreview, onOpenPreview }: {
     onSubmit: (data: {
         name: string;
         description: string;
@@ -22,6 +23,18 @@ export function CreateClassForm({ onSubmit, onCancel }: {
         cancellationPolicy?: string;
     }) => void;
     onCancel: () => void;
+    onPreview: (data: {
+        name: string;
+        description: string;
+        location: string;
+        locationDetails: string;
+        preparation: string;
+        instructions: string;
+        imageUrls: string[];
+        parkingInfo: string;
+        cancellationPolicy: string;
+    }) => void;
+    onOpenPreview: () => void;
 }) {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
@@ -50,6 +63,27 @@ export function CreateClassForm({ onSubmit, onCancel }: {
             cancellationPolicy,
         });
     };
+
+    const handlePreview = () => {
+        onPreview({
+            name,
+            description,
+            location,
+            locationDetails,
+            preparation,
+            instructions,
+            imageUrls,
+            parkingInfo,
+            cancellationPolicy,
+        });
+    };
+
+    // Real-time preview sync - update preview whenever data changes
+    useEffect(() => {
+        // Only trigger if preview is already open (to avoid unnecessary calls)
+        // The parent component will track if preview is open
+        handlePreview();
+    }, [name, description, location, locationDetails, preparation, instructions, imageUrls, parkingInfo, cancellationPolicy]);
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -157,8 +191,17 @@ export function CreateClassForm({ onSubmit, onCancel }: {
             </div>
 
             <div className="flex gap-2">
-                <Button type="button" variant="ghost" className="flex-1" onClick={onCancel}>
-                    취소
+                <Button
+                    type="button"
+                    variant="ghost"
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700"
+                    onClick={() => {
+                        handlePreview();
+                        onOpenPreview();
+                    }}
+                >
+                    <MonitorSmartphone className="mr-2 h-4 w-4" />
+                    신청 화면 미리보기
                 </Button>
                 <Button type="submit" className="flex-1">
                     클래스 생성
