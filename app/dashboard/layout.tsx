@@ -168,7 +168,7 @@ function DashboardContent({
                                 }`}
                         >
                             <MessageSquare className="h-5 w-5" />
-                            <span className="font-semibold">메시지 템플릿</span>
+                            <span className="font-semibold">메시지 센터</span>
                         </button>
 
                         <button
