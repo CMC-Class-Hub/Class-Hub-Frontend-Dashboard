@@ -68,7 +68,11 @@ export function AddressSearchInput({
                         검색
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden bg-white">
+                <DialogContent
+                    className="sm:max-w-[600px] p-0 overflow-hidden bg-white"
+                    style={{ zIndex: 9999 }}
+                    overlayClassName="z-[9998]"
+                >
                     <DialogHeader className="p-4 pb-0">
                         <DialogTitle>주소 검색</DialogTitle>
                     </DialogHeader>

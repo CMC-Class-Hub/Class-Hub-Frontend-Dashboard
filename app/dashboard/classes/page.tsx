@@ -1,19 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { api, templateApi, sessionApi, type ClassTemplate, type User } from "@/lib/api";
-import { CreateClassForm } from "@/components/dashboard/CreateClassForm";
 import { ClassList } from "@/components/dashboard/ClassList";
+import { CreateClassForm } from "@/components/dashboard/CreateClassForm";
+import { PreviewDialog } from "@/components/dialog/PreviewDialog";
+import { ClassDetailResponse } from "@/components/preview/ClassPreview";
 
 export default function ClassesPage() {
     const [templates, setTemplates] = useState<ClassTemplate[]>([]);
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
+    const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+    const [previewData, setPreviewData] = useState<ClassDetailResponse | null>(null);
     const [user, setUser] = useState<User | null>(null);
     const [templateSessionCounts, setTemplateSessionCounts] = useState<Record<string, number>>({});
+    const [hasFormData, setHasFormData] = useState(false);
+    const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -54,12 +61,53 @@ export default function ClassesPage() {
         try {
             await templateApi.create(user.id, data);
             setCreateDialogOpen(false);
+            setPreviewDialogOpen(false);
             await loadTemplates(user.id);
         } catch (error) {
             alert('클래스 생성 중 오류가 발생했습니다. 이미지가 너무 크거나 저장 공간이 부족할 수 있습니다.');
+            console.error('Failed to create template:', error);
         }
     };
 
+    const handlePreview = (data: {
+        name: string;
+        description: string;
+        location: string;
+        locationDetails: string;
+        preparation: string;
+        instructions: string;
+        imageUrls: string[];
+        parkingInfo: string;
+        cancellationPolicy: string;
+    }) => {
+        // Track if form has any data
+        const hasData = !!(
+            data.name ||
+            data.description ||
+            data.location ||
+            data.locationDetails ||
+            data.preparation ||
+            data.instructions ||
+            data.imageUrls.length > 0 ||
+            data.parkingInfo ||
+            data.cancellationPolicy
+        );
+        setHasFormData(hasData);
+
+        setPreviewData({
+            id: 'preview',
+            name: data.name,
+            description: data.description,
+            location: data.location,
+            locationDetails: data.locationDetails,
+            preparation: data.preparation,
+            instructions: data.instructions,
+            imageUrls: data.imageUrls,
+            parkingInfo: data.parkingInfo,
+            cancellationPolicy: data.cancellationPolicy,
+        });
+        // Note: Dialog opening is now handled in CreateClassForm button click
+    };
     const handleDeleteTemplate = async (
         e: React.MouseEvent,
         templateId: string
@@ -86,23 +134,13 @@ export default function ClassesPage() {
                     <p className="text-sm md:text-base text-[#8B95A1] mt-1">클래스와 세션을 관리하세요</p>
                 </div>
 
-                <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button className="w-full sm:w-auto">
-                            <Plus className="mr-2 h-5 w-5" />
-                            클래스 만들기
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4 md:mx-auto rounded-3xl">
-                        <DialogHeader>
-                            <DialogTitle className="text-xl font-bold text-[#191F28]">새 클래스 만들기</DialogTitle>
-                        </DialogHeader>
-                        <CreateClassForm
-                            onSubmit={handleCreateTemplate}
-                            onCancel={() => setCreateDialogOpen(false)}
-                        />
-                    </DialogContent>
-                </Dialog>
+                <Button
+                    className="w-full sm:w-auto"
+                    onClick={() => setCreateDialogOpen(true)}
+                >
+                    <Plus className="mr-2 h-5 w-5" />
+                    클래스 만들기
+                </Button>
             </div>
 
             {templates.length === 0 ? (
@@ -126,10 +164,89 @@ export default function ClassesPage() {
             ) : (
                 <ClassList
                     templates={templates}
-                    templateSessionCounts={templateSessionCounts}
                     onDelete={handleDeleteTemplate}
+                    templateSessionCounts={templateSessionCounts}
                 />
             )}
+
+            {/* Create Class Dialog */}
+            <Dialog open={createDialogOpen} onOpenChange={(open) => {
+                if (!open && hasFormData) {
+                    // Show confirmation dialog if form has data
+                    setShowCloseConfirm(true);
+                } else {
+                    setCreateDialogOpen(open);
+                    if (!open) {
+                        setPreviewDialogOpen(false);
+                        setHasFormData(false);
+                    }
+                }
+            }}>
+                <DialogTrigger asChild>
+                    <button className="hidden" />
+                </DialogTrigger>
+                <DialogContent
+                    className="max-w-2xl max-h-[90vh] overflow-hidden mx-4 md:mx-auto rounded-3xl p-0"
+                    style={{
+                        transform: previewDialogOpen ? 'translateX(-240px)' : 'translateX(0)',
+                        transition: 'transform 0.3s ease'
+                    }}
+                    onInteractOutside={(e) => {
+                        // Prevent closing when clicking on preview dialog
+                        e.preventDefault();
+                    }}
+                >
+                    <DialogHeader className="px-6 pt-6">
+                        <DialogTitle className="text-xl font-bold text-[#191F28]">새 클래스 만들기</DialogTitle>
+                    </DialogHeader>
+                    <div className="overflow-y-auto max-h-[calc(90vh-80px)] px-6 pb-6">
+                        <CreateClassForm
+                            onSubmit={handleCreateTemplate}
+                            onCancel={() => {
+                                setCreateDialogOpen(false);
+                                setPreviewDialogOpen(false);
+                            }}
+                            onPreview={handlePreview}
+                            onOpenPreview={() => setPreviewDialogOpen(true)}
+                        />
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Preview Dialog */}
+            {previewData && (
+                <PreviewDialog
+                    isOpen={previewDialogOpen}
+                    onClose={() => setPreviewDialogOpen(false)}
+                    previewData={previewData}
+                />
+            )}
+
+            {/* Close Confirmation Dialog */}
+            <AlertDialog open={showCloseConfirm} onOpenChange={setShowCloseConfirm}>
+                <AlertDialogContent className="!max-w-[360px] z-[9999]">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>작성 중인 내용이 있어요</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            지금 닫으면 입력한 내용이 사라져요. 닫으시겠어요?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>계속 작성하기</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-[#3182F6] hover:bg-[#1B64DA]"
+                            onClick={() => {
+                                setCreateDialogOpen(false);
+                                setPreviewDialogOpen(false);
+                                setHasFormData(false);
+                                setShowCloseConfirm(false);
+                            }}
+                        >
+                            네, 닫을게요
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
