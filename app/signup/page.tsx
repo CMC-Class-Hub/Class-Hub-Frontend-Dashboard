@@ -88,9 +88,11 @@ function SignUpForm() {
     <div className="min-h-screen flex items-center justify-center bg-[#F2F4F6] p-4 sm:p-6">
       <Card className="w-full max-w-[420px] p-2 sm:p-4">
         <CardHeader className="text-center pb-2">
-          <CardTitle className="text-2xl sm:text-3xl font-bold text-[#3182F6]">
-            Class Hub
-          </CardTitle>
+          <Link href="/" className="inline-block">
+            <CardTitle className="text-2xl sm:text-3xl font-bold text-[#3182F6] cursor-pointer hover:opacity-80 transition-opacity">
+              Class Hub
+            </CardTitle>
+          </Link>
           <CardDescription className="text-sm sm:text-base mt-2 text-[#6B7684]">
             강사 계정을 만들어보세요
           </CardDescription>
