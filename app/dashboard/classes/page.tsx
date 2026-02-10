@@ -126,6 +126,15 @@ export default function ClassesPage() {
         }
     };
 
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
     return (
         <div className="space-y-5 md:space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -186,17 +195,17 @@ export default function ClassesPage() {
                     <button className="hidden" />
                 </DialogTrigger>
                 <DialogContent
-                    className="max-w-2xl max-h-[90vh] overflow-hidden mx-4 md:mx-auto rounded-3xl p-0"
+                    className="max-w-2xl w-[92vw] md:w-full max-h-[90vh] overflow-hidden rounded-3xl p-0 border-none"
                     style={{
-                        transform: previewDialogOpen ? 'translateX(-240px)' : 'translateX(0)',
-                        transition: 'transform 0.3s ease'
+                        left: !isMobile && previewDialogOpen ? 'calc(50% - 260px)' : '50%',
+                        transition: 'left 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                     }}
                     onInteractOutside={(e) => {
                         // Prevent closing when clicking on preview dialog
                         e.preventDefault();
                     }}
                 >
-                    <DialogHeader className="px-6 pt-6">
+                    <DialogHeader className="px-6 pt-6 shrink-0 bg-white">
                         <DialogTitle className="text-xl font-bold text-[#191F28]">새 클래스 만들기</DialogTitle>
                     </DialogHeader>
                     <div className="overflow-y-auto max-h-[calc(90vh-80px)] px-6 pb-6">
