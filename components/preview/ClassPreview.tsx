@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { ImageIcon } from 'lucide-react';
 
@@ -37,8 +39,11 @@ export const ClassPreview: React.FC<ClassPreviewProps> = ({
     const hasMultipleImages = images.length > 1;
     const hasImages = images.length > 0;
 
-    // 입력된 정보가 있는지 확인
-    const hasAnyInfo = classDetail.preparation || classDetail.parkingInfo || classDetail.instructions || classDetail.guidelines;
+    const hasAnyInfo =
+        classDetail.preparation ||
+        classDetail.parkingInfo ||
+        classDetail.instructions ||
+        classDetail.guidelines;
 
     const handlePrevImage = () => {
         setCurrentImageIndex((prev) =>
@@ -54,17 +59,19 @@ export const ClassPreview: React.FC<ClassPreviewProps> = ({
 
     return (
         <div className={`space-y-0 ${className}`}>
-            {/* Representative Image Carousel or Placeholder */}
+            {/* ================= 이미지 영역 ================= */}
             {hasImages ? (
                 <div className="w-full h-80 relative bg-gray-100 overflow-hidden">
+                    {/* ❗ 이미지 자체는 pointer-events 막아서 휠 통과 */}
                     <img
                         src={images[currentImageIndex]}
                         alt={classDetail.name || '클래스 이미지'}
-                        className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                        className="w-full h-full object-cover pointer-events-none"
+                        draggable={false}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
 
-                    {/* 이미지 네비게이션 - 이미지가 2개 이상일 때만 표시 */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+
                     {hasMultipleImages && (
                         <>
                             {/* 이전 버튼 */}
@@ -89,17 +96,18 @@ export const ClassPreview: React.FC<ClassPreviewProps> = ({
                                 </svg>
                             </button>
 
-                            {/* 인디케이터 점들 */}
+                            {/* 인디케이터 */}
                             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                                {images.map((_: string, index: number) => (
+                                {images.map((_, index) => (
                                     <button
                                         key={index}
                                         onClick={() => setCurrentImageIndex(index)}
-                                        className={`w-2 h-2 rounded-full transition-all ${index === currentImageIndex
-                                            ? 'bg-white w-6'
-                                            : 'bg-white/60'
-                                            }`}
-                                        aria-label={`이미지 ${index + 1}로 이동`}
+                                        className={`w-2 h-2 rounded-full transition-all ${
+                                            index === currentImageIndex
+                                                ? 'bg-white w-6'
+                                                : 'bg-white/60'
+                                        }`}
+                                        aria-label={`이미지 ${index + 1}`}
                                     />
                                 ))}
                             </div>
@@ -112,7 +120,7 @@ export const ClassPreview: React.FC<ClassPreviewProps> = ({
                     )}
                 </div>
             ) : (
-                /* 이미지 없을 때 플레이스홀더 */
+                /* 이미지 없을 때 */
                 <div className="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-50 flex flex-col items-center justify-center gap-3">
                     <div className="w-16 h-16 bg-gray-200 rounded-2xl flex items-center justify-center">
                         <ImageIcon className="w-8 h-8 text-gray-400" />
@@ -121,14 +129,13 @@ export const ClassPreview: React.FC<ClassPreviewProps> = ({
                 </div>
             )}
 
+            {/* ================= 텍스트 영역 ================= */}
             <div className="px-5 pt-8 pb-4">
                 {showHeader && (
                     <div className="space-y-4">
-                        <div>
-                            <span className="inline-block px-2.5 py-1 bg-[#E8F3FF] text-[#3182F6] text-[11px] font-bold rounded-md">
-                                원데이 클래스
-                            </span>
-                        </div>
+                        <span className="inline-block px-2.5 py-1 bg-[#E8F3FF] text-[#3182F6] text-[11px] font-bold rounded-md">
+                            원데이 클래스
+                        </span>
 
                         {classDetail.name ? (
                             <h1 className="text-2xl font-bold text-[#191F28] leading-snug">
