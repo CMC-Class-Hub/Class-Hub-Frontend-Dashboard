@@ -130,7 +130,7 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                 </div>
 
                 <div className="rounded-lg border bg-white shadow-sm hover:shadow-md transition-shadow">
-                    <div className="p-10 md:p-14 text-center">
+                    <div className="p-8 md:p-10 text-center">
                         <div className="w-14 h-14 md:w-16 md:h-16 bg-[#E8F3FF] rounded-full flex items-center justify-center mx-auto mb-4">
                             <svg className="h-7 w-7 md:h-8 md:w-8 text-[#3182F6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -190,7 +190,7 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
             {/* 날짜별 세션 목록 또는 빈 상태 */}
             {Object.keys(currentMonthSessions).length === 0 ? (
                 <div className="rounded-lg border bg-white shadow-sm hover:shadow-md transition-shadow">
-                    <div className="p-10 md:p-14 text-center">
+                    <div className="p-8 md:p-10 text-center">
                         <div className="w-14 h-14 md:w-16 md:h-16 bg-[#E8F3FF] rounded-full flex items-center justify-center mx-auto mb-4">
                             <svg className="h-7 w-7 md:h-8 md:w-8 text-[#3182F6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
