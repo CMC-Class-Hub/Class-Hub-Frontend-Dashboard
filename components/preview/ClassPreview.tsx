@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ImageIcon } from 'lucide-react';
 
 // ClassDetailResponse type matching share/lib/api/types.ts
 export interface ClassDetailResponse {
@@ -34,6 +35,10 @@ export const ClassPreview: React.FC<ClassPreviewProps> = ({
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const images = classDetail.imageUrls || [];
     const hasMultipleImages = images.length > 1;
+    const hasImages = images.length > 0;
+
+    // 입력된 정보가 있는지 확인
+    const hasAnyInfo = classDetail.preparation || classDetail.parkingInfo || classDetail.instructions || classDetail.guidelines;
 
     const handlePrevImage = () => {
         setCurrentImageIndex((prev) =>
@@ -49,8 +54,8 @@ export const ClassPreview: React.FC<ClassPreviewProps> = ({
 
     return (
         <div className={`space-y-0 ${className}`}>
-            {/* Representative Image Carousel */}
-            {images.length > 0 && (
+            {/* Representative Image Carousel or Placeholder */}
+            {hasImages ? (
                 <div className="w-full h-80 relative bg-gray-100 overflow-hidden">
                     <img
                         src={images[currentImageIndex]}
@@ -106,6 +111,14 @@ export const ClassPreview: React.FC<ClassPreviewProps> = ({
                         </>
                     )}
                 </div>
+            ) : (
+                /* 이미지 없을 때 플레이스홀더 */
+                <div className="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-50 flex flex-col items-center justify-center gap-3">
+                    <div className="w-16 h-16 bg-gray-200 rounded-2xl flex items-center justify-center">
+                        <ImageIcon className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <p className="text-sm text-gray-400">대표 이미지를 추가해보세요</p>
+                </div>
             )}
 
             <div className="px-5 pt-8 pb-4">
@@ -117,19 +130,32 @@ export const ClassPreview: React.FC<ClassPreviewProps> = ({
                             </span>
                         </div>
 
-                        <h1 className="text-2xl font-bold text-[#191F28] leading-snug">
-                            {classDetail.name || `클래스 #${classDetail.id}`}
-                        </h1>
+                        {classDetail.name ? (
+                            <h1 className="text-2xl font-bold text-[#191F28] leading-snug">
+                                {classDetail.name}
+                            </h1>
+                        ) : (
+                            <div className="space-y-2">
+                                <div className="h-8 bg-gray-100 rounded-lg w-3/4 animate-pulse" />
+                                <p className="text-sm text-gray-400">클래스명을 입력해주세요</p>
+                            </div>
+                        )}
 
                         <div className="space-y-1.5 pt-1">
-                            {classDetail.location && (
-                                <p className="text-[#4E5968] text-[15px] flex items-center gap-1.5 font-medium">
-                                    <span className="text-lg">📍</span> {classDetail.location}
-                                </p>
-                            )}
-                            {classDetail.locationDetails && (
-                                <p className="text-[#8B95A1] text-xs ml-7 leading-relaxed whitespace-pre-wrap">
-                                    {classDetail.locationDetails}
+                            {classDetail.location ? (
+                                <>
+                                    <p className="text-[#4E5968] text-[15px] flex items-center gap-1.5 font-medium">
+                                        <span className="text-lg">📍</span> {classDetail.location}
+                                    </p>
+                                    {classDetail.locationDetails && (
+                                        <p className="text-[#8B95A1] text-xs ml-7 leading-relaxed whitespace-pre-wrap">
+                                            {classDetail.locationDetails}
+                                        </p>
+                                    )}
+                                </>
+                            ) : (
+                                <p className="text-gray-400 text-[15px] flex items-center gap-1.5">
+                                    <span className="text-lg">📍</span> 장소를 입력해주세요
                                 </p>
                             )}
                         </div>
@@ -139,63 +165,88 @@ export const ClassPreview: React.FC<ClassPreviewProps> = ({
                 {/* 상세 설명 */}
                 <div className="mt-8 space-y-4">
                     <h3 className="font-bold text-[#191F28] text-lg">💡 클래스 소개</h3>
-                    <div className="text-[15px] text-[#4E5968] leading-relaxed whitespace-pre-wrap">
-                        {classDetail.description || '상세 설명이 등록되지 않았습니다.'}
-                    </div>
+                    {classDetail.description ? (
+                        <div className="text-[15px] text-[#4E5968] leading-relaxed whitespace-pre-wrap">
+                            {classDetail.description}
+                        </div>
+                    ) : (
+                        <div className="text-[15px] text-gray-400 leading-relaxed bg-gray-50 rounded-xl p-4 border-2 border-dashed border-gray-200">
+                            클래스 소개글을 작성하면 여기에 표시됩니다.
+                            <br />
+                            <span className="text-xs">자세히 작성할수록 수강생의 이해도가 높아져요!</span>
+                        </div>
+                    )}
                 </div>
 
-                {/* 핵심 정보 카드 */}
-                <div className="mt-8 grid grid-cols-1 gap-4">
-                    <div className="bg-[#F9FAFB] rounded-2xl p-5 space-y-4 shadow-sm border border-gray-50">
-                        <h4 className="font-bold text-[#333D4B] text-sm flex items-center gap-2">
-                            📋 확인해 주세요
-                        </h4>
+                {/* 핵심 정보 카드 - 내용이 있을 때만 표시 */}
+                {hasAnyInfo ? (
+                    <div className="mt-8 grid grid-cols-1 gap-4">
+                        <div className="bg-[#F9FAFB] rounded-2xl p-5 space-y-4 shadow-sm border border-gray-50">
+                            <h4 className="font-bold text-[#333D4B] text-sm flex items-center gap-2">
+                                📋 확인해 주세요
+                            </h4>
 
-                        <div className="space-y-3.5 pt-1">
-                            {classDetail.preparation && (
-                                <div className="flex gap-4">
-                                    <span className="font-semibold text-[#8B95A1] text-xs shrink-0 w-14">준비물</span>
-                                    <span className="text-[#4E5968] text-xs leading-relaxed whitespace-pre-wrap">{classDetail.preparation}</span>
-                                </div>
-                            )}
+                            <div className="space-y-3.5 pt-1">
+                                {classDetail.preparation && (
+                                    <div className="flex gap-4">
+                                        <span className="font-semibold text-[#8B95A1] text-xs shrink-0 w-14">준비물</span>
+                                        <span className="text-[#4E5968] text-xs leading-relaxed whitespace-pre-wrap">{classDetail.preparation}</span>
+                                    </div>
+                                )}
 
-                            {classDetail.parkingInfo && (
-                                <div className="flex gap-4">
-                                    <span className="font-semibold text-[#8B95A1] text-xs shrink-0 w-14">주차 정보</span>
-                                    <span className="text-[#4E5968] text-xs leading-relaxed whitespace-pre-wrap">{classDetail.parkingInfo}</span>
-                                </div>
-                            )}
+                                {classDetail.parkingInfo && (
+                                    <div className="flex gap-4">
+                                        <span className="font-semibold text-[#8B95A1] text-xs shrink-0 w-14">주차 정보</span>
+                                        <span className="text-[#4E5968] text-xs leading-relaxed whitespace-pre-wrap">{classDetail.parkingInfo}</span>
+                                    </div>
+                                )}
 
-                            {classDetail.instructions && (
-                                <div className="flex gap-4">
-                                    <span className="font-semibold text-[#8B95A1] text-xs shrink-0 w-14">안내사항</span>
-                                    <span className="text-[#4E5968] text-xs leading-relaxed whitespace-pre-wrap">{classDetail.instructions}</span>
-                                </div>
-                            )}
+                                {classDetail.instructions && (
+                                    <div className="flex gap-4">
+                                        <span className="font-semibold text-[#8B95A1] text-xs shrink-0 w-14">안내사항</span>
+                                        <span className="text-[#4E5968] text-xs leading-relaxed whitespace-pre-wrap">{classDetail.instructions}</span>
+                                    </div>
+                                )}
 
-                            {classDetail.guidelines && (
-                                <div className="flex gap-4">
-                                    <span className="font-semibold text-[#8B95A1] text-xs shrink-0 w-14">유의 사항</span>
-                                    <span className="text-[#4E5968] text-xs leading-relaxed whitespace-pre-wrap">{classDetail.guidelines}</span>
-                                </div>
-                            )}
+                                {classDetail.guidelines && (
+                                    <div className="flex gap-4">
+                                        <span className="font-semibold text-[#8B95A1] text-xs shrink-0 w-14">유의 사항</span>
+                                        <span className="text-[#4E5968] text-xs leading-relaxed whitespace-pre-wrap">{classDetail.guidelines}</span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="mt-8">
+                        <div className="bg-gray-50 rounded-2xl p-5 border-2 border-dashed border-gray-200 text-center">
+                            <p className="text-gray-400 text-sm">
+                                📋 준비물, 주차 정보, 안내사항을 입력하면<br />
+                                여기에 표시됩니다.
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 {/* 취소 및 환불 정책 */}
-                {(classDetail.cancellationPolicy || classDetail.policy) && (
-                    <div className="mt-10 pt-8 border-t border-gray-100">
-                        <h3 className="font-bold text-[#191F28] text-base mb-4 flex items-center gap-2">
-                            <span className="text-lg">🛡️</span> 취소 및 환불 정책
-                        </h3>
+                <div className="mt-10 pt-8 border-t border-gray-100">
+                    <h3 className="font-bold text-[#191F28] text-base mb-4 flex items-center gap-2">
+                        <span className="text-lg">🛡️</span> 취소 및 환불 정책
+                    </h3>
+                    {(classDetail.cancellationPolicy || classDetail.policy) ? (
                         <div className="bg-[#FFF8F8] rounded-xl p-4 border border-[#FFEAEA]">
                             <p className="text-[#F04452] text-xs leading-relaxed whitespace-pre-wrap font-medium">
                                 {classDetail.cancellationPolicy || classDetail.policy}
                             </p>
                         </div>
-                    </div>
-                )}
+                    ) : (
+                        <div className="bg-gray-50 rounded-xl p-4 border-2 border-dashed border-gray-200 text-center">
+                            <p className="text-gray-400 text-xs">
+                                취소/환불 규정을 입력하면 여기에 표시됩니다.
+                            </p>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

@@ -14,7 +14,7 @@ export function PreviewDialog({ isOpen, onClose, previewData }: PreviewDialogPro
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[70] flex items-center justify-center pointer-events-none p-4">
+                <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" style={{ pointerEvents: 'none' }}>
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95, x: 100 }}
                         animate={{
@@ -34,15 +34,15 @@ export function PreviewDialog({ isOpen, onClose, previewData }: PreviewDialogPro
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header - Toss Style */}
-                        <div className="sticky top-0 bg-gradient-to-r from-blue-50 to-indigo-50 z-10 px-6 py-5 shrink-0">
+                        <div className="sticky top-0 bg-gradient-to-r from-blue-50 to-indigo-50 z-10 px-5 py-4 shrink-0">
                             <div className="flex items-start justify-between">
                                 <div className="flex-1 pr-4">
-                                    <div className="flex items-center gap-2 mb-2">
+                                    <div className="flex items-center gap-2 mb-1">
                                         <span className="text-2xl">👀</span>
                                         <h2 className="text-lg font-bold text-[#191F28]">신청 화면 미리보기</h2>
                                     </div>
                                     <p className="text-sm text-[#6B7684] leading-relaxed">
-                                        수강생에게 보여질 화면이에요. 자세히 작성할수록 문의가 줄고, 참여율이 높아져요.
+                                        수강생에게 보여질 화면이에요. 자세히 작성할수록 문의가 줄어요.
                                     </p>
                                 </div>
                                 <button
@@ -59,8 +59,8 @@ export function PreviewDialog({ isOpen, onClose, previewData }: PreviewDialogPro
                         </div>
 
                         {/* Content */}
-                        <div className="flex-1 overflow-y-auto bg-[#F2F4F6]">
-                            <div className="bg-white min-h-full">
+                        <div className="flex-1 min-h-0 overflow-y-auto bg-[#F2F4F6]">
+                            <div className="bg-white">
                                 <ClassPreview classDetail={previewData} showHeader={true} />
                             </div>
                         </div>
