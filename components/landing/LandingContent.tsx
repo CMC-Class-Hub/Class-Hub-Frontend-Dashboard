@@ -445,37 +445,51 @@ export function LandingContent() {
                                     </Button>
 
                                     <Dialog open={showSignupDialog} onOpenChange={setShowSignupDialog}>
-                                        <DialogContent className="sm:max-w-md">
-                                            <DialogHeader>
-                                                <DialogTitle>입력하신 정보로 클래스를 개설할까요?</DialogTitle>
-                                                <DialogDescription>
-                                                    회원가입 후, 작성하신 클래스 정보가<br />
+                                        <DialogContent className="sm:max-w-[480px] max-w-[90vw] p-6 gap-0 !fixed !left-[50%] !top-[50%] !translate-x-[-50%] !translate-y-[-50%] overflow-x-hidden">
+                                            <DialogHeader className="space-y-3 text-left pb-4">
+                                                <DialogTitle className="text-gray-900 font-bold text-lg pr-6">
+                                                    입력하신 정보로 클래스를 개설할까요?
+                                                </DialogTitle>
+                                                <DialogDescription className="text-gray-600 text-sm leading-relaxed">
+                                                    회원가입 후, 작성하신 클래스 정보가
+                                                    <br />
                                                     자동으로 등록됩니다.
                                                 </DialogDescription>
                                             </DialogHeader>
-                                            <div className="bg-gray-50 p-4 rounded-lg text-sm space-y-2 mb-2">
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">클래스명</span>
-                                                    <span className="font-medium text-gray-900 line-clamp-1 text-right ml-4">{className || "미입력"}</span>
+
+                                            <div className="bg-gray-50 p-4 rounded-lg text-sm space-y-2.5">
+                                                <div className="flex justify-between items-start gap-4">
+                                                    <span className="text-gray-600 flex-shrink-0 min-w-[70px]">클래스명</span>
+                                                    <span className="font-medium text-gray-900 text-right break-words flex-1">
+                                                        {className || "미입력"}
+                                                    </span>
                                                 </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">일정</span>
-                                                    <span className="font-medium text-gray-900">{date} {startTime}</span>
+                                                <div className="flex justify-between items-center gap-4">
+                                                    <span className="text-gray-600 flex-shrink-0 min-w-[70px]">일정</span>
+                                                    <span className="font-medium text-gray-900 text-right whitespace-nowrap">
+                                                        {date && startTime ? `${date} ${startTime}` : "미입력"}
+                                                    </span>
                                                 </div>
                                             </div>
-                                            <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-end items-center mt-2">
+
+                                            <div className="mt-6 flex flex-col sm:flex-row gap-2 min-w-0">
                                                 <Button
                                                     type="button"
-                                                    variant="secondary"
+                                                    variant="ghost"
                                                     onClick={() => router.push('/signup')}
-                                                    className="w-full sm:w-auto bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900 sm:mr-auto"
+                                                    className="flex-1 h-11min-w-0 overflow-hidden text-gray-600 hover:text-gray-900 hover:bg-gray-50 font-medium rounded-lg text-sm"
                                                 >
                                                     클래스 정보 없이 시작할래요
                                                 </Button>
-                                                <Button type="button" onClick={handleSignupWithClass} className="w-full sm:w-auto bg-[#3182F6] hover:bg-[#2c72d9]">
+
+                                                <Button
+                                                    type="button"
+                                                    onClick={handleSignupWithClass}
+                                                    className="flex-1 h-11min-w-0 overflow-hidden bg-[#3182F6] hover:bg-[#2c72d9] text-white font-bold rounded-lg text-[15px]"
+                                                >
                                                     네, 이 정보로 시작할게요
                                                 </Button>
-                                            </DialogFooter>
+                                            </div>
                                         </DialogContent>
                                     </Dialog>
                                 </>
