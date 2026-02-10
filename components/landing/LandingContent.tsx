@@ -44,6 +44,7 @@ export function LandingContent() {
 
     const [currentStep, setCurrentStep] = useState(0);
     const [showSignupDialog, setShowSignupDialog] = useState(false);
+    const [errors, setErrors] = useState<{ className?: string; location?: string; description?: string }>({});
     const router = useRouter();
 
     // Signup with Class Data Logic
@@ -91,6 +92,28 @@ export function LandingContent() {
     };
 
     const nextStep = () => {
+        // Validate required fields only on Step 0
+        if (currentStep === 0) {
+            const newErrors: { className?: string; location?: string; description?: string } = {};
+
+            if (!className.trim()) {
+                newErrors.className = '클래스명을 입력해주세요.';
+            }
+            if (!location.trim()) {
+                newErrors.location = '장소를 입력해주세요.';
+            }
+            if (!description.trim()) {
+                newErrors.description = '클래스 소개를 입력해주세요.';
+            }
+
+            setErrors(newErrors);
+
+            // If there are errors, don't proceed
+            if (Object.keys(newErrors).length > 0) {
+                return;
+            }
+        }
+
         if (currentStep < STEPS.length - 1) setCurrentStep(prev => prev + 1);
     };
 
@@ -184,33 +207,51 @@ export function LandingContent() {
                                             </h3>
 
                                             <div className="space-y-1.5 px-0.5">
-                                                <Label className="text-[13px] font-bold text-gray-600">클래스명</Label>
+                                                <Label className="text-[13px] font-bold text-gray-600">클래스명 *</Label>
                                                 <Input
                                                     value={className}
-                                                    onChange={(e) => setClassName(e.target.value)}
+                                                    onChange={(e) => {
+                                                        setClassName(e.target.value);
+                                                        if (errors.className) setErrors({ ...errors, className: undefined });
+                                                    }}
                                                     className="h-10 bg-gray-50 border-0 focus:ring-2 focus:ring-[#3182F6] focus:bg-white transition-all rounded-xl text-sm"
                                                     placeholder="예: 나만의 도자기 만들기"
                                                 />
+                                                {errors.className && (
+                                                    <p className="text-xs text-[#F04452] font-medium">{errors.className}</p>
+                                                )}
                                             </div>
 
                                             <div className="space-y-1.5 px-0.5">
-                                                <Label className="text-[13px] font-bold text-gray-600">장소</Label>
+                                                <Label className="text-[13px] font-bold text-gray-600">장소 *</Label>
                                                 <AddressSearchInput
                                                     value={location}
-                                                    onChange={setLocation}
+                                                    onChange={(newLocation) => {
+                                                        setLocation(newLocation);
+                                                        if (errors.location) setErrors({ ...errors, location: undefined });
+                                                    }}
                                                     placeholder="주소 검색"
                                                     className="h-10 bg-gray-50 border-0 focus:ring-2 focus:ring-[#3182F6] focus:bg-white transition-all rounded-xl text-sm"
                                                 />
+                                                {errors.location && (
+                                                    <p className="text-xs text-[#F04452] font-medium">{errors.location}</p>
+                                                )}
                                             </div>
 
                                             <div className="space-y-1.5 px-0.5">
-                                                <Label className="text-[13px] font-bold text-gray-600">클래스 소개</Label>
+                                                <Label className="text-[13px] font-bold text-gray-600">클래스 소개 *</Label>
                                                 <Textarea
                                                     value={description}
-                                                    onChange={(e) => setDescription(e.target.value)}
+                                                    onChange={(e) => {
+                                                        setDescription(e.target.value);
+                                                        if (errors.description) setErrors({ ...errors, description: undefined });
+                                                    }}
                                                     className="min-h-[80px] bg-gray-50 border-0 focus:ring-2 focus:ring-[#3182F6] focus:bg-white transition-all rounded-xl resize-none p-3 text-sm"
                                                     placeholder="어떤 수업인지 수강생들에게 알려주세요."
                                                 />
+                                                {errors.description && (
+                                                    <p className="text-xs text-[#F04452] font-medium">{errors.description}</p>
+                                                )}
                                             </div>
 
                                             <div className="bg-blue-50/50 p-3 rounded-xl border border-blue-100/50 flex items-start gap-2 mt-2">
@@ -233,7 +274,7 @@ export function LandingContent() {
 
                                             <div className="space-y-3">
                                                 <div className="space-y-1.5 px-0.5">
-                                                    <Label className="text-[13px] font-bold text-gray-600">날짜 *</Label>
+                                                    <Label className="text-[13px] font-bold text-gray-600">날짜</Label>
                                                     <Input
                                                         type="date"
                                                         value={date}
@@ -244,7 +285,7 @@ export function LandingContent() {
 
                                                 <div className="grid grid-cols-2 gap-3">
                                                     <div className="space-y-1.5 px-0.5">
-                                                        <Label className="text-[13px] font-bold text-gray-600">시작 시간 *</Label>
+                                                        <Label className="text-[13px] font-bold text-gray-600">시작 시간</Label>
                                                         <Input
                                                             type="time"
                                                             value={startTime}
@@ -253,7 +294,7 @@ export function LandingContent() {
                                                         />
                                                     </div>
                                                     <div className="space-y-1.5 px-0.5">
-                                                        <Label className="text-[13px] font-bold text-gray-600">종료 시간 *</Label>
+                                                        <Label className="text-[13px] font-bold text-gray-600">종료 시간</Label>
                                                         <Input
                                                             type="time"
                                                             value={endTime}
@@ -265,7 +306,7 @@ export function LandingContent() {
 
                                                 <div className="grid grid-cols-2 gap-3">
                                                     <div className="space-y-1.5 px-0.5">
-                                                        <Label className="text-[13px] font-bold text-gray-600">정원 *</Label>
+                                                        <Label className="text-[13px] font-bold text-gray-600">정원</Label>
                                                         <Input
                                                             type="number"
                                                             value={capacity}
@@ -279,7 +320,7 @@ export function LandingContent() {
                                                         />
                                                     </div>
                                                     <div className="space-y-1.5 px-0.5">
-                                                        <Label className="text-[13px] font-bold text-gray-600">가격 *</Label>
+                                                        <Label className="text-[13px] font-bold text-gray-600">가격</Label>
                                                         <Input
                                                             type="number"
                                                             value={price}

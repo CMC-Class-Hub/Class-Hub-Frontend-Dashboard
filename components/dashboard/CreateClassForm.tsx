@@ -45,10 +45,30 @@ export function CreateClassForm({ onSubmit, onCancel, onPreview, onOpenPreview }
     const [imageUrls, setImageUrls] = useState<string[]>([]);  // ✅ S3 URL 배열
     const [parkingInfo, setParkingInfo] = useState('');
     const [cancellationPolicy, setCancellationPolicy] = useState('');
+    const [errors, setErrors] = useState<{ name?: string; description?: string; location?: string }>({});
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Validate required fields
+        const newErrors: { name?: string; description?: string; location?: string } = {};
+
+        if (!name.trim()) {
+            newErrors.name = '클래스명을 입력해주세요.';
+        }
+        if (!description.trim()) {
+            newErrors.description = '클래스 소개를 입력해주세요.';
+        }
+        if (!location.trim()) {
+            newErrors.location = '장소를 입력해주세요.';
+        }
+
+        setErrors(newErrors);
+
+        // If there are errors, don't submit
+        if (Object.keys(newErrors).length > 0) {
+            return;
+        }
 
         onSubmit({
             name,
@@ -109,30 +129,47 @@ export function CreateClassForm({ onSubmit, onCancel, onPreview, onOpenPreview }
                 <Input
                     id="className"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="예: 요가 초급 클래스"
-                    required
+                    onChange={(e) => {
+                        setName(e.target.value);
+                        if (errors.name) setErrors({ ...errors, name: undefined });
+                    }}
+                    placeholder="클래스 제목을 입력하세요"
                 />
+                {errors.name && (
+                    <p className="text-xs text-[#F04452] font-medium">{errors.name}</p>
+                )}
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="classDescription">소개글</Label>
+                <Label htmlFor="classDescription">소개글 *</Label>
                 <Textarea
                     id="classDescription"
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="클래스에 대한 간단한 설명"
-                    rows={3}
+                    onChange={(e) => {
+                        setDescription(e.target.value);
+                        if (errors.description) setErrors({ ...errors, description: undefined });
+                    }}
+                    placeholder="클래스에 대한 상세한 설명"
+                    rows={5}
                 />
+                {errors.description && (
+                    <p className="text-xs text-[#F04452] font-medium">{errors.description}</p>
+                )}
             </div>
 
             <div className="space-y-2">
                 <Label htmlFor="classLocation">장소 *</Label>
                 <AddressSearchInput
                     value={location}
-                    onChange={setLocation}
+                    onChange={(newLocation) => {
+                        setLocation(newLocation);
+                        if (errors.location) setErrors({ ...errors, location: undefined });
+                    }}
                     placeholder="주소 검색 (클릭)"
                 />
+                {errors.location && (
+                    <p className="text-xs text-[#F04452] font-medium">{errors.location}</p>
+                )}
             </div>
 
             <div className="space-y-2">
