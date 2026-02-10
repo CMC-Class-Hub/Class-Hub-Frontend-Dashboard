@@ -83,9 +83,15 @@ export function PreviewDialog({ isOpen, onClose, previewData }: PreviewDialogPro
                                 </div>
 
                                 {/* Content Area with Robust Scroll */}
-                                <div className="flex-1 relative min-h-0 bg-[#F2F4F6]">
-                                    <div className="absolute inset-0 overflow-y-auto overscroll-contain touch-pan-y scroll-smooth">
-                                        <div className="bg-white min-h-full">
+                                <div
+                                    className="flex-1 relative min-h-0 bg-[#F2F4F6]"
+                                    onWheel={(e) => e.stopPropagation()}
+                                    onTouchStart={(e) => e.stopPropagation()}
+                                >
+                                    <div
+                                        className="absolute inset-0 overflow-y-auto overscroll-contain touch-pan-y scroll-smooth pointer-events-auto"
+                                    >
+                                        <div className="bg-white min-h-full pb-20">
                                             <ClassPreview classDetail={previewData} showHeader={true} />
                                         </div>
                                     </div>
