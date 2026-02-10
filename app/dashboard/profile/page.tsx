@@ -9,6 +9,14 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
+// 전화번호 자동 포맷팅 (01012345678 → 010-1234-5678)
+const formatPhoneNumber = (value: string): string => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 3) return numbers;
+    if (numbers.length <= 7) return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+    return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
+};
+
 export default function ProfilePage() {
     const router = useRouter();
     const [userId, setUserId] = useState<string>('');
@@ -18,6 +26,10 @@ export default function ProfilePage() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setPhone(formatPhoneNumber(e.target.value));
+    };
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -114,8 +126,10 @@ export default function ProfilePage() {
                             <Input
                                 id="profile-phone"
                                 value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
+                                onChange={handlePhoneChange}
                                 type="tel"
+                                placeholder="010-0000-0000"
+                                maxLength={13}
                                 required
                             />
                         </div>
