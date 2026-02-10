@@ -186,7 +186,7 @@ export default function ClassesPage() {
                     <button className="hidden" />
                 </DialogTrigger>
                 <DialogContent
-                    className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4 md:mx-auto rounded-3xl"
+                    className="max-w-2xl max-h-[90vh] overflow-hidden mx-4 md:mx-auto rounded-3xl p-0"
                     style={{
                         transform: previewDialogOpen ? 'translateX(-240px)' : 'translateX(0)',
                         transition: 'transform 0.3s ease'
@@ -196,18 +196,20 @@ export default function ClassesPage() {
                         e.preventDefault();
                     }}
                 >
-                    <DialogHeader>
+                    <DialogHeader className="px-6 pt-6">
                         <DialogTitle className="text-xl font-bold text-[#191F28]">새 클래스 만들기</DialogTitle>
                     </DialogHeader>
-                    <CreateClassForm
-                        onSubmit={handleCreateTemplate}
-                        onCancel={() => {
-                            setCreateDialogOpen(false);
-                            setPreviewDialogOpen(false);
-                        }}
-                        onPreview={handlePreview}
-                        onOpenPreview={() => setPreviewDialogOpen(true)}
-                    />
+                    <div className="overflow-y-auto max-h-[calc(90vh-80px)] px-6 pb-6">
+                        <CreateClassForm
+                            onSubmit={handleCreateTemplate}
+                            onCancel={() => {
+                                setCreateDialogOpen(false);
+                                setPreviewDialogOpen(false);
+                            }}
+                            onPreview={handlePreview}
+                            onOpenPreview={() => setPreviewDialogOpen(true)}
+                        />
+                    </div>
                 </DialogContent>
             </Dialog>
 

@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { ClassPreview, ClassDetailResponse } from '../preview/ClassPreview';
+import { useState, useEffect } from 'react';
 
 interface PreviewDialogProps {
     isOpen: boolean;
@@ -11,26 +12,48 @@ interface PreviewDialogProps {
 }
 
 export function PreviewDialog({ isOpen, onClose, previewData }: PreviewDialogProps) {
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        // Initial check
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+
+        checkMobile();
+
+        // Listen to window resize
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" style={{ pointerEvents: 'none' }}>
+                <div
+                    className="fixed inset-0 flex items-center justify-center p-4"
+                    style={{
+                        pointerEvents: 'none',
+                        // Higher z-index to overlay on create dialog on mobile
+                        zIndex: isMobile ? 80 : 70
+                    }}
+                >
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95, x: 100 }}
+                        initial={{ opacity: 0, scale: 0.95, x: isMobile ? 0 : 100 }}
                         animate={{
                             opacity: 1,
                             scale: 1,
                             y: 0,
-                            // Position to the right: (create width 672px + gap 32px) / 2 = 352px
-                            x: 352
+                            // Mobile: center (x=0), Desktop: right side (x=352)
+                            x: isMobile ? 0 : 352
                         }}
-                        exit={{ opacity: 0, scale: 0.95, x: 100 }}
+                        exit={{ opacity: 0, scale: 0.95, x: isMobile ? 0 : 100 }}
                         transition={{
                             type: 'spring',
                             damping: 25,
                             stiffness: 300
                         }}
-                        className="relative w-full max-w-md h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col pointer-events-auto"
+                        className="relative w-full max-w-[512px] max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col pointer-events-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header - Toss Style */}

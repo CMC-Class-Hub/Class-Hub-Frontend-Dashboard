@@ -135,10 +135,7 @@ export const ClassPreview: React.FC<ClassPreviewProps> = ({
                                 {classDetail.name}
                             </h1>
                         ) : (
-                            <div className="space-y-2">
-                                <div className="h-8 bg-gray-100 rounded-lg w-3/4 animate-pulse" />
-                                <p className="text-sm text-gray-400">클래스명을 입력해주세요</p>
-                            </div>
+                            <p className="text-lg text-gray-400">클래스명을 입력해주세요</p>
                         )}
 
                         <div className="space-y-1.5 pt-1">
@@ -147,9 +144,9 @@ export const ClassPreview: React.FC<ClassPreviewProps> = ({
                                     <p className="text-[#4E5968] text-[15px] flex items-center gap-1.5 font-medium">
                                         <span className="text-lg">📍</span> {classDetail.location}
                                     </p>
-                                    {classDetail.locationDetails && (
+                                    {(classDetail.locationDetails || classDetail.locationDescription) && (
                                         <p className="text-[#8B95A1] text-xs ml-7 leading-relaxed whitespace-pre-wrap">
-                                            {classDetail.locationDetails}
+                                            {classDetail.locationDetails || classDetail.locationDescription}
                                         </p>
                                     )}
                                 </>
