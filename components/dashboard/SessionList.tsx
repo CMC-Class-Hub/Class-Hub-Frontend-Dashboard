@@ -21,6 +21,7 @@ interface SessionListProps {
     onDeleteSession: (sessionId: string) => void;
     onEditSession: (session: ClassSession) => void;
     onStatusChange?: (sessionId: string, newStatus: 'RECRUITING' | 'FULL' | 'CLOSED') => void;
+    onAddSession?: () => void;
     classId: string;
 }
 
@@ -34,7 +35,7 @@ const formatDate = (dateString: string) => {
     return `${month}월${day}일 (${dayOfWeek})`;
 };
 
-export function SessionList({ sessions, sessionApplicationCounts, onDeleteSession, onEditSession, onStatusChange, classId }: SessionListProps) {
+export function SessionList({ sessions, sessionApplicationCounts, onDeleteSession, onEditSession, onStatusChange, onAddSession, classId }: SessionListProps) {
     const router = useRouter();
     const [selectedMonth, setSelectedMonth] = useState(() => {
         const now = new Date();
@@ -141,9 +142,20 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                         <h3 className="text-base md:text-lg font-bold text-[#191F28] mb-2">
                             생성된 세션이 없습니다
                         </h3>
-                        <p className="text-sm md:text-base text-[#8B95A1]">
+                        <p className="text-sm md:text-base text-[#8B95A1] mb-6">
                             시간대별 세션을 추가하세요
                         </p>
+                        {onAddSession && (
+                            <button
+                                onClick={onAddSession}
+                                className="inline-flex items-center justify-center rounded-lg bg-[#3182F6] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#1B64DA] transition-colors shadow-sm hover:shadow-md"
+                            >
+                                <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                                세션 추가
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -190,9 +202,20 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                         <h3 className="text-base md:text-lg font-bold text-[#191F28] mb-2">
                             생성된 세션이 없습니다
                         </h3>
-                        <p className="text-sm md:text-base text-[#8B95A1]">
+                        <p className="text-sm md:text-base text-[#8B95A1] mb-6">
                             이 달에는 세션이 없습니다
                         </p>
+                        {onAddSession && (
+                            <button
+                                onClick={onAddSession}
+                                className="inline-flex items-center justify-center rounded-lg bg-[#3182F6] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#1B64DA] transition-colors shadow-sm hover:shadow-md"
+                            >
+                                <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                                세션 추가
+                            </button>
+                        )}
                     </div>
                 </div>
             ) : (
@@ -228,8 +251,8 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                                                                     <button
                                                                         onClick={() => setOpenDropdown(isDropdownOpen ? null : session.id)}
                                                                         className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs cursor-pointer hover:opacity-80 transition-opacity min-w-[60px] justify-center ${session.status === 'RECRUITING'
-                                                                                ? 'bg-blue-600 text-white'
-                                                                                : 'bg-[#E5E8EB] text-[#4E5968]'
+                                                                            ? 'bg-blue-600 text-white'
+                                                                            : 'bg-[#E5E8EB] text-[#4E5968]'
                                                                             }`}
                                                                     >
                                                                         {session.status === 'RECRUITING' ? '모집중' : session.status === 'FULL' ? '마감' : '종료'} ▾
@@ -270,8 +293,8 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                                                                 </div>
                                                             ) : (
                                                                 <span className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs ${session.status === 'RECRUITING'
-                                                                        ? 'bg-blue-600 text-white'
-                                                                        : 'bg-gray-200 text-gray-700'
+                                                                    ? 'bg-blue-600 text-white'
+                                                                    : 'bg-gray-200 text-gray-700'
                                                                     }`}>
                                                                     {session.status === 'RECRUITING' ? '모집중' : session.status === 'CLOSED' ? '마감' : '종료'}
                                                                 </span>

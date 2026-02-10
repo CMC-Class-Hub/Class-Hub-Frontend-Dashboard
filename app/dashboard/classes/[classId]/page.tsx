@@ -171,7 +171,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                         <div className="space-y-1 flex-1">
                             <CardTitle className="text-lg md:text-xl">{template.name}</CardTitle>
-                            
+
                             <CardDescription className="text-sm mt-2">
                                 {template.description}
                             </CardDescription>
@@ -199,7 +199,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                                 >
                                     <Link2 className="h-4 w-4" />
                                     클래스 링크
-                                    
+
                                     {/* 공개 상태와 스위치 */}
                                     <div className="flex items-center gap-2 ml-4 pl-4 border-l">
                                         <span className="text-sm text-gray-600">
@@ -215,18 +215,16 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                                                 e.stopPropagation();
                                                 e.preventDefault();
                                             }}
-                                            className={`toggle-switch relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-                                                isLinkEnabled ? 'bg-blue-600' : 'bg-gray-300'
-                                            }`}
+                                            className={`toggle-switch relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${isLinkEnabled ? 'bg-blue-600' : 'bg-gray-300'
+                                                }`}
                                         >
-                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                                isLinkEnabled ? 'translate-x-6' : 'translate-x-1'
-                                            }`} />
+                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isLinkEnabled ? 'translate-x-6' : 'translate-x-1'
+                                                }`} />
                                         </div>
                                     </div>
                                 </Button>
                             </div>
-                            
+
                             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
                                 <DialogTrigger asChild>
                                     <Button variant="outline" className="w-full sm:w-auto">
@@ -275,6 +273,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                     onDeleteSession={handleDeleteSession}
                     onEditSession={(session) => setEditingSession(session as any)}
                     onStatusChange={handleStatusChange}
+                    onAddSession={() => setAddSessionDialogOpen(true)}
                     classId={classId}
                 />
 
