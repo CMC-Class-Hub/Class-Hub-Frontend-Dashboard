@@ -90,11 +90,6 @@ export function PreviewDialog({ isOpen, onClose, previewData }: PreviewDialogPro
                                 >
                                     <div
                                         className="absolute inset-0 overflow-y-auto overscroll-contain touch-pan-y scroll-smooth pointer-events-auto"
-                                        style={{
-                                            WebkitOverflowScrolling: 'touch',
-                                            msOverflowStyle: 'auto',
-                                            scrollbarWidth: 'thin'
-                                        }}
                                     >
                                         <div className="bg-white min-h-full pb-20">
                                             <ClassPreview classDetail={previewData} showHeader={true} />
