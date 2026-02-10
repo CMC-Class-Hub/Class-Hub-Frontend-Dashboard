@@ -53,8 +53,8 @@ export const messageTemplateApiMock: IMessageTemplateApi = {
   async getTitles(): Promise<MessageTemplateListItem[]> {
     return [
       { title: '예약 완료 안내', description: '수업 예약 직후 자동으로 발송됩니다' },
-      { title: 'D-3 리마인더', description: '수업 3일 전에 자동으로 발송됩니다' },
-      { title: 'D-1 리마인더', description: '수업 1일 전에 자동으로 발송됩니다' }
+      { title: 'D-3 리마인더', description: '수업 3일 전 오전 10시에 자동으로 발송됩니다' },
+      { title: 'D-1 리마인더', description: '수업 1일 전 오전 10시에 자동으로 발송됩니다' }
     ];
   },
 
@@ -69,13 +69,13 @@ export const messageTemplateApiMock: IMessageTemplateApi = {
     if (title === 'D-3 리마인더') return {
       type: 'D-3',
       title,
-      description: '수업 3일 전에 자동으로 발송됩니다',
+      description: '수업 3일 전 오전 10시에 자동으로 발송됩니다',
       body: DEFAULT_TEMPLATES['D-3']
     };
     if (title === 'D-1 리마인더') return {
       type: 'D-1',
       title,
-      description: '수업 1일 전에 자동으로 발송됩니다',
+      description: '수업 1일 전 오전 10시에 자동으로 발송됩니다',
       body: DEFAULT_TEMPLATES['D-1']
     };
     throw new Error('Template not found');
