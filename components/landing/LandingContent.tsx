@@ -75,15 +75,19 @@ export function LandingContent() {
     };
 
     const fillExampleData = () => {
+        // 오늘 기준 일주일 뒤 날짜 계산
+        const nextWeek = new Date();
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        const dateStr = nextWeek.toISOString().split('T')[0]; // "YYYY-MM-DD" 형식
+
         setClassName('힐링 요가 원데이 클래스');
         setLocation('강남역 7번 출구 요가스튜디오 3층');
-        setDate('2024-03-15');
+        setDate(dateStr);
         setStartTime('14:00');
         setEndTime('15:00');
         setPrice('20000');
         setCapacity('8');
         setDescription('지친 몸과 마음을 치유하는 시간입니다. \n\n- 워밍업/호흡 (10분)\n- 기본 동작 플로우 (40분)\n- 쿨다운/이완 (10분)\n\n초보자도 무리 없이 따라올 수 있어요.');
-
     };
 
     const nextStep = () => {
