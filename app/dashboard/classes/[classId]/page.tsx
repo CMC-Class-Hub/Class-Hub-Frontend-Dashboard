@@ -14,6 +14,8 @@ import { EditClassForm } from "@/components/dashboard/EditClassForm";
 import { AddSessionForm } from "@/components/dashboard/AddSessionForm";
 import { SessionList } from "@/components/dashboard/SessionList";
 import { EditSessionForm } from "@/components/dashboard/EditSessionForm";
+import { FloatingGuideButton } from "@/components/coachmark";
+import { useCoachmark } from "@/components/coachmark/hooks/useCoachmark";
 
 export default function ClassDetailPage({ params }: { params: Promise<{ classId: string }> }) {
     const router = useRouter();
@@ -25,6 +27,46 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
     const [editingSession, setEditingSession] = useState<ClassSession | null>(null);
     const [sessionApplicationCounts, setSessionApplicationCounts] = useState<Record<string, number>>({});
     const [user, setUser] = useState<any>(null);
+
+    const { isDemoMode } = useCoachmark();
+
+    // 데모 모드용 가짜 세션 (가이드 실행 중에만 표시)
+    const demoSessions: ClassSession[] = [
+        {
+            id: 'demo-session-1',
+            templateId: classId,
+            instructorId: 'demo-user',
+            date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            startTime: '10:00',
+            endTime: '12:00',
+            capacity: 10,
+            currentNum: 3,
+            status: 'RECRUITING',
+            price: 50000,
+            linkId: 'demo-link-1',
+            createdAt: new Date().toISOString(),
+        },
+        {
+            id: 'demo-session-2',
+            templateId: classId,
+            instructorId: 'demo-user',
+            date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            startTime: '14:00',
+            endTime: '16:00',
+            capacity: 8,
+            currentNum: 1,
+            status: 'RECRUITING',
+            price: 50000,
+            linkId: 'demo-link-2',
+            createdAt: new Date().toISOString(),
+        },
+    ];
+
+    // 실제 데이터와 데모 데이터 결합
+    const displaySessions = isDemoMode && sessions.length === 0 ? demoSessions : sessions;
+    const displaySessionCounts = isDemoMode && sessions.length === 0
+        ? { 'demo-session-1': 3, 'demo-session-2': 1 }
+        : sessionApplicationCounts;
 
     useEffect(() => {
         const fetchData = async () => {
@@ -185,45 +227,33 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-2 min-w-fit">
-                            {/* 클래스 링크 버튼 (내부에 공개 상태 포함) */}
-                            <div className="relative inline-flex">
-                                <Button
-                                    variant="outline"
-                                    onClick={(e) => {
-                                        // 스위치 영역이 아닐 때만 링크 복사
-                                        if (isLinkEnabled && !(e.target as HTMLElement).closest('.toggle-switch')) {
-                                            copyLink();
-                                        }
-                                    }}
-                                    className={`flex items-center gap-2 ${!isLinkEnabled ? 'opacity-60' : ''}`}
+                            {/* 공개/비공개 토글 */}
+                            <div
+                                data-coachmark="visibility-toggle"
+                                onClick={() => handleLinkShareStatusChange(isLinkEnabled ? 'DISABLED' : 'ENABLED')}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg border cursor-pointer transition-colors ${isLinkEnabled ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'}`}
+                            >
+                                <span className="text-sm text-gray-600">
+                                    {isLinkEnabled ? '공개중' : '비공개'}
+                                </span>
+                                <div
+                                    className={`toggle-switch relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isLinkEnabled ? 'bg-blue-600' : 'bg-gray-300'}`}
                                 >
-                                    <Link2 className="h-4 w-4" />
-                                    클래스 링크
-
-                                    {/* 공개 상태와 스위치 */}
-                                    <div className="flex items-center gap-2 ml-4 pl-4 border-l">
-                                        <span className="text-sm text-gray-600">
-                                            {isLinkEnabled ? '공개중' : '비공개'}
-                                        </span>
-                                        <div
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                e.preventDefault();
-                                                handleLinkShareStatusChange(isLinkEnabled ? 'DISABLED' : 'ENABLED');
-                                            }}
-                                            onMouseDown={(e) => {
-                                                e.stopPropagation();
-                                                e.preventDefault();
-                                            }}
-                                            className={`toggle-switch relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${isLinkEnabled ? 'bg-blue-600' : 'bg-gray-300'
-                                                }`}
-                                        >
-                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isLinkEnabled ? 'translate-x-6' : 'translate-x-1'
-                                                }`} />
-                                        </div>
-                                    </div>
-                                </Button>
+                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isLinkEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                                </div>
                             </div>
+
+                            {/* 링크 복사 버튼 */}
+                            <Button
+                                variant="outline"
+                                onClick={copyLink}
+                                disabled={!isLinkEnabled}
+                                data-coachmark="copy-link-btn"
+                                className={!isLinkEnabled ? 'opacity-60' : ''}
+                            >
+                                <Link2 className="h-4 w-4 mr-2" />
+                                링크 복사
+                            </Button>
 
                             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
                                 <DialogTrigger asChild>
@@ -253,7 +283,10 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                     <h2 className="text-lg md:text-xl font-bold text-[#191F28]">세션 목록</h2>
                     <Dialog open={addSessionDialogOpen} onOpenChange={setAddSessionDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button className="w-full sm:w-auto">
+                            <Button
+                                className="w-full sm:w-auto"
+                                data-coachmark="add-session-btn"
+                            >
                                 <Plus className="mr-2 h-4 w-4" />
                                 세션 추가
                             </Button>
@@ -268,8 +301,8 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                 </div>
 
                 <SessionList
-                    sessions={sessions}
-                    sessionApplicationCounts={sessionApplicationCounts}
+                    sessions={displaySessions}
+                    sessionApplicationCounts={displaySessionCounts}
                     onDeleteSession={handleDeleteSession}
                     onEditSession={(session) => setEditingSession(session as any)}
                     onStatusChange={handleStatusChange}
@@ -292,6 +325,8 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                         )}
                     </DialogContent>
                 </Dialog>
+
+                <FloatingGuideButton pageId="class-detail" />
             </div>
         </div>
     );

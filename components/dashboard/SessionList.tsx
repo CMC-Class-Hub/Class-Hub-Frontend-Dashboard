@@ -232,9 +232,10 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
 
                             {/* 해당 날짜의 세션들 */}
                             <div className="space-y-2.5">
-                                {dateSessions.map((session) => {
+                                {dateSessions.map((session, sessionIndex) => {
                                     const confirmedCount = sessionApplicationCounts[session.id] || 0;
                                     const isDropdownOpen = openDropdown === session.id;
+                                    const isFirstSession = sessionIndex === 0 && date === Object.keys(currentMonthSessions)[0];
 
                                     return (
                                         <div key={session.id} className="rounded-lg border bg-white shadow-sm hover:shadow-md hover:border-[#3182F6]/30 transition-all duration-200">
@@ -247,7 +248,7 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                                                             </span>
 
                                                             {onStatusChange ? (
-                                                                <div className="relative">
+                                                                <div className="relative" {...(isFirstSession && { 'data-coachmark': 'session-status' })}>
                                                                     <button
                                                                         onClick={() => setOpenDropdown(isDropdownOpen ? null : session.id)}
                                                                         className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs cursor-pointer hover:opacity-80 transition-opacity min-w-[60px] justify-center ${session.status === 'RECRUITING'
@@ -314,6 +315,7 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                                                         <button
                                                             onClick={() => router.push(`/dashboard/classes/${classId}/sessions/${session.id}`)}
                                                             className="flex-1 sm:flex-none inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-3 py-2 text-xs md:text-sm font-medium hover:bg-gray-50 transition-colors"
+                                                            {...(isFirstSession && { 'data-coachmark': 'view-applications-btn' })}
                                                         >
                                                             신청자 보기
                                                         </button>

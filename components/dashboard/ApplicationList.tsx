@@ -25,7 +25,7 @@ export function ApplicationList({ applications, students, sessionMessages, capac
         (app as any).reservationStatus === 'CONFIRMED'
     ).length;
     return (
-        <Card className="hover:shadow-md">
+        <Card className="hover:shadow-md" data-coachmark="application-list">
             <CardHeader className="p-5 md:p-6">
                 <CardTitle className="text-base md:text-lg">신청자 목록</CardTitle>
                 <CardDescription className="text-sm">
@@ -34,17 +34,18 @@ export function ApplicationList({ applications, students, sessionMessages, capac
             </CardHeader>
             <CardContent className="p-5 md:p-6 pt-0 md:pt-0">
                 {validApplications.length === 0 ? (
-                    <div className="text-center py-10 md:py-12">
-                        <div className="w-14 h-14 md:w-16 md:h-16 bg-[#F2F4F6] rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Users className="h-7 w-7 md:h-8 md:w-8 text-[#8B95A1]" />
+                    <div className="text-center py-6 md:py-8">
+                        <div className="w-12 h-12 md:w-14 md:h-14 bg-[#F2F4F6] rounded-full flex items-center justify-center mx-auto mb-3">
+                            <Users className="h-6 w-6 md:h-7 md:w-7 text-[#8B95A1]" />
                         </div>
                         <p className="text-sm md:text-base text-[#8B95A1]">아직 신청자가 없습니다</p>
                     </div>
                 ) : (
                     <div className="space-y-3">
-                        {validApplications.map((app) => {
+                        {validApplications.map((app, index) => {
                             const student = getStudentById(app.studentId)!;
                             const appStatus = (app as any).reservationStatus || app.status;
+                            const isFirstApp = index === 0;
 
                             // 메시지 상태 확인 (API에서 직접 제공하는 상태 사용)
                             const isD3Sent = app.sentD3Notification;
@@ -68,7 +69,7 @@ export function ApplicationList({ applications, students, sessionMessages, capac
                                         </div>
                                     </div>
 
-                                    <div className="flex gap-2 text-xs">
+                                    <div className="flex gap-2 text-xs" {...(isFirstApp && { 'data-coachmark': 'message-status' })}>
                                         <div className={`px-3 py-2 rounded-xl ${isD3Sent ? 'bg-[#E8F3FF] text-[#3182F6]' : 'bg-[#F2F4F6] text-[#8B95A1]'}`}>
                                             <p className="font-bold mb-0.5">D-3</p>
                                             <p className="text-xs">{isD3Sent ? '발송됨' : '미발송'}</p>
