@@ -5,10 +5,11 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { messageTemplateApi, type MessageTemplateType, type MessageTemplateListItem } from "@/lib/api";
+import { KakaoTemplatePreview } from "@/components/dashboard/KakaoTemplatePreview";
 
 export default function MessagesPage() {
     const [templates, setTemplates] = useState<MessageTemplateListItem[]>([]);
-    const [expandedTitle, setExpandedTitle] = useState<string | null>(null);
+    const [selectedTitle, setSelectedTitle] = useState<string | null>(null);
     const [detailsCache, setDetailsCache] = useState<Record<string, { type: string, body: string }>>({});
     const [loading, setLoading] = useState(true);
 
@@ -17,6 +18,10 @@ export default function MessagesPage() {
             try {
                 const list = await messageTemplateApi.getTitles();
                 setTemplates(list);
+                if (list.length > 0) {
+                    setSelectedTitle(list[0].title);
+                    handleFetchDetails(list[0].title);
+                }
             } catch (error) {
                 console.error("Failed to fetch templates", error);
             } finally {
@@ -26,14 +31,7 @@ export default function MessagesPage() {
         fetchTemplates();
     }, []);
 
-    const handleExpand = async (title: string) => {
-        if (expandedTitle === title) {
-            setExpandedTitle(null);
-            return;
-        }
-
-        setExpandedTitle(title);
-
+    const handleFetchDetails = async (title: string) => {
         if (!detailsCache[title]) {
             try {
                 const data = await messageTemplateApi.getDetails(title);
@@ -47,62 +45,160 @@ export default function MessagesPage() {
         }
     };
 
-    if (loading) return <div className="p-8 text-center text-[#8B95A1]">로딩 중...</div>;
+    const handleSelect = (title: string) => {
+        setSelectedTitle(title);
+        handleFetchDetails(title);
+    };
+
+    if (loading) return (
+        <div className="flex flex-col items-center justify-center p-20 space-y-4">
+            <div className="w-10 h-10 border-4 border-[#3182F6]/20 border-t-[#3182F6] rounded-full animate-spin" />
+            <p className="text-[#8B95A1] font-medium">로딩 중...</p>
+        </div>
+    );
+
+    const activeDetail = selectedTitle ? detailsCache[selectedTitle] : null;
+
+    // Helper to get icons based on title/type
+    const getIcon = (title: string) => {
+        if (title.includes('즉시') || title.includes('확정')) return '🔔';
+        if (title.includes('3일')) return '⏰';
+        if (title.includes('1일')) return '🚀';
+        return '✉️';
+    };
 
     return (
-        <div className="space-y-5 md:space-y-6">
-            <div>
-                <h1 className="text-xl md:text-2xl font-bold text-[#191F28]">메시지 템플릿</h1>
-                <p className="text-sm md:text-base text-[#8B95A1] mt-1">자동 발송 메시지를 확인하세요</p>
+        <div className="max-w-[1400px] mx-auto space-y-10 pb-20">
+            {/* Top Header & Stats Bar */}
+            <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 px-2">
+                <div className="space-y-1.5 px-2">
+                    <h1 className="text-3xl font-black text-[#191F28] tracking-tight">메시지 센터</h1>
+                    <p className="text-[#8B95A1] font-medium">알림 메시지 발송 시나리오를 한눈에 관리하세요.</p>
+                </div>
+
+                <div className="flex items-center gap-4 bg-white border border-gray-100 p-2 rounded-2xl shadow-sm">
+                    <div className="px-4 py-2 flex flex-col items-center border-r border-gray-100">
+                        <span className="text-[10px] font-bold text-[#8B95A1]">운영 상태</span>
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                            <span className="text-sm font-bold text-[#191F28]">자동 발송 중</span>
+                        </div>
+                    </div>
+                    <div className="px-4 py-2 flex flex-col items-center">
+                        <span className="text-[10px] font-bold text-[#8B95A1]">활성 템플릿</span>
+                        <span className="text-sm font-bold text-[#3182F6]">{templates.length}개</span>
+                    </div>
+                </div>
             </div>
 
-            <div className="space-y-4">
-                {templates.length === 0 ? (
-                    <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-                        <p className="text-[#8B95A1]">등록된 메시지 템플릿이 없습니다.</p>
-                    </div>
-                ) : (
-                    templates.map((template) => {
-                        const isExpanded = expandedTitle === template.title;
-                        const detail = detailsCache[template.title];
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+                {/* Left Side: Management Section (6 columns) - Aligned Top */}
+                <div className="lg:col-span-12 xl:col-span-6 flex flex-col pt-12 min-h-[750px] space-y-8">
+                    {/* 1. Template List */}
+                    <section className="space-y-4">
+                        <div className="flex items-center justify-between px-2">
+                            <h2 className="text-lg font-bold text-[#191F28] flex items-center gap-2">
+                                <span className="text-blue-500">Selection</span> 알림 시나리오 선택
+                            </h2>
+                            <span className="text-xs font-medium text-[#8B95A1]">클릭하여 미리보기를 확인하세요</span>
+                        </div>
 
-                        return (
-                            <Card key={template.title} className="hover:shadow-md transition-shadow">
-                                <CardHeader
-                                    className="cursor-pointer p-5 md:p-6"
-                                    onClick={() => handleExpand(template.title)}
-                                >
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <CardTitle className="text-base md:text-lg flex items-center gap-2">
-                                                {isExpanded ? <ChevronDown className="h-4 w-4 md:h-5 md:w-5 text-[#3182F6]" /> : <ChevronRight className="h-4 w-4 md:h-5 md:w-5 text-[#8B95A1]" />}
-                                                {template.title}
-                                            </CardTitle>
-                                            <CardDescription className="ml-6 md:ml-7 text-xs md:text-sm">
-                                                {template.description}
-                                            </CardDescription>
+                        <div className="grid grid-cols-1 gap-3">
+                            {templates.map((template) => {
+                                const isSelected = selectedTitle === template.title;
+                                return (
+                                    <button
+                                        key={template.title}
+                                        onClick={() => handleSelect(template.title)}
+                                        className={`
+                                            w-full p-5 rounded-[24px] flex items-center gap-5 transition-all text-left group border
+                                            ${isSelected
+                                                ? 'bg-white border-[#3182F6]/20 shadow-[0_12px_24px_-8px_rgba(49,130,246,0.12)] ring-1 ring-[#3182F6]/5'
+                                                : 'bg-white border-transparent hover:border-gray-200 hover:bg-gray-50/50'
+                                            }
+                                        `}
+                                    >
+                                        <div className={`
+                                            w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 transition-all duration-500
+                                            ${isSelected ? 'bg-[#3182F6] text-white rotate-6 scale-110 shadow-lg shadow-blue-100' : 'bg-[#F2F4F6] text-gray-400'}
+                                        `}>
+                                            {getIcon(template.title)}
                                         </div>
-                                    </div>
-                                </CardHeader>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-0.5">
+                                                <p className={`text-[17px] font-bold transition-colors ${isSelected ? 'text-[#191F28]' : 'text-[#4E5968]'}`}>
+                                                    {template.title}
+                                                </p>
+                                                {isSelected && (
+                                                    <span className="bg-blue-50 text-[#3182F6] text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter">Selected</span>
+                                                )}
+                                            </div>
+                                            <p className={`text-sm font-medium transition-colors ${isSelected ? 'text-[#4E5968]' : 'text-[#8B95A1]'}`}>
+                                                {template.description}
+                                            </p>
+                                        </div>
+                                        <ChevronRight className={`w-6 h-6 transition-all ${isSelected ? 'text-[#3182F6] translate-x-1' : 'text-gray-200 group-hover:text-gray-400'}`} />
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </section>
+                </div>
 
-                                {isExpanded && (
-                                    <CardContent className="pt-0 p-5 md:p-6 md:pt-0">
-                                        {detail ? (
-                                            <Textarea
-                                                value={detail.body}
-                                                readOnly
-                                                rows={12}
-                                                className="mb-4 text-sm bg-[#F9FAFB]"
-                                            />
-                                        ) : (
-                                            <div className="text-sm text-gray-500 py-4">불러오는 중...</div>
-                                        )}
-                                    </CardContent>
-                                )}
-                            </Card>
-                        );
-                    })
-                )}
+                {/* Right Side: Preview Workbench (6 columns) */}
+                <div className="lg:col-span-12 xl:col-span-6 h-full">
+                    <div className="bg-[#F8F9FA] rounded-[48px] border border-gray-100 p-10 lg:sticky lg:top-8 flex flex-col items-center justify-center min-h-[750px] shadow-inner relative overflow-hidden">
+                        {/* Workbench minimal label */}
+                        <div className="absolute top-10 left-10 flex items-center gap-4">
+                            <div className="flex -space-x-2">
+                                {[1, 2, 3].map(i => (
+                                    <div key={i} className="w-6 h-6 rounded-full border-2 border-[#F8F9FA] bg-gray-200 overflow-hidden">
+                                        <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-300"></div>
+                                    </div>
+                                ))}
+                            </div>
+                            <span className="text-[11px] font-bold text-[#8B95A1] uppercase tracking-widest"></span>
+                        </div>
+
+                        {/* White Device Frame - Matching landing page style */}
+                        <div className="relative w-[320px] h-[640px] bg-white rounded-[56px] shadow-[0_45px_100px_-25px_rgba(0,0,0,0.12)] border-[10px] border-white overflow-hidden">
+                            {/* Inner Screen */}
+                            <div className="w-full h-full bg-[#ABC1D1] rounded-[44px] overflow-hidden relative border border-black/5 flex flex-col no-scrollbar">
+                                {/* Status Bar Mock */}
+                                <div className="w-full h-11 flex justify-between items-end px-7 pb-2 text-[11px] font-bold text-black z-40">
+                                    <span>9:42</span>
+                                    <div className="flex gap-1.5 items-center">
+                                        <div className="w-4 h-2.5 bg-black rounded-[2px] relative after:content-[''] after:absolute after:right-[-2px] after:top-0.5 after:w-1 after:h-1.5 after:bg-black after:rounded-r-full"></div>
+                                    </div>
+                                </div>
+
+                                {/* Content Scroll Area */}
+                                <div className="flex-1 overflow-y-auto no-scrollbar relative">
+                                    {activeDetail ? (
+                                        <div key={selectedTitle} className="w-full animate-in fade-in zoom-in slide-in-from-bottom-4 duration-700 h-full">
+                                            <KakaoTemplatePreview body={activeDetail.body} />
+                                        </div>
+                                    ) : (
+                                        <div className="h-full flex flex-col items-center justify-center space-y-4 px-8 text-center bg-[#ABC1D1]">
+                                            <div className="w-10 h-10 border-[4px] border-black/10 border-t-black/40 rounded-full animate-spin" />
+                                            <p className="text-xs text-black/50 font-bold">메시지 데이터를<br />구성하는 중입니다</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Bottom Home Bar Area */}
+                                <div className="w-full h-8 flex items-center justify-center pb-2 bg-white shrink-0">
+                                    <div className="w-1/3 h-1.5 bg-black/10 rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="absolute bottom-10 right-10 flex flex-col items-end gap-1 opacity-40">
+                            <span className="text-[10px] font-black text-blue-300">HUB SIMULATOR</span>
+                            <span className="text-[10px] font-bold text-gray-300 tracking-tighter">ENGINE v1.2.4</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
