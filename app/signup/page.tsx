@@ -30,6 +30,12 @@ function SignUpForm() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // 약관 동의 상태
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
+  const [showTermsDetail, setShowTermsDetail] = useState(false);
+  const [showPrivacyDetail, setShowPrivacyDetail] = useState(false);
+
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPhoneNumber(formatPhoneNumber(e.target.value));
   };
@@ -42,6 +48,18 @@ function SignUpForm() {
     // 유효성 검사
     if (!name || !email || !password || !confirmPassword || !phoneNumber) {
       setError("모든 필드를 입력해주세요.");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!agreedToTerms) {
+      setError("서비스 이용약관에 동의해주세요.");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!agreedToPrivacy) {
+      setError("개인정보 수집·이용에 동의해주세요.");
       setIsLoading(false);
       return;
     }
@@ -158,6 +176,163 @@ function SignUpForm() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
+            </div>
+
+            {/* 약관 동의 섹션 */}
+            <div className="space-y-3 pt-2 border-t">
+              {/* 서비스 이용약관 */}
+              <div className="space-y-2">
+                <div className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    id="termsAgree"
+                    checked={agreedToTerms}
+                    onChange={(e) => {
+                      setAgreedToTerms(e.target.checked);
+                      setError('');
+                    }}
+                    className="mt-0.5 w-4 h-4 accent-blue-600 cursor-pointer"
+                  />
+                  <label htmlFor="termsAgree" className="flex-1 text-sm cursor-pointer">
+                    <span className="text-black-400 font-semibold">[필수]</span> 서비스 이용약관에 동의합니다.
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowTermsDetail(!showTermsDetail)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <svg
+                      className={`w-4 h-4 transition-transform ${showTermsDetail ? 'rotate-90' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+
+                {showTermsDetail && (
+                  <div className="ml-6 p-3 bg-gray-50 rounded-lg text-xs text-gray-700 leading-relaxed max-h-60 overflow-y-auto space-y-2">
+                    <h4 className="font-bold text-sm text-gray-900">📄 강사용 서비스 이용약관</h4>
+                    
+                    <div>
+                      <h5 className="font-semibold text-gray-800">제1조 (목적)</h5>
+                      <p>본 약관은 [회사명] (이하 "회사")이 제공하는 원데이 클래스 플랫폼 서비스(이하 "서비스")를 강사 회원이 이용함에 있어 회사와 강사 간의 권리·의무 및 책임사항을 규정함을 목적으로 합니다.</p>
+                    </div>
+
+                    <div>
+                      <h5 className="font-semibold text-gray-800">제2조 (정의)</h5>
+                      <p>1. "강사"란 본 약관에 동의하고 플랫폼에 가입하여 클래스를 개설·운영하는 회원을 말합니다.</p>
+                      <p>2. "서비스"란 강사가 클래스를 등록·관리하고 수강생을 모집할 수 있도록 회사가 제공하는 온라인 플랫폼을 의미합니다.</p>
+                    </div>
+
+                    <div>
+                      <h5 className="font-semibold text-gray-800">제3조 (회원가입 및 계정관리)</h5>
+                      <p>1. 강사는 정확한 정보를 제공해야 합니다.</p>
+                      <p>2. 계정 관리 책임은 강사 본인에게 있습니다.</p>
+                    </div>
+
+                    <div>
+                      <h5 className="font-semibold text-gray-800">제4조 (강사의 의무)</h5>
+                      <p>1. 관련 법령을 준수하여 클래스를 운영해야 합니다.</p>
+                      <p>2. 허위·과장 정보 등록을 금지합니다.</p>
+                      <p>3. 수강생과의 분쟁은 우선적으로 강사가 해결해야 합니다.</p>
+                    </div>
+
+                    <div>
+                      <h5 className="font-semibold text-gray-800">제5조 (서비스 이용 제한)</h5>
+                      <p>회사는 약관 위반 또는 법령 위반 시 서비스 이용을 제한할 수 있습니다.</p>
+                    </div>
+
+                    <div>
+                      <h5 className="font-semibold text-gray-800">제6조 (계약 해지 및 탈퇴)</h5>
+                      <p>강사는 언제든 탈퇴할 수 있으며, 탈퇴 시 개인정보는 관련 법령에 따라 처리됩니다.</p>
+                    </div>
+
+                    <div>
+                      <h5 className="font-semibold text-gray-800">제7조 (면책)</h5>
+                      <p>회사는 강사와 수강생 간 발생하는 분쟁에 대해 직접적인 책임을 지지 않습니다.</p>
+                    </div>
+
+                    <div>
+                      <h5 className="font-semibold text-gray-800">제8조 (준거법)</h5>
+                      <p>본 약관은 대한민국 법률에 따릅니다.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 개인정보 수집·이용 동의 */}
+              <div className="space-y-2">
+                <div className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    id="privacyAgree"
+                    checked={agreedToPrivacy}
+                    onChange={(e) => {
+                      setAgreedToPrivacy(e.target.checked);
+                      setError('');
+                    }}
+                    className="mt-0.5 w-4 h-4 accent-blue-600 cursor-pointer"
+                  />
+                  <label htmlFor="privacyAgree" className="flex-1 text-sm cursor-pointer">
+                    <span className="text-black-400 font-semibold">[필수]</span> 개인정보 수집·이용에 동의합니다.
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowPrivacyDetail(!showPrivacyDetail)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <svg
+                      className={`w-4 h-4 transition-transform ${showPrivacyDetail ? 'rotate-90' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+
+                {showPrivacyDetail && (
+                  <div className="ml-6 p-3 bg-gray-50 rounded-lg text-xs text-gray-700 leading-relaxed space-y-2">
+                    <h4 className="font-bold text-sm text-gray-900">📄 개인정보 수집·이용 동의서</h4>
+                    <p>회사는 강사 회원가입 및 서비스 제공을 위해 다음과 같이 개인정보를 수집·이용합니다.</p>
+
+                    <div>
+                      <h5 className="font-semibold text-gray-800">1. 수집 항목</h5>
+                      <ul className="ml-4 list-disc">
+                        <li>이름</li>
+                        <li>이메일 주소</li>
+                        <li>전화번호</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h5 className="font-semibold text-gray-800">2. 수집 목적</h5>
+                      <ul className="ml-4 list-disc">
+                        <li>강사 회원 식별 및 계정 생성</li>
+                        <li>서비스 제공 및 운영</li>
+                        <li>서비스 관련 공지 및 안내</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h5 className="font-semibold text-gray-800">3. 보유 및 이용 기간</h5>
+                      <ul className="ml-4 list-disc">
+                        <li>회원 탈퇴 시까지</li>
+                        <li>단, 관련 법령에 따른 보관 의무가 있는 경우 해당 기간까지 보관</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h5 className="font-semibold text-gray-800">4. 동의 거부 권리</h5>
+                      <p>귀하는 개인정보 수집·이용에 대한 동의를 거부할 권리가 있습니다. 다만, 동의하지 않을 경우 회원가입이 제한됩니다.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {error && (
