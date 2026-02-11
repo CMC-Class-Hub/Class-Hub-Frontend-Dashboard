@@ -22,7 +22,7 @@ export function ClassList({ templates, templateSessionCounts, onDelete }: ClassL
 
     return (
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {templates.map((template) => {
+            {templates.map((template, index) => {
                 const sessionCount = templateSessionCounts[template.id] || 0;
 
                 return (
@@ -30,6 +30,7 @@ export function ClassList({ templates, templateSessionCounts, onDelete }: ClassL
                         key={template.id}
                         className="cursor-pointer hover:shadow-lg hover:border-[#3182F6]/30 transition-all duration-200 active:scale-[0.98]"
                         onClick={() => router.push(`/dashboard/classes/${template.id}`)}
+                        {...(index === 0 && { 'data-coachmark': 'class-card' })}
                     >
                         <CardHeader className="p-5 md:p-6">
                             <div className="flex justify-between items-start">

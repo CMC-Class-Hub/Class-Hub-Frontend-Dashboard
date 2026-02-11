@@ -11,6 +11,8 @@ import { ClassList } from "@/components/dashboard/ClassList";
 import { CreateClassForm } from "@/components/dashboard/CreateClassForm";
 import { PreviewDialog } from "@/components/dialog/PreviewDialog";
 import { ClassDetailResponse } from "@/components/preview/ClassPreview";
+import { FloatingGuideButton } from "@/components/coachmark";
+import { useCoachmark } from "@/components/coachmark/hooks/useCoachmark";
 
 export default function ClassesPage() {
     const [templates, setTemplates] = useState<ClassTemplate[]>([]);
@@ -21,6 +23,55 @@ export default function ClassesPage() {
     const [templateSessionCounts, setTemplateSessionCounts] = useState<Record<string, number>>({});
     const [hasFormData, setHasFormData] = useState(false);
     const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+
+    const { isDemoMode, currentAction, isActive } = useCoachmark();
+
+    // 코치마크용 데모 미리보기 데이터
+    const demoPreviewData: ClassDetailResponse = {
+        id: 'demo-preview',
+        name: '웹 개발 기초 강의',
+        description: '프론트엔드 개발의 기초를 배우는 강의입니다. HTML, CSS, JavaScript의 핵심 개념을 익히고 실습해봅니다.',
+        location: '강남역 인근 스터디룸',
+        locationDetails: '2층 세미나실',
+        preparation: '노트북, 필기구',
+        instructions: '강의 시작 10분 전까지 입장해주세요.',
+        imageUrls: [],
+        parkingInfo: '건물 내 주차 가능 (2시간 무료)',
+        cancellationPolicy: '강의 3일 전까지 전액 환불 가능',
+    };
+
+    // 코치마크 액션에 따라 다이얼로그 열기/닫기
+    useEffect(() => {
+        if (!isActive) return;
+
+        if (currentAction === 'open-create-class-dialog') {
+            setCreateDialogOpen(true);
+            // 미리보기 다이얼로그도 함께 열기 (데모 데이터 설정)
+            setPreviewData(demoPreviewData);
+            setPreviewDialogOpen(true);
+        } else if (currentAction === 'close-create-class-dialog') {
+            setCreateDialogOpen(false);
+            setPreviewDialogOpen(false);
+        }
+    }, [currentAction, isActive]);
+
+    // 데모 모드용 가짜 클래스 (가이드 실행 중에만 표시)
+    const demoTemplate: ClassTemplate = {
+        id: 'demo-class',
+        instructorId: 'demo-user',
+        classCode: 'DEMO001',
+        name: '웹 개발 기초 강의',
+        description: '프론트엔드 개발의 기초를 배우는 강의입니다',
+        location: '강남역 인근 스터디룸',
+        locationDetails: '2층 세미나실',
+        preparation: '노트북, 필기구',
+        createdAt: new Date().toISOString(),
+    };
+
+    // 실제 데이터와 데모 데이터 결합
+    const displayTemplates = isDemoMode && templates.length === 0
+        ? [demoTemplate]
+        : templates;
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -146,13 +197,14 @@ export default function ClassesPage() {
                 <Button
                     className="w-full sm:w-auto"
                     onClick={() => setCreateDialogOpen(true)}
+                    data-coachmark="create-class-btn"
                 >
                     <Plus className="mr-2 h-5 w-5" />
                     클래스 만들기
                 </Button>
             </div>
 
-            {templates.length === 0 ? (
+            {displayTemplates.length === 0 ? (
                 <Card className="hover:shadow-md">
                     <CardContent className="p-10 md:p-16 text-center">
                         <div className="w-16 h-16 md:w-20 md:h-20 bg-[#E8F3FF] rounded-full flex items-center justify-center mx-auto mb-5">
@@ -172,7 +224,7 @@ export default function ClassesPage() {
                 </Card>
             ) : (
                 <ClassList
-                    templates={templates}
+                    templates={displayTemplates}
                     onDelete={handleDeleteTemplate}
                     templateSessionCounts={templateSessionCounts}
                 />
@@ -256,6 +308,8 @@ export default function ClassesPage() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            <FloatingGuideButton pageId="classes" />
         </div>
     );
 }

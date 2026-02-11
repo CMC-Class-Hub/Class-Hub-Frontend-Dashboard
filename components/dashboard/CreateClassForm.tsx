@@ -236,6 +236,7 @@ export function CreateClassForm({ onSubmit, onCancel, onPreview, onOpenPreview }
                         handlePreview();
                         onOpenPreview();
                     }}
+                    data-coachmark="preview-btn"
                 >
                     <MonitorSmartphone className="mr-2 h-4 w-4" />
                     신청 화면 미리보기
