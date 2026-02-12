@@ -28,7 +28,7 @@ export const authApiReal: IAuthApi = {
                 email: data.email,
                 name: result.name,
                 phoneNumber: result.PhoneNumber,
-                role: 'instructor',
+                role: data.email === 'admin@admin.admin' ? 'admin' : 'instructor',
                 createdAt: new Date().toISOString(),
             };
             localStorage.setItem(AUTH_KEY, JSON.stringify(user));
@@ -53,7 +53,7 @@ export const authApiReal: IAuthApi = {
         return result;
     },
 
-   async logout(): Promise<void> {
+    async logout(): Promise<void> {
         try {
             localStorage.removeItem(TOKEN_KEY);
             localStorage.removeItem(AUTH_KEY);
@@ -66,7 +66,7 @@ export const authApiReal: IAuthApi = {
         if (typeof window === 'undefined') return null;
 
         const token = localStorage.getItem(TOKEN_KEY);
-        const userData = localStorage.getItem(AUTH_KEY);        
+        const userData = localStorage.getItem(AUTH_KEY);
         // 토큰이 없으면 로그아웃 상태
         if (!token) {
             localStorage.removeItem(AUTH_KEY);
@@ -79,11 +79,11 @@ export const authApiReal: IAuthApi = {
     async isLoggedIn(): Promise<boolean> {
         try {
             const token = localStorage.getItem(TOKEN_KEY);
-            
+
             if (!token) {
                 return false;
             }
-            
+
             const response = await fetch(`${API_URL}/api/auth/status`, {
                 method: 'GET',
                 headers: {
