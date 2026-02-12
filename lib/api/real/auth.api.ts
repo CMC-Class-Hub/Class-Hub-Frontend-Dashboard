@@ -35,7 +35,7 @@ export const authApiReal: IAuthApi = {
             email: data.email,
             name: result.name,
             phoneNumber: result.phoneNumber,
-            role: data.email === 'admin@admin.admin' ? 'admin' : 'instructor',
+            role: result.role?.toLowerCase(),
             createdAt: new Date().toISOString(),
         };
         localStorage.setItem(AUTH_KEY, JSON.stringify(user));
