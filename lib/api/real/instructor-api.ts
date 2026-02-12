@@ -1,16 +1,10 @@
 import type { IInstructorApi, InstructorUpdateRequest } from '../types';
-import { API_URL } from '../api-config';
+import { fetchClient } from '../fetch-client';
 
 export const instructorApiReal: IInstructorApi = {
     async updateProfile(instructorId: string, data: InstructorUpdateRequest): Promise<void> {
-        const token = localStorage.getItem('classhub_auth_token');
-
-        const response = await fetch(`${API_URL}/api/instructors/${instructorId}`, {
+        const response = await fetchClient(`/api/instructors/${instructorId}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
             body: JSON.stringify(data),
         });
 
@@ -21,13 +15,8 @@ export const instructorApiReal: IInstructorApi = {
     },
 
     async withdraw(instructorId: string): Promise<void> {
-        const token = localStorage.getItem('classhub_auth_token');
-
-        const response = await fetch(`${API_URL}/api/instructors/${instructorId}`, {
+        const response = await fetchClient(`/api/instructors/${instructorId}`, {
             method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
         });
 
         if (!response.ok) {
