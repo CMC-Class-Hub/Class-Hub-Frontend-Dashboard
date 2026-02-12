@@ -1,49 +1,102 @@
 import { API_URL } from './api-config';
 
-const TOKEN_KEY = 'classhub_auth_token';
+// 토큰 갱신 중임을 나타내는 변수 및 큐
+let isRefreshing = false;
+let refreshSubscribers: (() => void)[] = [];
 
-interface FetchOptions extends RequestInit {
-  headers?: Record<string, string>;
-}
+// 토큰 갱신 완료 시 대기 중인 요청들에게 알림
+const onRefreshed = () => {
+  refreshSubscribers.forEach(cb => cb());
+  refreshSubscribers = [];
+};
+
+// 토큰 갱신 실패 시
+const onRefreshFailed = () => {
+  refreshSubscribers.forEach(cb => cb());
+  refreshSubscribers = [];
+};
 
 export async function fetchClient(
   endpoint: string,
-  options: FetchOptions = {}
+  options: RequestInit = {}
 ) {
   const url = endpoint.startsWith('http')
     ? endpoint
     : `${API_URL}${endpoint}`;
 
-  const token =
-    typeof window !== 'undefined'
-      ? localStorage.getItem(TOKEN_KEY)
-      : null;
-
-  const headers: Record<string, string> = {
+  const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    ...(options.headers || {}),
+    ...(options.headers as Record<string, string> || {}),
   };
 
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  const response = await fetch(url, {
+  const makeRequest = () => fetch(url, {
     ...options,
     headers,
+    credentials: 'include'
   });
 
-  // 🔥 여기서 전역 401 처리
-  if (response.status === 401) {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(TOKEN_KEY);
+  try {
+    let response = await makeRequest();
 
-      alert('로그인이 만료되었습니다. 다시 로그인해주세요.');
-      window.location.href = '/login';
+    // 401 Unauthorized 발생 시
+    if (response.status === 401) {
+      console.log(`[fetchClient] 401 Unauthorized detected for: ${endpoint}`);
+
+      // 이미 갱신 중이라면 대기 리스트에 추가
+      if (isRefreshing) {
+        console.log('[fetchClient] Refresh already in progress, queuing request...');
+        return new Promise<Response>((resolve) => {
+          refreshSubscribers.push(() => {
+            resolve(makeRequest());
+          });
+        });
+      }
+
+      isRefreshing = true;
+      console.log('[fetchClient] Attempting token refresh...');
+
+      try {
+        // 토큰 갱신 API 호출
+        const refreshResponse = await fetch(`${API_URL}/api/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include'
+        });
+
+        if (refreshResponse.ok) {
+          console.log('[fetchClient] Token refresh successful! Retrying original requests.');
+          isRefreshing = false;
+          onRefreshed();
+          return await makeRequest();
+        } else {
+          console.error('[fetchClient] Token refresh failed (refresh token expired?).');
+          isRefreshing = false;
+          onRefreshFailed();
+          handleUnauthorized();
+          return response;
+        }
+      } catch (error) {
+        console.error('[fetchClient] Token refresh failed due to network error:', error);
+        isRefreshing = false;
+        onRefreshFailed();
+        handleUnauthorized();
+        throw error;
+      }
     }
 
-    throw new Error('UNAUTHORIZED');
+    return response;
+  } catch (error) {
+    console.error(`[fetchClient] Network error for ${endpoint}:`, error);
+    throw error;
   }
+}
 
-  return response;
+function handleUnauthorized() {
+  if (typeof window !== 'undefined') {
+    console.warn('[fetchClient] Unauthorized access. Redirecting to login.');
+    localStorage.removeItem('classhub_auth_user');
+
+    if (!window.location.pathname.startsWith('/login')) {
+      window.location.href = '/login';
+    }
+  }
 }
