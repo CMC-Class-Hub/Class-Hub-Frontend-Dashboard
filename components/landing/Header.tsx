@@ -20,8 +20,13 @@ export function Header() {
         checkLoginStatus();
     }, []);
 
-    const handleDashboardClick = () => {
-        router.push('/dashboard');
+    const handleDashboardClick = async () => {
+        const user = await api.auth.getCurrentUser();
+        if (user?.role === 'admin') {
+            router.push('/admin');
+        } else {
+            router.push('/dashboard');
+        }
         setMobileMenuOpen(false);
     };
 
@@ -45,7 +50,7 @@ export function Header() {
                         </Link>
                         <div className="flex items-center space-x-4 ml-4">
                             {isLoggedIn ? (
-                                <Button 
+                                <Button
                                     onClick={handleDashboardClick}
                                     className="bg-[#3182F6] hover:bg-[#1B64DA] text-white"
                                 >
@@ -100,7 +105,7 @@ export function Header() {
                         </Link>
                         <div className="pt-4 border-t border-gray-100 flex flex-col space-y-2">
                             {isLoggedIn ? (
-                                <Button 
+                                <Button
                                     onClick={handleDashboardClick}
                                     className="w-full bg-[#3182F6] hover:bg-[#1B64DA] text-white justify-center"
                                 >

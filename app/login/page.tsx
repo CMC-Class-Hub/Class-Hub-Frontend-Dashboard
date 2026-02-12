@@ -20,7 +20,12 @@ export default function LoginPage() {
     const checkAuth = async () => {
       const isLoggedIn = await api.auth.isLoggedIn();
       if (isLoggedIn) {
-        router.push("/dashboard");
+        const user = await api.auth.getCurrentUser();
+        if (user?.role === 'admin') {
+          router.push("/admin");
+        } else {
+          router.push("/dashboard");
+        }
       }
     };
     checkAuth();
@@ -40,7 +45,11 @@ export default function LoginPage() {
 
     try {
       await api.auth.login({ email, password });
-      router.push("/dashboard");
+      if (email === 'admin@admin.admin') {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (err: any) {
       setError(err.message || "로그인에 실패했습니다.");
     }
