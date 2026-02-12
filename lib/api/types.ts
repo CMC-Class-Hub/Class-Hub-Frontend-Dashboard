@@ -164,7 +164,7 @@ export interface User {
   email: string;
   name?: string;
   phoneNumber?: string;
-  role: 'instructor' | 'admin';
+  role?: string;
   createdAt: string;
 }
 
@@ -185,6 +185,7 @@ export interface LoginResponse {
   accessToken?: string;
   name?: string;
   phoneNumber?: string;
+  role?: string;
 }
 
 export interface AuthResponse {
