@@ -68,7 +68,7 @@ export default function MessagesPage() {
     };
 
     return (
-        <div className="max-w-[1400px] mx-auto space-y-10 pb-20">
+        <div className="max-w-[1400px] mx-auto space-y-6 pb-10">
             {/* Top Header & Stats Bar */}
             <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 px-2">
                 <div className="space-y-1.5 px-2">
@@ -91,16 +91,16 @@ export default function MessagesPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 {/* Left Side: Management Section (6 columns) - Aligned Top */}
-                <div className="lg:col-span-12 xl:col-span-6 flex flex-col pt-12 min-h-[750px] space-y-8">
+                <div className="lg:col-span-12 xl:col-span-6 flex flex-col pt-2 min-h-[550px] space-y-4">
                     {/* 1. Template List */}
-                    <section className="space-y-4">
+                    <section className="space-y-3">
                         <div className="flex items-center justify-between px-2">
-                            <h2 className="text-lg font-bold text-[#191F28] flex items-center gap-2">
+                            <h2 className="text-base font-bold text-[#191F28] flex items-center gap-2">
                                 <span className="text-blue-500">Selection</span> 알림 시나리오 선택
                             </h2>
-                            <span className="text-xs font-medium text-[#8B95A1]">클릭하여 미리보기를 확인하세요</span>
+                            <span className="text-[10px] font-medium text-[#8B95A1]">클릭하여 미리보기를 확인하세요</span>
                         </div>
 
                         <div className="grid grid-cols-1 gap-3">
@@ -111,33 +111,33 @@ export default function MessagesPage() {
                                         key={template.title}
                                         onClick={() => handleSelect(template.title)}
                                         className={`
-                                            w-full p-5 rounded-[24px] flex items-center gap-5 transition-all text-left group border
+                                            w-full p-4 rounded-[20px] flex items-center gap-4 transition-all text-left group border
                                             ${isSelected
-                                                ? 'bg-white border-[#3182F6]/20 shadow-[0_12px_24px_-8px_rgba(49,130,246,0.12)] ring-1 ring-[#3182F6]/5'
+                                                ? 'bg-white border-[#3182F6]/20 shadow-[0_8px_16px_-4px_rgba(49,130,246,0.1)] ring-1 ring-[#3182F6]/5'
                                                 : 'bg-white border-transparent hover:border-gray-200 hover:bg-gray-50/50'
                                             }
                                         `}
                                     >
                                         <div className={`
-                                            w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 transition-all duration-500
+                                            w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 transition-all duration-500
                                             ${isSelected ? 'bg-[#3182F6] text-white rotate-6 scale-110 shadow-lg shadow-blue-100' : 'bg-[#F2F4F6] text-gray-400'}
                                         `}>
                                             {getIcon(template.title)}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-0.5">
-                                                <p className={`text-[17px] font-bold transition-colors ${isSelected ? 'text-[#191F28]' : 'text-[#4E5968]'}`}>
+                                                <p className={`text-[16px] font-bold transition-colors ${isSelected ? 'text-[#191F28]' : 'text-[#4E5968]'}`}>
                                                     {template.title}
                                                 </p>
                                                 {isSelected && (
-                                                    <span className="bg-blue-50 text-[#3182F6] text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter">Selected</span>
+                                                    <span className="bg-blue-50 text-[#3182F6] text-[9px] font-black px-1.2 py-0.5 rounded uppercase tracking-tighter">Selected</span>
                                                 )}
                                             </div>
-                                            <p className={`text-sm font-medium transition-colors ${isSelected ? 'text-[#4E5968]' : 'text-[#8B95A1]'}`}>
+                                            <p className={`text-xs font-medium transition-colors ${isSelected ? 'text-[#4E5968]' : 'text-[#8B95A1]'}`}>
                                                 {template.description}
                                             </p>
                                         </div>
-                                        <ChevronRight className={`w-6 h-6 transition-all ${isSelected ? 'text-[#3182F6] translate-x-1' : 'text-gray-200 group-hover:text-gray-400'}`} />
+                                        <ChevronRight className={`w-5 h-5 transition-all ${isSelected ? 'text-[#3182F6] translate-x-1' : 'text-gray-200 group-hover:text-gray-400'}`} />
                                     </button>
                                 );
                             })}
@@ -147,23 +147,23 @@ export default function MessagesPage() {
 
                 {/* Right Side: Preview Workbench (6 columns) */}
                 <div className="lg:col-span-12 xl:col-span-6 h-full">
-                    <div className="bg-[#F8F9FA] rounded-[48px] border border-gray-100 p-10 lg:sticky lg:top-8 flex flex-col items-center justify-center min-h-[750px] shadow-inner relative overflow-hidden">
+                    <div className="bg-[#F8F9FA] rounded-[32px] border border-gray-100 p-6 lg:sticky lg:top-8 flex flex-col items-center justify-center min-h-[550px] shadow-inner relative overflow-hidden">
                         {/* Workbench minimal label */}
-                        <div className="absolute top-10 left-10 flex items-center gap-4">
+                        <div className="absolute top-6 left-6 flex items-center gap-4">
                             <div className="flex -space-x-2">
                                 {[1, 2, 3].map(i => (
-                                    <div key={i} className="w-6 h-6 rounded-full border-2 border-[#F8F9FA] bg-gray-200 overflow-hidden">
+                                    <div key={i} className="w-5 h-5 rounded-full border-2 border-[#F8F9FA] bg-gray-200 overflow-hidden">
                                         <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-300"></div>
                                     </div>
                                 ))}
                             </div>
-                            <span className="text-[11px] font-bold text-[#8B95A1] uppercase tracking-widest"></span>
+                            <span className="text-[10px] font-bold text-[#8B95A1] uppercase tracking-widest"></span>
                         </div>
 
                         {/* White Device Frame - Matching landing page style */}
-                        <div className="relative w-[320px] h-[640px] bg-white rounded-[56px] shadow-[0_45px_100px_-25px_rgba(0,0,0,0.12)] border-[10px] border-white overflow-hidden">
+                        <div className="relative w-[310px] h-[580px] bg-white rounded-[48px] shadow-[0_45px_100px_-25px_rgba(0,0,0,0.12)] border-[8px] border-white overflow-hidden">
                             {/* Inner Screen */}
-                            <div className="w-full h-full bg-[#ABC1D1] rounded-[44px] overflow-hidden relative border border-black/5 flex flex-col no-scrollbar">
+                            <div className="w-full h-full bg-[#ABC1D1] rounded-[36px] overflow-hidden relative border border-black/5 flex flex-col no-scrollbar">
                                 {/* Status Bar Mock */}
                                 <div className="w-full h-11 flex justify-between items-end px-7 pb-2 text-[11px] font-bold text-black z-40">
                                     <span>9:42</span>
@@ -193,9 +193,9 @@ export default function MessagesPage() {
                             </div>
                         </div>
 
-                        <div className="absolute bottom-10 right-10 flex flex-col items-end gap-1 opacity-40">
-                            <span className="text-[10px] font-black text-blue-300">HUB SIMULATOR</span>
-                            <span className="text-[10px] font-bold text-gray-300 tracking-tighter">ENGINE v1.2.4</span>
+                        <div className="absolute bottom-6 right-8 flex flex-col items-end gap-1 opacity-40">
+                            <span className="text-[9px] font-black text-blue-300">HUB SIMULATOR</span>
+                            <span className="text-[9px] font-bold text-gray-300 tracking-tighter">ENGINE v1.2.4</span>
                         </div>
                     </div>
                 </div>

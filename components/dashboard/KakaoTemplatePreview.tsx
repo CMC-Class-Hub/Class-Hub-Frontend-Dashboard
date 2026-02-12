@@ -37,12 +37,12 @@ export function KakaoTemplatePreview({ body }: KakaoTemplatePreviewProps) {
             <span className="text-xs font-black text-[#3182F6]">Ch</span>
           </div>
 
-          <div className="flex flex-col gap-1.5 max-w-[85%]">
+          <div className="flex flex-col gap-1.5 max-w-[92%]">
             <div className="text-[11px] text-[#191F28]/60 font-bold ml-1">Class Hub</div>
 
             <div className="flex flex-col rounded-[15px] rounded-tl-[2px] overflow-hidden shadow-sm border border-black/5">
               {/* Message Body */}
-              <div className="bg-white p-3.5 text-[12px] md:text-[13px] text-[#191F28] leading-relaxed whitespace-pre-wrap break-keep font-medium">
+              <div className="bg-white p-3 text-[12px] md:text-[13px] text-[#191F28] leading-relaxed whitespace-pre-wrap break-keep font-medium">
                 {body}
               </div>
 
