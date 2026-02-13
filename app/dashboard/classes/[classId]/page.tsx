@@ -33,6 +33,10 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
 
+    const [isMobile, setIsMobile] = useState(false);
+    const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+    const [previewData, setPreviewData] = useState<any>(null);
+
     const { isDemoMode } = useCoachmark();
 
     useEffect(() => {
@@ -307,9 +311,9 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                             </Button>
 
                             <Dialog open={editDialogOpen} onOpenChange={(open) => {
-                                    setEditDialogOpen(open);
-                                    if (!open) setPreviewDialogOpen(false);
-                                }}>
+                                setEditDialogOpen(open);
+                                if (!open) setPreviewDialogOpen(false);
+                            }}>
                                 <DialogTrigger asChild>
                                     <Button variant="outline" className="w-full sm:w-auto">
                                         수정
