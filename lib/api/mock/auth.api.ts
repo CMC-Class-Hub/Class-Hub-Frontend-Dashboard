@@ -82,5 +82,10 @@ export const authApiMock: IAuthApi = {
     async isLoggedIn(): Promise<boolean> {
         const user = await this.getCurrentUser();
         return user !== null;
+    },
+
+    async refresh(): Promise<void> {
+        await delay(200);
+        // Mock refresh always succeeds if we are here
     }
 };

@@ -164,14 +164,13 @@ export interface User {
   email: string;
   name?: string;
   phoneNumber?: string;
-  role: 'instructor' | 'admin';
+  role?: string;
   createdAt: string;
 }
 
 export interface LoginRequest {
   email: string;
   password: string;
-  name?: string; // Optional for login, but might be used if unified
 }
 
 export interface SignUpRequest {
@@ -185,7 +184,8 @@ export interface LoginResponse {
   userId: number;
   accessToken?: string;
   name?: string;
-  PhoneNumber?: string;
+  phoneNumber?: string;
+  role?: string;
 }
 
 export interface AuthResponse {
@@ -353,6 +353,7 @@ export interface IAuthApi {
   logout(): Promise<void>;
   getCurrentUser(): Promise<User | null>;
   isLoggedIn(): Promise<boolean>;
+  refresh(): Promise<void>;
 }
 
 export interface InstructorAdminResponse {
