@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { MonitorSmartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +10,7 @@ import { ImageUpload } from "@/components/ui/ImageUpload";
 import { AddressSearchInput } from "@/components/ui/AddressSearchInput";
 import type { ClassTemplate } from "@/lib/api";
 
-export function EditClassForm({ template, onSubmit, onCancel }: {
+export function EditClassForm({ template, onSubmit, onCancel, onPreview, onOpenPreview }: {
     template: ClassTemplate;
     onSubmit: (data: {
         name: string;
@@ -23,6 +24,18 @@ export function EditClassForm({ template, onSubmit, onCancel }: {
         cancellationPolicy?: string;
     }) => void;
     onCancel: () => void;
+    onPreview?: (data: {
+        name: string;
+        description: string;
+        location: string;
+        locationDetails: string;
+        preparation: string;
+        instructions: string;
+        imageUrls: string[];
+        parkingInfo: string;
+        cancellationPolicy: string;
+    }) => void;
+    onOpenPreview?: () => void;
 }) {
     const [name, setName] = useState(template.name);
     const [description, setDescription] = useState(template.description || '');
@@ -33,6 +46,25 @@ export function EditClassForm({ template, onSubmit, onCancel }: {
     const [imageUrls, setImageUrls] = useState<string[]>(template.imageUrls || []); // 여기 수정!
     const [parkingInfo, setParkingInfo] = useState(template.parkingInfo || '');
     const [cancellationPolicy, setCancellationPolicy] = useState(template.cancellationPolicy || '');
+
+    const handlePreview = () => {
+        onPreview?.({
+            name,
+            description,
+            location,
+            locationDetails,
+            preparation,
+            instructions,
+            imageUrls,
+            parkingInfo,
+            cancellationPolicy,
+        });
+    };
+
+    // Real-time preview sync
+    useEffect(() => {
+        handlePreview();
+    }, [name, description, location, locationDetails, preparation, instructions, imageUrls, parkingInfo, cancellationPolicy]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -145,8 +177,17 @@ export function EditClassForm({ template, onSubmit, onCancel }: {
             </div>
 
             <div className="flex gap-2">
-                <Button type="button" variant="ghost" className="flex-1" onClick={onCancel}>
-                    취소
+                <Button
+                    type="button"
+                    variant="ghost"
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700"
+                    onClick={() => {
+                        handlePreview();
+                        onOpenPreview?.();
+                    }}
+                >
+                    <MonitorSmartphone className="mr-2 h-4 w-4" />
+                    신청 화면 미리보기
                 </Button>
                 <Button type="submit" className="flex-1">
                     클래스 수정
