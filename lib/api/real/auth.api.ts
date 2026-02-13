@@ -28,13 +28,12 @@ export const authApiReal: IAuthApi = {
         }
 
         const result: LoginResponse = await response.json();
-
         // 사용자 정보 저장
         const user: User = {
             id: result.userId.toString(),
             email: data.email,
             name: result.name,
-            phoneNumber: result.phoneNumber,
+            phoneNumber: result.phoneNumber || result.phone || result.PhoneNumber,
             role: result.role?.toLowerCase(),
             createdAt: new Date().toISOString(),
         };

@@ -128,7 +128,6 @@ export default function ProfilePage() {
                                 value={phone}
                                 onChange={handlePhoneChange}
                                 type="tel"
-                                placeholder="010-0000-0000"
                                 maxLength={13}
                                 required
                             />

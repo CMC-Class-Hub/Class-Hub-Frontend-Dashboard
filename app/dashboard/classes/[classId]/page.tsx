@@ -8,12 +8,15 @@ import { ArrowLeft, Link2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { api, templateApi, sessionApi, applicationApi, type ClassTemplate, type ClassSession } from "@/lib/api";
 import { CLASS_LINK_URL } from "@/lib/api/api-config";
 import { EditClassForm } from "@/components/dashboard/EditClassForm";
 import { AddSessionForm } from "@/components/dashboard/AddSessionForm";
 import { SessionList } from "@/components/dashboard/SessionList";
 import { EditSessionForm } from "@/components/dashboard/EditSessionForm";
+import { PreviewDialog } from "@/components/dialog/PreviewDialog";
+import { ClassDetailResponse } from "@/components/preview/ClassPreview";
 import { FloatingGuideButton } from "@/components/coachmark";
 import { useCoachmark } from "@/components/coachmark/hooks/useCoachmark";
 
@@ -27,8 +30,21 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
     const [editingSession, setEditingSession] = useState<ClassSession | null>(null);
     const [sessionApplicationCounts, setSessionApplicationCounts] = useState<Record<string, number>>({});
     const [user, setUser] = useState<any>(null);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
+
+    const [isMobile, setIsMobile] = useState(false);
+    const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+    const [previewData, setPreviewData] = useState<any>(null);
 
     const { isDemoMode } = useCoachmark();
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     // 데모 모드용 가짜 세션 (가이드 실행 중에만 표시)
     const demoSessions: ClassSession[] = [
@@ -108,12 +124,38 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
         loadApplicationCounts();
     }, [sessions]);
 
+    const handlePreview = (data: {
+        name: string;
+        description: string;
+        location: string;
+        locationDetails: string;
+        preparation: string;
+        instructions: string;
+        imageUrls: string[];
+        parkingInfo: string;
+        cancellationPolicy: string;
+    }) => {
+        setPreviewData({
+            id: 'preview',
+            name: data.name,
+            description: data.description,
+            location: data.location,
+            locationDetails: data.locationDetails,
+            preparation: data.preparation,
+            instructions: data.instructions,
+            imageUrls: data.imageUrls,
+            parkingInfo: data.parkingInfo,
+            cancellationPolicy: data.cancellationPolicy,
+        });
+    };
+
     const handleEditTemplate = async (data: any) => {
         if (!template || !user) return;
 
         const updatedTemplate = await templateApi.update(template.id, data);
         setTemplate(updatedTemplate);
         setEditDialogOpen(false);
+        setPreviewDialogOpen(false);
     };
 
     const handleAddSession = async (data: any) => {
@@ -142,23 +184,36 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
         await loadSessions(template.id);
     };
 
-    const handleDeleteSession = async (sessionId: string) => {
-        if (!confirm('이 세션을 삭제하시겠습니까?')) return;
+    const handleDeleteSession = (sessionId: string) => {
+        setSessionToDelete(sessionId);
+        setDeleteConfirmOpen(true);
+    };
+
+    const confirmDeleteSession = async () => {
+        if (!sessionToDelete) return;
 
         try {
-            await sessionApi.delete(sessionId);
+            await sessionApi.delete(sessionToDelete);
 
             if (template) {
                 await loadSessions(template.id);
             }
 
-            alert('세션이 삭제되었습니다.');
+            toast.success('세션이 삭제되었습니다', {
+                description: '세션이 성공적으로 삭제되었습니다.'
+            });
         } catch (error) {
             if (error instanceof Error) {
-                alert(error.message);
+                toast.error('삭제 실패', {
+                    description: error.message
+                });
             } else {
-                alert('세션 삭제 중 알 수 없는 오류가 발생했습니다.');
+                toast.error('삭제 실패', {
+                    description: '세션 삭제 중 알 수 없는 오류가 발생했습니다.'
+                });
             }
+        } finally {
+            setSessionToDelete(null);
         }
     };
 
@@ -255,21 +310,40 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                                 링크 복사
                             </Button>
 
-                            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                            <Dialog open={editDialogOpen} onOpenChange={(open) => {
+                                setEditDialogOpen(open);
+                                if (!open) setPreviewDialogOpen(false);
+                            }}>
                                 <DialogTrigger asChild>
                                     <Button variant="outline" className="w-full sm:w-auto">
                                         수정
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4 md:mx-auto rounded-3xl">
-                                    <DialogHeader>
+                                <DialogContent
+                                    className="max-w-2xl w-[92vw] md:w-full max-h-[90vh] overflow-hidden rounded-3xl p-0 border-none"
+                                    style={{
+                                        left: !isMobile && previewDialogOpen ? 'calc(50% - 260px)' : '50%',
+                                        transition: 'left 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    }}
+                                    onInteractOutside={(e) => {
+                                        e.preventDefault();
+                                    }}
+                                >
+                                    <DialogHeader className="px-6 pt-6 shrink-0 bg-white">
                                         <DialogTitle className="text-xl font-bold text-[#191F28]">클래스 수정</DialogTitle>
                                     </DialogHeader>
-                                    <EditClassForm
-                                        template={template}
-                                        onSubmit={handleEditTemplate}
-                                        onCancel={() => setEditDialogOpen(false)}
-                                    />
+                                    <div className="overflow-y-auto max-h-[calc(90vh-80px)] px-6 pb-6">
+                                        <EditClassForm
+                                            template={template}
+                                            onSubmit={handleEditTemplate}
+                                            onCancel={() => {
+                                                setEditDialogOpen(false);
+                                                setPreviewDialogOpen(false);
+                                            }}
+                                            onPreview={handlePreview}
+                                            onOpenPreview={() => setPreviewDialogOpen(true)}
+                                        />
+                                    </div>
                                 </DialogContent>
                             </Dialog>
                         </div>
@@ -326,8 +400,29 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                     </DialogContent>
                 </Dialog>
 
+                {/* 삭제 확인 다이얼로그 */}
+                <ConfirmDialog
+                    open={deleteConfirmOpen}
+                    onOpenChange={setDeleteConfirmOpen}
+                    onConfirm={confirmDeleteSession}
+                    title="세션을 삭제하시겠습니까?"
+                    description="삭제된 세션은 복구할 수 없습니다."
+                    confirmText="삭제"
+                    cancelText="취소"
+                    variant="destructive"
+                />
+
                 <FloatingGuideButton pageId="class-detail" />
             </div>
+
+            {/* Preview Dialog */}
+            {previewData && (
+                <PreviewDialog
+                    isOpen={previewDialogOpen}
+                    onClose={() => setPreviewDialogOpen(false)}
+                    previewData={previewData}
+                />
+            )}
         </div>
     );
 }

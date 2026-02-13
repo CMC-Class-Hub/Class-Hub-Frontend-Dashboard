@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { toast } from "sonner";
 import { api, templateApi, sessionApi, type ClassTemplate, type User } from "@/lib/api";
 import { ClassList } from "@/components/dashboard/ClassList";
 import { CreateClassForm } from "@/components/dashboard/CreateClassForm";
@@ -23,6 +25,8 @@ export default function ClassesPage() {
     const [templateSessionCounts, setTemplateSessionCounts] = useState<Record<string, number>>({});
     const [hasFormData, setHasFormData] = useState(false);
     const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
 
     const { isDemoMode, currentAction, isActive } = useCoachmark();
 
@@ -115,7 +119,9 @@ export default function ClassesPage() {
             setPreviewDialogOpen(false);
             await loadTemplates(user.id);
         } catch (error) {
-            alert('클래스 생성 중 오류가 발생했습니다. 이미지가 너무 크거나 저장 공간이 부족할 수 있습니다.');
+            toast.error('클래스 생성 실패', {
+                description: '클래스 생성 중 오류가 발생했습니다. 이미지가 너무 크거나 저장 공간이 부족할 수 있습니다.'
+            });
             console.error('Failed to create template:', error);
         }
     };
@@ -159,21 +165,31 @@ export default function ClassesPage() {
         });
         // Note: Dialog opening is now handled in CreateClassForm button click
     };
-    const handleDeleteTemplate = async (
+
+    const handleDeleteTemplate = (
         e: React.MouseEvent,
         templateId: string
     ) => {
         e.stopPropagation();
+        setTemplateToDelete(templateId);
+        setDeleteConfirmOpen(true);
+    };
 
-        if (!confirm('정말로 이 클래스를 삭제하시겠습니까? 관련된 모든 세션도 함께 삭제됩니다.')) {
-            return;
-        }
+    const confirmDeleteTemplate = async () => {
+        if (!templateToDelete) return;
 
         try {
-            await templateApi.delete(templateId);
+            await templateApi.delete(templateToDelete);
             if (user) await loadTemplates(user.id);
+            toast.success('클래스가 삭제되었습니다', {
+                description: '클래스가 성공적으로 삭제되었습니다.'
+            });
         } catch (err: any) {
-            alert(err.message ?? '클래스 삭제에 실패했습니다.');
+            toast.error('삭제 실패', {
+                description: err.message ?? '클래스 삭제에 실패했습니다.'
+            });
+        } finally {
+            setTemplateToDelete(null);
         }
     };
 
@@ -308,6 +324,18 @@ export default function ClassesPage() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* 삭제 확인 다이얼로그 */}
+            <ConfirmDialog
+                open={deleteConfirmOpen}
+                onOpenChange={setDeleteConfirmOpen}
+                onConfirm={confirmDeleteTemplate}
+                title="클래스를 삭제하시겠습니까?"
+                description="삭제하면 관련된 모든 세션도 함께 삭제됩니다. 이 작업은 복구할 수 없습니다."
+                confirmText="삭제"
+                cancelText="취소"
+                variant="destructive"
+            />
 
             <FloatingGuideButton pageId="classes" />
         </div>
