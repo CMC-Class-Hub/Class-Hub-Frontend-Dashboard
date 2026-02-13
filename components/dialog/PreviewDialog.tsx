@@ -58,16 +58,13 @@ export function PreviewDialog({ isOpen, onClose, previewData }: PreviewDialogPro
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 {/* Header - Toss Style */}
-                                <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-gray-100 z-10 px-6 py-5 shrink-0">
+                                <div className="sticky top-0 bg-[#E8F3FF] border-b border-blue-100 z-10 px-4 pt-5 pb-3 shrink-0">
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1 pr-4">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="text-2xl">👀</span>
-                                                <h2 className="text-lg font-bold text-[#191F28]">신청 화면 미리보기</h2>
+                                                <h2 className="text-lg font-bold text-[#191F28]">신청자에게 보여질 화면이에요</h2>
                                             </div>
-                                            <p className="text-sm text-[#6B7684] leading-relaxed">
-                                                수강생에게 보여질 화면이에요.
-                                            </p>
                                         </div>
                                         <button
                                             onClick={(e) => {
