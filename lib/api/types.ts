@@ -185,6 +185,8 @@ export interface LoginResponse {
   accessToken?: string;
   name?: string;
   phoneNumber?: string;
+  phone?: string;
+  PhoneNumber?: string;
   role?: string;
 }
 
