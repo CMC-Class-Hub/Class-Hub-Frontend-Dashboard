@@ -17,6 +17,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Class Hub - 강사 대시보드",
   description: "링크 하나로 신청부터 출석까지 자동 관리",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/icons/icon-192.png",
+  },
 };
 
 export default function RootLayout({

@@ -28,6 +28,7 @@ import {
   messageHistoryApiReal,
   authApiReal,
   instructorApiReal,
+  adminApiReal,
 } from './real';
 
 // Types
@@ -40,6 +41,7 @@ import type {
   IAuthApi,
   IMessageHistoryApi,
   IInstructorApi,
+  IAdminApi,
 } from './types';
 
 // ============================================================
@@ -54,6 +56,7 @@ export const messageTemplateApi: IMessageTemplateApi = USE_MOCK ? messageTemplat
 export const messageHistoryApi: IMessageHistoryApi = USE_MOCK ? messageHistoryApiMock : messageHistoryApiReal;
 export const authApi: IAuthApi = USE_MOCK ? authApiMock : authApiReal;
 export const instructorApi: IInstructorApi = instructorApiReal;
+export const adminApi: IAdminApi = adminApiReal;
 
 // 데모 데이터 초기화 (Mock 모드에서만 동작)
 export const initializeDemoData = async (instructorId: string): Promise<void> => {
@@ -105,6 +108,8 @@ export type {
   IMessageTemplateApi,
   IMessageHistoryApi,
   IInstructorApi,
+  IAdminApi,
+  InstructorAdminResponse,
   // Message extension
   Message,
   MessageType,
@@ -134,6 +139,7 @@ export const api = {
   messageHistory: messageHistoryApi,
   auth: authApi,
   instructor: instructorApi,
+  admin: adminApi,
   initializeDemoData,
 };
 

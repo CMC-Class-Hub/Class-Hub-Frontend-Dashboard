@@ -163,6 +163,30 @@ export default function ProfilePage() {
                     </form>
                 </CardContent>
             </Card>
+
+            <div className="flex justify-end">
+                <button
+                    onClick={async () => {
+                        if (confirm('정말로 탈퇴하시겠습니까? 탈퇴 시 모든 정보와 클래스가 삭제되며 복구할 수 없습니다.')) {
+                            try {
+                                setIsLoading(true);
+                                await api.instructor.withdraw(userId);
+                                await api.auth.logout();
+                                toast.success('탈퇴 처리가 완료되었습니다.');
+                                router.push('/');
+                            } catch (err: any) {
+                                toast.error(err.message || '탈퇴 처리에 실패했습니다.');
+                            } finally {
+                                setIsLoading(false);
+                            }
+                        }
+                    }}
+                    className="text-xs text-[#8B95A1] hover:text-[#F04452] underline underline-offset-4 transition-colors p-1"
+                    disabled={isLoading}
+                >
+                    회원 탈퇴
+                </button>
+            </div>
         </div>
     );
 }

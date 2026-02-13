@@ -164,14 +164,13 @@ export interface User {
   email: string;
   name?: string;
   phoneNumber?: string;
-  role: 'instructor';
+  role?: string;
   createdAt: string;
 }
 
 export interface LoginRequest {
   email: string;
   password: string;
-  name?: string; // Optional for login, but might be used if unified
 }
 
 export interface SignUpRequest {
@@ -185,7 +184,8 @@ export interface LoginResponse {
   userId: number;
   accessToken?: string;
   name?: string;
-  PhoneNumber?: string;
+  phoneNumber?: string;
+  role?: string;
 }
 
 export interface AuthResponse {
@@ -202,6 +202,7 @@ export interface InstructorUpdateRequest {
 
 export interface IInstructorApi {
   updateProfile(instructorId: string, data: InstructorUpdateRequest): Promise<void>;
+  withdraw(instructorId: string): Promise<void>;
 }
 
 // ============================================================
@@ -352,4 +353,18 @@ export interface IAuthApi {
   logout(): Promise<void>;
   getCurrentUser(): Promise<User | null>;
   isLoggedIn(): Promise<boolean>;
+  refresh(): Promise<void>;
+}
+
+export interface InstructorAdminResponse {
+  name: string;
+  email: string;
+  createdAt: string;
+  onedayClassCount: number;
+  sessionCount: number;
+  reservationCount: number;
+}
+
+export interface IAdminApi {
+  getAllInstructors(): Promise<InstructorAdminResponse[]>;
 }
