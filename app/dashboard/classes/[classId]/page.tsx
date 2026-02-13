@@ -8,6 +8,7 @@ import { ArrowLeft, Link2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { api, templateApi, sessionApi, applicationApi, type ClassTemplate, type ClassSession } from "@/lib/api";
 import { CLASS_LINK_URL } from "@/lib/api/api-config";
 import { EditClassForm } from "@/components/dashboard/EditClassForm";
@@ -27,6 +28,8 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
     const [editingSession, setEditingSession] = useState<ClassSession | null>(null);
     const [sessionApplicationCounts, setSessionApplicationCounts] = useState<Record<string, number>>({});
     const [user, setUser] = useState<any>(null);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
 
     const { isDemoMode } = useCoachmark();
 
@@ -142,23 +145,36 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
         await loadSessions(template.id);
     };
 
-    const handleDeleteSession = async (sessionId: string) => {
-        if (!confirm('이 세션을 삭제하시겠습니까?')) return;
+    const handleDeleteSession = (sessionId: string) => {
+        setSessionToDelete(sessionId);
+        setDeleteConfirmOpen(true);
+    };
+
+    const confirmDeleteSession = async () => {
+        if (!sessionToDelete) return;
 
         try {
-            await sessionApi.delete(sessionId);
+            await sessionApi.delete(sessionToDelete);
 
             if (template) {
                 await loadSessions(template.id);
             }
 
-            alert('세션이 삭제되었습니다.');
+            toast.success('세션이 삭제되었습니다', {
+                description: '세션이 성공적으로 삭제되었습니다.'
+            });
         } catch (error) {
             if (error instanceof Error) {
-                alert(error.message);
+                toast.error('삭제 실패', {
+                    description: error.message
+                });
             } else {
-                alert('세션 삭제 중 알 수 없는 오류가 발생했습니다.');
+                toast.error('삭제 실패', {
+                    description: '세션 삭제 중 알 수 없는 오류가 발생했습니다.'
+                });
             }
+        } finally {
+            setSessionToDelete(null);
         }
     };
 
@@ -325,6 +341,18 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                         )}
                     </DialogContent>
                 </Dialog>
+
+                {/* 삭제 확인 다이얼로그 */}
+                <ConfirmDialog
+                    open={deleteConfirmOpen}
+                    onOpenChange={setDeleteConfirmOpen}
+                    onConfirm={confirmDeleteSession}
+                    title="세션을 삭제하시겠습니까?"
+                    description="삭제된 세션은 복구할 수 없습니다."
+                    confirmText="삭제"
+                    cancelText="취소"
+                    variant="destructive"
+                />
 
                 <FloatingGuideButton pageId="class-detail" />
             </div>
