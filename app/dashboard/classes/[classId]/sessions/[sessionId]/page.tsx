@@ -11,6 +11,7 @@ import { api, sessionApi, templateApi, applicationApi, studentApi, type ClassSes
 import { ApplicationList } from "@/components/dashboard/ApplicationList";
 import { FloatingGuideButton } from "@/components/coachmark";
 import { useCoachmark } from "@/components/coachmark/hooks/useCoachmark";
+import { formatTime12h } from "@/lib/utils";
 
 export default function SessionDetailPage({ params }: { params: Promise<{ classId: string; sessionId: string }> }) {
     const router = useRouter();
@@ -204,7 +205,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ classI
                     <div>
                         <CardTitle className="text-lg md:text-xl">{template.name}</CardTitle>
                         <CardDescription className="mt-2 text-sm">
-                            {format(new Date(session.date), 'PPP (EEE)', { locale: ko })} {session.startTime} - {session.endTime}
+                            {format(new Date(session.date), 'PPP (EEE)', { locale: ko })} {formatTime12h(session.startTime)} - {formatTime12h(session.endTime)}
                         </CardDescription>
                         <div className="mt-4 text-sm text-[#4E5968]">
                             <p><span className="font-semibold text-[#191F28]">장소:</span> {template.location}</p>
