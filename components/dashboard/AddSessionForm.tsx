@@ -60,6 +60,7 @@ export function AddSessionForm({ onSubmit }: {
                 <Input
                     type="date"
                     value={date}
+                    min={new Date().toISOString().split('T')[0]}
                     onChange={(e) => {
                         setDate(e.target.value);
                         if (errors.date) setErrors({ ...errors, date: undefined });
@@ -108,6 +109,7 @@ export function AddSessionForm({ onSubmit }: {
                     <Input
                         type="number"
                         value={capacity}
+                        min="0"
                         onChange={(e) => {
                             const value = e.target.value;
                             setCapacity(value === "" ? '' : Number(value));
@@ -124,6 +126,7 @@ export function AddSessionForm({ onSubmit }: {
                     <Input
                         type="number"
                         value={price}
+                        min="0"
                         onChange={(e) => {
                             const value = e.target.value;
                             setPrice(value === "" ? '' : Number(value));
