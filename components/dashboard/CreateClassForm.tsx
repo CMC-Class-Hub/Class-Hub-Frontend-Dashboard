@@ -159,28 +159,25 @@ export function CreateClassForm({ onSubmit, onCancel, onPreview, onOpenPreview }
 
             <div className="space-y-2">
                 <Label htmlFor="classLocation">장소 *</Label>
-                <AddressSearchInput
-                    value={location}
-                    onChange={(newLocation) => {
-                        setLocation(newLocation);
-                        if (errors.location) setErrors({ ...errors, location: undefined });
-                    }}
-                    placeholder="주소 검색 (클릭)"
-                />
+                <div className="space-y-1">
+                    <AddressSearchInput
+                        value={location}
+                        onChange={(newLocation) => {
+                            setLocation(newLocation);
+                            if (errors.location) setErrors({ ...errors, location: undefined });
+                        }}
+                        placeholder="주소 검색 (클릭)"
+                    />
+                    <Input
+                        id="classLocationDetails"
+                        value={locationDetails}
+                        onChange={(e) => setLocationDetails(e.target.value)}
+                        placeholder="건물 입구, 주차 정보 등 상세 주소"
+                    />
+                </div>
                 {errors.location && (
                     <p className="text-xs text-[#F04452] font-medium">{errors.location}</p>
                 )}
-            </div>
-
-            <div className="space-y-2">
-                <Label htmlFor="classLocationDetails">위치 안내</Label>
-                <Textarea
-                    id="classLocationDetails"
-                    value={locationDetails}
-                    onChange={(e) => setLocationDetails(e.target.value)}
-                    placeholder="건물 입구, 주차 정보 등 상세 주소"
-                    rows={2}
-                />
             </div>
 
             <div className="space-y-2">

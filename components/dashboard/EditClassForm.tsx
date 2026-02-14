@@ -114,22 +114,25 @@ export function EditClassForm({ template, onSubmit, onCancel, onPreview, onOpenP
 
             <div className="space-y-2">
                 <Label htmlFor="editClassLocation">장소 *</Label>
-                <AddressSearchInput
-                    value={location}
-                    onChange={setLocation}
-                    placeholder="주소 검색 (클릭)"
-                />
-            </div>
-
-            <div className="space-y-2">
-                <Label htmlFor="editClassLocationDetails">위치 안내</Label>
-                <Textarea
-                    id="editClassLocationDetails"
-                    value={locationDetails}
-                    onChange={(e) => setLocationDetails(e.target.value)}
-                    placeholder="건물 입구, 주차 정보 등 상세 주소"
-                    rows={2}
-                />
+                <div className="space-y-1">
+                    <AddressSearchInput
+                        value={location}
+                        onChange={setLocation}
+                        onAddressSelected={(data) => {
+                            setLocation(data.address);
+                            if (data.buildingName) {
+                                setLocationDetails(prev => prev ? `${prev} ${data.buildingName}` : data.buildingName);
+                            }
+                        }}
+                        placeholder="주소 검색 (클릭)"
+                    />
+                    <Input
+                        id="editClassLocationDetails"
+                        value={locationDetails}
+                        onChange={(e) => setLocationDetails(e.target.value)}
+                        placeholder="건물 입구, 주차 정보 등 상세 주소"
+                    />
+                </div>
             </div>
 
             <div className="space-y-2">
