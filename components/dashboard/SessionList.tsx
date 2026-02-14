@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { formatTime12h } from "@/lib/utils";
 
 // 세션 타입 정의
 interface ClassSession {
@@ -244,7 +245,7 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                                                     <div className="flex-1">
                                                         <div className="flex flex-wrap items-center gap-2 mb-2">
                                                             <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-normal">
-                                                                {session.startTime.slice(0, 5)} - {session.endTime.slice(0, 5)}
+                                                                {formatTime12h(session.startTime)} - {formatTime12h(session.endTime)}
                                                             </span>
 
                                                             {onStatusChange ? (
