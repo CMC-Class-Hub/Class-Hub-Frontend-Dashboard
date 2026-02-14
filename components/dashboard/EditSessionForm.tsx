@@ -4,7 +4,16 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { TimeSelector } from "@/components/ui/TimeSelector";
 import type { ClassSession } from "@/lib/api";
+
+interface Errors {
+    date?: string;
+    startTime?: string;
+    endTime?: string;
+    capacity?: string;
+    price?: string;
+}
 
 interface EditSessionFormProps {
     session: ClassSession;
@@ -16,12 +25,42 @@ export function EditSessionForm({ session, onSubmit, onCancel }: EditSessionForm
     const [date, setDate] = useState(session.date || '');
     const [startTime, setStartTime] = useState(session.startTime || '');
     const [endTime, setEndTime] = useState(session.endTime || '');
-    const [capacity, setCapacity] = useState(session.capacity || 0);
-    const [price, setPrice] = useState(session.price || 0);
+    const [capacity, setCapacity] = useState<number | ''>(session.capacity || '');
+    const [price, setPrice] = useState<number | ''>(session.price ?? '');
+    const [errors, setErrors] = useState<Errors>({});
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit({ date, startTime, endTime, capacity, price });
+
+        const newErrors: Errors = {};
+
+        if (!date) {
+            newErrors.date = '날짜를 선택해주세요.';
+        }
+        if (!startTime) {
+            newErrors.startTime = '시작 시간을 입력해주세요.';
+        }
+        if (!endTime) {
+            newErrors.endTime = '종료 시간을 입력해주세요.';
+        }
+        if (capacity === '' || capacity <= 0) {
+            newErrors.capacity = '정원을 입력해주세요.';
+        }
+        if (price === '') {
+            newErrors.price = '가격을 입력해주세요.';
+        }
+
+        if (startTime && endTime && startTime > endTime) {
+            newErrors.startTime = '시작 시간은 종료 시간보다 빨라야 합니다.';
+        }
+
+        setErrors(newErrors);
+
+        if (Object.keys(newErrors).length > 0) {
+            return;
+        }
+
+        onSubmit({ date, startTime, endTime, capacity: Number(capacity), price: Number(price) });
     };
 
     return (
@@ -31,30 +70,45 @@ export function EditSessionForm({ session, onSubmit, onCancel }: EditSessionForm
                 <Input
                     type="date"
                     value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    required
+                    min={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => {
+                        setDate(e.target.value);
+                        if (errors.date) setErrors({ ...errors, date: undefined });
+                    }}
                 />
+                {errors.date && (
+                    <p className="text-xs text-[#F04452] font-medium">{errors.date}</p>
+                )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <Label>시작 시간 *</Label>
-                    <Input
-                        type="time"
+                    <TimeSelector
                         value={startTime}
-                        onChange={(e) => setStartTime(e.target.value)}
-                        required
+                        onChange={(value) => {
+                            setStartTime(value);
+                            if (errors.startTime) setErrors({ ...errors, startTime: undefined });
+                        }}
                     />
+                    {errors.startTime && (
+                        <p className="text-xs text-[#F04452] font-medium">{errors.startTime}</p>
+                    )}
                 </div>
 
                 <div className="space-y-2">
                     <Label>종료 시간 *</Label>
-                    <Input
-                        type="time"
+                    <TimeSelector
                         value={endTime}
-                        onChange={(e) => setEndTime(e.target.value)}
-                        required
+                        minTime={startTime}
+                        onChange={(value) => {
+                            setEndTime(value);
+                            if (errors.endTime) setErrors({ ...errors, endTime: undefined });
+                        }}
                     />
+                    {errors.endTime && (
+                        <p className="text-xs text-[#F04452] font-medium">{errors.endTime}</p>
+                    )}
                 </div>
             </div>
 
@@ -63,21 +117,35 @@ export function EditSessionForm({ session, onSubmit, onCancel }: EditSessionForm
                     <Label>정원 *</Label>
                     <Input
                         type="number"
-                        min="1"
                         value={capacity}
-                        onChange={(e) => setCapacity(parseInt(e.target.value) || 1)}
-                        required
+                        min="0"
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setCapacity(value === "" ? '' : Number(value));
+                            if (errors.capacity) setErrors({ ...errors, capacity: undefined });
+                        }}
+                        placeholder="10"
                     />
+                    {errors.capacity && (
+                        <p className="text-xs text-[#F04452] font-medium">{errors.capacity}</p>
+                    )}
                 </div>
                 <div className="space-y-2">
                     <Label>가격 *</Label>
                     <Input
                         type="number"
-                        min="0"
                         value={price}
-                        onChange={(e) => setPrice(parseInt(e.target.value) || 0)}
-                        required
+                        min="0"
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setPrice(value === "" ? '' : Number(value));
+                            if (errors.price) setErrors({ ...errors, price: undefined });
+                        }}
+                        placeholder="50000"
                     />
+                    {errors.price && (
+                        <p className="text-xs text-[#F04452] font-medium">{errors.price}</p>
+                    )}
                 </div>
             </div>
 

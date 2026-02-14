@@ -19,6 +19,7 @@ const DaumPostcode = dynamic(() => import('react-daum-postcode'), { ssr: false }
 interface AddressSearchInputProps {
     value?: string;
     onChange: (value: string) => void;
+    onAddressSelected?: (data: any) => void;
     placeholder?: string;
     disabled?: boolean;
     className?: string;
@@ -27,6 +28,7 @@ interface AddressSearchInputProps {
 export function AddressSearchInput({
     value,
     onChange,
+    onAddressSelected,
     placeholder = "주소 검색",
     disabled,
     className,
@@ -48,6 +50,9 @@ export function AddressSearchInput({
         }
 
         onChange(fullAddress);
+        if (onAddressSelected) {
+            onAddressSelected(data);
+        }
         setIsOpen(false);
     };
 

@@ -46,6 +46,7 @@ export function EditClassForm({ template, onSubmit, onCancel, onPreview, onOpenP
     const [imageUrls, setImageUrls] = useState<string[]>(template.imageUrls || []); // 여기 수정!
     const [parkingInfo, setParkingInfo] = useState(template.parkingInfo || '');
     const [cancellationPolicy, setCancellationPolicy] = useState(template.cancellationPolicy || '');
+    const [errors, setErrors] = useState<{ name?: string; description?: string; location?: string }>({});
 
     const handlePreview = () => {
         onPreview?.({
@@ -68,6 +69,26 @@ export function EditClassForm({ template, onSubmit, onCancel, onPreview, onOpenP
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validate required fields
+        const newErrors: { name?: string; description?: string; location?: string } = {};
+
+        if (!name.trim()) {
+            newErrors.name = '클래스명을 입력해주세요.';
+        }
+        if (!description.trim()) {
+            newErrors.description = '소개글을 입력해주세요.';
+        }
+        if (!location.trim()) {
+            newErrors.location = '장소를 입력해주세요.';
+        }
+
+        setErrors(newErrors);
+
+        // If there are errors, don't submit
+        if (Object.keys(newErrors).length > 0) {
+            return;
+        }
 
         onSubmit({
             name,
@@ -94,42 +115,56 @@ export function EditClassForm({ template, onSubmit, onCancel, onPreview, onOpenP
                 <Input
                     id="editClassName"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => {
+                        setName(e.target.value);
+                        if (errors.name) setErrors({ ...errors, name: undefined });
+                    }}
                     placeholder="예: 요가 초급 클래스"
-                    required
                     autoFocus
                 />
+                {errors.name && (
+                    <p className="text-xs text-[#F04452] font-medium">{errors.name}</p>
+                )}
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="editClassDescription">소개글</Label>
+                <Label htmlFor="editClassDescription">소개글 *</Label>
                 <Textarea
                     id="editClassDescription"
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    onChange={(e) => {
+                        setDescription(e.target.value);
+                        if (errors.description) setErrors({ ...errors, description: undefined });
+                    }}
                     placeholder="클래스에 대한 간단한 설명"
                     rows={3}
                 />
+                {errors.description && (
+                    <p className="text-xs text-[#F04452] font-medium">{errors.description}</p>
+                )}
             </div>
 
             <div className="space-y-2">
                 <Label htmlFor="editClassLocation">장소 *</Label>
-                <AddressSearchInput
-                    value={location}
-                    onChange={setLocation}
-                    placeholder="주소 검색 (클릭)"
-                />
-            </div>
-
-            <div className="space-y-2">
-                <Label htmlFor="editClassLocationDetails">위치 안내</Label>
-                <Textarea
-                    id="editClassLocationDetails"
-                    value={locationDetails}
-                    onChange={(e) => setLocationDetails(e.target.value)}
-                    placeholder="건물 입구, 주차 정보 등 상세 주소"
-                    rows={2}
-                />
+                <div className="space-y-1">
+                    <AddressSearchInput
+                        value={location}
+                        onChange={setLocation}
+                        onAddressSelected={(data) => {
+                            setLocation(data.address);
+                            if (data.buildingName) {
+                                setLocationDetails(prev => prev ? `${prev} ${data.buildingName}` : data.buildingName);
+                            }
+                        }}
+                        placeholder="주소 검색 (클릭)"
+                    />
+                    <Input
+                        id="editClassLocationDetails"
+                        value={locationDetails}
+                        onChange={(e) => setLocationDetails(e.target.value)}
+                        placeholder="건물 입구, 주차 정보 등 상세 주소"
+                    />
+                </div>
             </div>
 
             <div className="space-y-2">

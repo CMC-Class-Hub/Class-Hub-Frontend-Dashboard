@@ -2,6 +2,8 @@
 
 import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Users, Clock, CreditCard } from "lucide-react";
+import { formatTime12h } from "@/lib/utils";
 
 // 세션 타입 정의
 interface ClassSession {
@@ -242,72 +244,79 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                                             <div className="p-4 md:p-5">
                                                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                                     <div className="flex-1">
-                                                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                                                            <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-normal">
-                                                                {session.startTime.slice(0, 5)} - {session.endTime.slice(0, 5)}
-                                                            </span>
+                                                        <div className="flex flex-wrap items-center gap-3 mb-2">
+                                                            <div className="inline-flex items-center text-[#191F28]">
+                                                                <Clock className="w-4 h-4 mr-2 text-[#3182F6]" />
+                                                                <span className="text-base font-bold tracking-tight text-[#191F28]">
+                                                                    {formatTime12h(session.startTime)} - {formatTime12h(session.endTime)}
+                                                                </span>
+                                                            </div>
 
                                                             {onStatusChange ? (
                                                                 <div className="relative" {...(isFirstSession && { 'data-coachmark': 'session-status' })}>
                                                                     <button
                                                                         onClick={() => setOpenDropdown(isDropdownOpen ? null : session.id)}
-                                                                        className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs cursor-pointer hover:opacity-80 transition-opacity min-w-[60px] justify-center ${session.status === 'RECRUITING'
-                                                                            ? 'bg-blue-600 text-white'
-                                                                            : 'bg-[#E5E8EB] text-[#4E5968]'
+                                                                        className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium cursor-pointer hover:opacity-80 transition-opacity min-w-[60px] justify-center ${session.status === 'RECRUITING'
+                                                                            ? 'bg-[#E8F3FF] text-[#3182F6]'
+                                                                            : 'bg-[#F2F4F6] text-[#4E5968]'
                                                                             }`}
                                                                     >
                                                                         {session.status === 'RECRUITING' ? '모집중' : session.status === 'FULL' ? '마감' : '종료'} ▾
                                                                     </button>
                                                                     {isDropdownOpen && (
-                                                                        <div className="absolute z-10 mt-1 w-32 rounded-md border bg-white shadow-lg">
-                                                                            <div className="py-1">
-                                                                                <button
-                                                                                    onClick={() => {
-                                                                                        onStatusChange(session.id, 'RECRUITING');
-                                                                                        setOpenDropdown(null);
-                                                                                    }}
-                                                                                    className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
-                                                                                >
-                                                                                    모집중
-                                                                                </button>
-                                                                                <button
-                                                                                    onClick={() => {
-                                                                                        onStatusChange(session.id, 'FULL');
-                                                                                        setOpenDropdown(null);
-                                                                                    }}
-                                                                                    className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
-                                                                                >
-                                                                                    마감
-                                                                                </button>
-                                                                                <button
-                                                                                    onClick={() => {
-                                                                                        onStatusChange(session.id, 'CLOSED');
-                                                                                        setOpenDropdown(null);
-                                                                                    }}
-                                                                                    className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
-                                                                                >
-                                                                                    종료
-                                                                                </button>
-                                                                            </div>
+                                                                        <div className="absolute z-10 mt-1 w-32 rounded-lg border bg-white shadow-lg p-1">
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    onStatusChange(session.id, 'RECRUITING');
+                                                                                    setOpenDropdown(null);
+                                                                                }}
+                                                                                className="block w-full px-3 py-2 text-left text-sm rounded-md hover:bg-[#F2F4F6] transition-colors text-[#333D4B]"
+                                                                            >
+                                                                                모집중
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    onStatusChange(session.id, 'FULL');
+                                                                                    setOpenDropdown(null);
+                                                                                }}
+                                                                                className="block w-full px-3 py-2 text-left text-sm rounded-md hover:bg-[#F2F4F6] transition-colors text-[#333D4B]"
+                                                                            >
+                                                                                마감
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    onStatusChange(session.id, 'CLOSED');
+                                                                                    setOpenDropdown(null);
+                                                                                }}
+                                                                                className="block w-full px-3 py-2 text-left text-sm rounded-md hover:bg-[#F2F4F6] transition-colors text-[#333D4B]"
+                                                                            >
+                                                                                종료
+                                                                            </button>
                                                                         </div>
                                                                     )}
                                                                 </div>
                                                             ) : (
-                                                                <span className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs ${session.status === 'RECRUITING'
-                                                                    ? 'bg-blue-600 text-white'
-                                                                    : 'bg-gray-200 text-gray-700'
+                                                                <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${session.status === 'RECRUITING'
+                                                                    ? 'bg-[#E8F3FF] text-[#3182F6]'
+                                                                    : 'bg-[#F2F4F6] text-[#4E5968]'
                                                                     }`}>
                                                                     {session.status === 'RECRUITING' ? '모집중' : session.status === 'CLOSED' ? '마감' : '종료'}
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <div className="space-y-1">
-                                                            <p className="text-xs md:text-sm text-[#6B7684]">
-                                                                신청 <span className="font-semibold text-[#3182F6]">{confirmedCount}명</span> / 정원 {session.capacity}명
-                                                            </p>
-                                                            <p className="text-xs md:text-sm text-[#6B7684]">
-                                                                가격 <span className="font-semibold text-[#191F28]">{session.price.toLocaleString()}원</span>
-                                                            </p>
+                                                        <div className="flex items-center gap-3 text-sm text-[#4E5968] mt-3">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Users className="w-4 h-4 text-[#8B95A1]" />
+                                                                <span>
+                                                                    <span className="font-semibold text-[#191F28]">{confirmedCount}</span>
+                                                                    <span className="text-[#8B95A1]"> / {session.capacity}명</span>
+                                                                </span>
+                                                            </div>
+                                                            <div className="w-[1px] h-3 bg-[#E5E8EB]" />
+                                                            <div className="flex items-center gap-1.5">
+                                                                <CreditCard className="w-4 h-4 text-[#8B95A1]" />
+                                                                <span className="font-medium text-[#191F28]">{session.price.toLocaleString()}원</span>
+                                                            </div>
                                                         </div>
                                                     </div>
 

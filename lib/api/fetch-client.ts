@@ -39,7 +39,7 @@ export async function fetchClient(
     let response = await makeRequest();
 
     // 401 Unauthorized 발생 시
-    if (response.status === 401) {
+    if (response.status === 401 || response.status === 403) {
       console.log(`[fetchClient] 401 Unauthorized detected for: ${endpoint}`);
 
       // 이미 갱신 중이라면 대기 리스트에 추가
