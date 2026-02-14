@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { TimeSelector } from "@/components/ui/TimeSelector";
 import type { ClassSession } from "@/lib/api";
 
 interface Errors {
@@ -49,6 +50,10 @@ export function EditSessionForm({ session, onSubmit, onCancel }: EditSessionForm
             newErrors.price = '가격을 입력해주세요.';
         }
 
+        if (startTime && endTime && startTime > endTime) {
+            newErrors.startTime = '시작 시간은 종료 시간보다 빨라야 합니다.';
+        }
+
         setErrors(newErrors);
 
         if (Object.keys(newErrors).length > 0) {
@@ -79,11 +84,10 @@ export function EditSessionForm({ session, onSubmit, onCancel }: EditSessionForm
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <Label>시작 시간 *</Label>
-                    <Input
-                        type="time"
+                    <TimeSelector
                         value={startTime}
-                        onChange={(e) => {
-                            setStartTime(e.target.value);
+                        onChange={(value) => {
+                            setStartTime(value);
                             if (errors.startTime) setErrors({ ...errors, startTime: undefined });
                         }}
                     />
@@ -94,11 +98,11 @@ export function EditSessionForm({ session, onSubmit, onCancel }: EditSessionForm
 
                 <div className="space-y-2">
                     <Label>종료 시간 *</Label>
-                    <Input
-                        type="time"
+                    <TimeSelector
                         value={endTime}
-                        onChange={(e) => {
-                            setEndTime(e.target.value);
+                        minTime={startTime}
+                        onChange={(value) => {
+                            setEndTime(value);
                             if (errors.endTime) setErrors({ ...errors, endTime: undefined });
                         }}
                     />
