@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate-api": "openapi-generator-cli generate -i http://localhost:8080/v3/api-docs -g typescript-fetch -o ./lib/api/generated --additional-properties=typescriptThreePlus=true,supportsES6=true"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -60,6 +61,7 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.29.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
