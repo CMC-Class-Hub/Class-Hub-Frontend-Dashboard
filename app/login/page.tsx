@@ -44,7 +44,7 @@ export default function LoginPage() {
     }
 
     try {
-      await api.auth.login({ email, password });
+      await api.auth.login({ loginRequest: { email, password } });
       const user = await api.auth.getCurrentUser();
       if (user?.role === 'admin') {
         router.push("/admin");

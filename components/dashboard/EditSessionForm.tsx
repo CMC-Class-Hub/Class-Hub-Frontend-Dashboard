@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TimeSelector } from "@/components/ui/TimeSelector";
-import type { ClassSession } from "@/lib/api";
+import type { SessionResponse } from "@/lib/api";
+import { formatTime12h } from "@/lib/utils";
 
 interface Errors {
     date?: string;
@@ -16,15 +17,27 @@ interface Errors {
 }
 
 interface EditSessionFormProps {
-    session: ClassSession;
+    session: SessionResponse;
     onSubmit: (data: { date: string; startTime: string; endTime: string; capacity: number; price: number }) => void;
     onCancel: () => void;
 }
 
 export function EditSessionForm({ session, onSubmit, onCancel }: EditSessionFormProps) {
-    const [date, setDate] = useState(session.date || '');
-    const [startTime, setStartTime] = useState(session.startTime || '');
-    const [endTime, setEndTime] = useState(session.endTime || '');
+    const [date, setDate] = useState(session.date ? session.date.toISOString().split('T')[0] : '');
+    // Convert LocalTime object to HH:mm string
+    const formatTimeObj = (time: any) => {
+        if (!time) return '';
+        if (typeof time === 'string') {
+            const parts = time.split(':');
+            return parts.length >= 2 ? `${parts[0]}:${parts[1]}` : time;
+        }
+        const h = String(time.hour ?? 0).padStart(2, '0');
+        const m = String(time.minute ?? 0).padStart(2, '0');
+        return `${h}:${m}`;
+    };
+
+    const [startTime, setStartTime] = useState(formatTimeObj(session.startTime));
+    const [endTime, setEndTime] = useState(formatTimeObj(session.endTime));
     const [capacity, setCapacity] = useState<number | ''>(session.capacity || '');
     const [price, setPrice] = useState<number | ''>(session.price ?? '');
     const [errors, setErrors] = useState<Errors>({});
