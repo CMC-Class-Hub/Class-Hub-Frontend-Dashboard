@@ -4,59 +4,50 @@
  * - 컴포넌트에서는 이 파일에서만 import
  */
 
-import { USE_MOCK } from './api-config';
+import { USE_MOCK } from './config/api-config';
 
 // Mock APIs
 import {
   templateApiMock,
   sessionApiMock,
-  studentApiMock,
-  applicationApiMock,
+  memberApiMock,
+  reservationApiMock,
   messageTemplateApiMock,
-  messageHistoryApiMock,
   authApiMock,
+  instructorApiMock,
+  adminApiMock,
   initializeDemoData as initializeDemoDataMock,
+  uploadImageApiMock,
 } from './mock';
 
-// Real APIs
-import {
-  templateApiReal,
-  sessionApiReal,
-  studentApiReal,
-  applicationApiReal,
-  messageTemplateApiReal,
-  messageHistoryApiReal,
-  authApiReal,
-  instructorApiReal,
-  adminApiReal,
-} from './real';
+import { LocalAuthApi } from './LocalAuthApi';
+import { UploadImageApi } from './UploadImageApi';
+import { apiConfig } from './config/generated-client';
+import { InstructorApi, AdminControllerApi, MessageTemplateApi, OnedayClassApi, SessionApi, MemberApi, ReservationApi } from './generated';
+export { type InstructorAdminResponse, type MessageTemplateMetadata, type MessageTemplateResponse, MessageTemplateResponseTypeEnum, type OnedayClassResponse, type SessionResponse, type LocalTime, type ReservationResponse, type MemberResponseDto } from './generated';
+export type { UploadResult } from './UploadImageApi';
+export type { GetTemplateRequest } from './generated';
 
 // Types
 import type {
-  ITemplateApi,
-  ISessionApi,
-  IStudentApi,
-  IApplicationApi,
-  IMessageTemplateApi,
-  IAuthApi,
-  IMessageHistoryApi,
-  IInstructorApi,
-  IAdminApi,
+  AuthServiceInterface,
 } from './types';
 
 // ============================================================
 // API 스위칭 (이 파일에서만!)
 // ============================================================
 
-export const templateApi: ITemplateApi = USE_MOCK ? templateApiMock : templateApiReal;
-export const sessionApi: ISessionApi = USE_MOCK ? sessionApiMock : sessionApiReal;
-export const studentApi: IStudentApi = USE_MOCK ? studentApiMock : studentApiReal;
-export const applicationApi: IApplicationApi = USE_MOCK ? applicationApiMock : applicationApiReal;
-export const messageTemplateApi: IMessageTemplateApi = USE_MOCK ? messageTemplateApiMock : messageTemplateApiReal;
-export const messageHistoryApi: IMessageHistoryApi = USE_MOCK ? messageHistoryApiMock : messageHistoryApiReal;
-export const authApi: IAuthApi = USE_MOCK ? authApiMock : authApiReal;
-export const instructorApi: IInstructorApi = instructorApiReal;
-export const adminApi: IAdminApi = adminApiReal;
+export const onedayClassApi = USE_MOCK ? templateApiMock : new OnedayClassApi(apiConfig);
+export const sessionApi = USE_MOCK ? sessionApiMock : new SessionApi(apiConfig);
+export const memberApi = USE_MOCK ? memberApiMock : new MemberApi(apiConfig);
+export const reservationApi = USE_MOCK ? reservationApiMock : new ReservationApi(apiConfig);
+export const messageTemplateApi = USE_MOCK ? messageTemplateApiMock : new MessageTemplateApi(apiConfig);
+
+
+export const authApi: AuthServiceInterface = USE_MOCK ? authApiMock : new LocalAuthApi(apiConfig);
+export const instructorApi = USE_MOCK ? instructorApiMock : new InstructorApi(apiConfig);
+export const adminControllerApi = USE_MOCK ? adminApiMock : new AdminControllerApi(apiConfig);
+export const uploadImageApi = USE_MOCK ? uploadImageApiMock : new UploadImageApi();
 
 // 데모 데이터 초기화 (Mock 모드에서만 동작)
 export const initializeDemoData = async (instructorId: string): Promise<void> => {
@@ -71,75 +62,25 @@ export const initializeDemoData = async (instructorId: string): Promise<void> =>
 
 // Types
 export type {
-  // Domain types
-  ClassTemplate,
-  ClassSession,
-  ClassInfo,
-  Application,
-  Student,
-  Notification,
-  // Status types
-  ClassStatus,
-  ClassTemplateStatus,
-  ApplicationStatus,
-  PaymentMethod,
-  PaymentStatus,
-  AttendanceResponse,
-  TrustLevel,
-  NotificationType,
-  MessageTemplateType,
-  // Request types
-  CreateTemplateRequest,
-  UpdateTemplateRequest,
-  CreateSessionRequest,
-  UpdateSessionRequest,
-  CreateStudentRequest,
-  UpdateStudentRequest,
-  CreateApplicationRequest,
-  UpdateApplicationRequest,
-  // Response types
-  ApiResponse,
-  ApiError,
-  // API interfaces
-  ITemplateApi,
-  ISessionApi,
-  IStudentApi,
-  IApplicationApi,
-  IMessageTemplateApi,
-  IMessageHistoryApi,
-  IInstructorApi,
-  IAdminApi,
-  InstructorAdminResponse,
-  // Message extension
-  Message,
-  MessageType,
-  MessageStatus,
-  InstructorSettings,
+
   // Auth types
   User,
-  LoginRequest,
-  SignUpRequest,
-  AuthResponse,
-  IAuthApi,
-  MessageTemplateListItem,
-  MessageTemplateDetail,
-  InstructorUpdateRequest,
 } from './types';
 
 // Config
-export { API_URL, USE_MOCK } from './api-config';
+export { API_URL, USE_MOCK } from './config/api-config';
 
 // API 객체 (편의용)
 export const api = {
-  templates: templateApi,
-  sessions: sessionApi,
-  students: studentApi,
-  applications: applicationApi,
-  messageTemplates: messageTemplateApi,
-  messageHistory: messageHistoryApi,
+  onedayClass: onedayClassApi,
+  session: sessionApi,
+  member: memberApi,
+  reservation: reservationApi,
+  messageTemplate: messageTemplateApi,
   auth: authApi,
   instructor: instructorApi,
-  admin: adminApi,
+  admin: adminControllerApi,
+  upload: uploadImageApi,
   initializeDemoData,
 };
 

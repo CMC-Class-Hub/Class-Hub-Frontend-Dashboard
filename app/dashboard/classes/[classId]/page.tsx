@@ -1,20 +1,19 @@
-// app/dashboard/classes/[classId]/page.tsx
 "use client";
 
 import { useState, useEffect, use } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Link2, Plus } from "lucide-react";
+import { ArrowLeft, Clock, MoreVertical, Plus, Share2, Pencil, Trash2, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { api, templateApi, sessionApi, applicationApi, type ClassTemplate, type ClassSession } from "@/lib/api";
-import { CLASS_LINK_URL } from "@/lib/api/api-config";
+import { api, onedayClassApi, sessionApi, type SessionResponse, type OnedayClassResponse, type ReservationResponse } from "@/lib/api";
+import { CLASS_LINK_URL } from "@/lib/api/config/api-config";
 import { EditClassForm } from "@/components/dashboard/EditClassForm";
 import { AddSessionForm } from "@/components/dashboard/AddSessionForm";
 import { SessionList } from "@/components/dashboard/SessionList";
-import { EditSessionForm } from "@/components/dashboard/EditSessionForm";
+import { EditSessionForm as EditSessionFormDialog } from "@/components/dashboard/EditSessionForm";
 import { PreviewDialog } from "@/components/dialog/PreviewDialog";
 import { ClassDetailResponse } from "@/components/preview/ClassPreview";
 import { FloatingGuideButton } from "@/components/coachmark";
@@ -23,11 +22,11 @@ import { useCoachmark } from "@/components/coachmark/hooks/useCoachmark";
 export default function ClassDetailPage({ params }: { params: Promise<{ classId: string }> }) {
     const router = useRouter();
     const { classId } = use(params);
-    const [template, setTemplate] = useState<ClassTemplate | null>(null);
-    const [sessions, setSessions] = useState<ClassSession[]>([]);
+    const [template, setTemplate] = useState<OnedayClassResponse | null>(null);
+    const [sessions, setSessions] = useState<SessionResponse[]>([]);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [addSessionDialogOpen, setAddSessionDialogOpen] = useState(false);
-    const [editingSession, setEditingSession] = useState<ClassSession | null>(null);
+    const [editingSession, setEditingSession] = useState<SessionResponse | null>(null);
     const [sessionApplicationCounts, setSessionApplicationCounts] = useState<Record<string, number>>({});
     const [user, setUser] = useState<any>(null);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -47,82 +46,78 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
     }, []);
 
     // 데모 모드용 가짜 세션 (가이드 실행 중에만 표시)
-    const demoSessions: ClassSession[] = [
+    const demoSessions: SessionResponse[] = [
         {
-            id: 'demo-session-1',
-            templateId: classId,
-            instructorId: 'demo-user',
-            date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            startTime: '10:00',
-            endTime: '12:00',
+            id: 101, // Mock generated numeric ID
+            date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+            startTime: "10:00:00",
+            endTime: "12:00:00",
             capacity: 10,
             currentNum: 3,
             status: 'RECRUITING',
             price: 50000,
-            linkId: 'demo-link-1',
-            createdAt: new Date().toISOString(),
         },
         {
-            id: 'demo-session-2',
-            templateId: classId,
-            instructorId: 'demo-user',
-            date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            startTime: '14:00',
-            endTime: '16:00',
+            id: 102,
+            date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            startTime: "14:00:00",
+            endTime: "16:00:00",
             capacity: 8,
             currentNum: 1,
             status: 'RECRUITING',
             price: 50000,
-            linkId: 'demo-link-2',
-            createdAt: new Date().toISOString(),
         },
     ];
 
     // 실제 데이터와 데모 데이터 결합
     const displaySessions = isDemoMode && sessions.length === 0 ? demoSessions : sessions;
     const displaySessionCounts = isDemoMode && sessions.length === 0
-        ? { 'demo-session-1': 3, 'demo-session-2': 1 }
+        ? { '101': 3, '102': 1 }
         : sessionApplicationCounts;
+
+    const loadSessions = async (classIdStr: string) => {
+        try {
+            // Use onedayClassApi.getClassSessions1 instead of sessionApi.getClassSessions1
+            const data = await onedayClassApi.getClassSessions1({ classId: Number(classIdStr) });
+            setSessions(data);
+
+            // 신청자 수 집계 (API가 없어서 각 세션별로 조회)
+            const counts: Record<string, number> = {};
+            for (const session of data) {
+                if (session.id) {
+                    const applications = await api.reservation.getReservations({ sessionId: session.id });
+                    counts[String(session.id)] = applications.filter((app: ReservationResponse) => app.reservationStatus === 'CONFIRMED').length;
+                }
+            }
+            setSessionApplicationCounts(counts);
+        } catch (e) {
+            console.error("Failed to load sessions", e);
+        }
+    };
 
     useEffect(() => {
         const fetchData = async () => {
             const currentUser = await api.auth.getCurrentUser();
             if (currentUser) {
                 setUser(currentUser);
-                const templates = await templateApi.getAll(currentUser.id);
-                const found = templates.find(t => String(t.id) === classId);
-                if (found) {
-                    setTemplate(found);
-                    loadSessions(found.id);
-                } else {
+                try {
+                    const templateData = await onedayClassApi.getClass({ classId: Number(classId) });
+                    if (templateData) {
+                        setTemplate(templateData);
+                        if (templateData.id) {
+                            loadSessions(String(templateData.id));
+                        }
+                    } else {
+                        router.push('/dashboard/classes');
+                    }
+                } catch (e) {
+                    console.error("Failed to fetch class", e);
                     router.push('/dashboard/classes');
                 }
             }
         };
         fetchData();
     }, [classId, router]);
-
-    const loadSessions = async (templateId: string) => {
-        const templateSessions = await sessionApi.getByTemplateId(templateId);
-        setSessions(templateSessions);
-    };
-
-    useEffect(() => {
-        const loadApplicationCounts = async () => {
-            if (sessions.length > 0) {
-                const counts: Record<string, number> = {};
-                for (const session of sessions) {
-                    const apps = await applicationApi.getBySessionId(session.id);
-                    counts[session.id] = apps.filter(app =>
-                        (app as any).reservationStatus === 'CONFIRMED'
-                    ).length;
-                }
-                setSessionApplicationCounts(counts);
-            }
-        };
-
-        loadApplicationCounts();
-    }, [sessions]);
 
     const handlePreview = (data: {
         name: string;
@@ -150,42 +145,87 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
     };
 
     const handleEditTemplate = async (data: any) => {
-        if (!template || !user) return;
+        if (!template || !user || !template.id) return;
 
-        const updatedTemplate = await templateApi.update(template.id, data);
-        setTemplate(updatedTemplate);
-        setEditDialogOpen(false);
-        setPreviewDialogOpen(false);
+        try {
+            const updatedTemplate = await onedayClassApi.updateClass({
+                classId: template.id,
+                onedayClassCreateRequest: {
+                    name: data.name,
+                    description: data.description,
+                    location: data.location,
+                    locationDetails: data.locationDetails,
+                    preparation: data.preparation,
+                    instructions: data.instructions,
+                    cancellationPolicy: data.cancellationPolicy,
+                    parkingInfo: data.parkingInfo,
+                    images: data.images,
+                }
+            });
+            setTemplate(updatedTemplate);
+            setEditDialogOpen(false);
+            setPreviewDialogOpen(false);
+        } catch (e) {
+            console.error("Failed to update template", e);
+            toast.error("클래스 수정 실패");
+        }
     };
 
     const handleAddSession = async (data: any) => {
-        if (!template || !user) return;
-
-        await sessionApi.create(user.id, {
-            templateId: template.id,
-            ...data
-        });
-
-        setAddSessionDialogOpen(false);
-        await loadSessions(template.id);
+        if (!template || !template.id) return;
+        try {
+            await sessionApi.createSession({
+                sessionCreateRequest: {
+                    templateId: Number(template.id),
+                    date: new Date(data.date),
+                    startTime: `${data.startTime}:00`,
+                    endTime: `${data.endTime}:00`,
+                    capacity: data.capacity,
+                    price: data.price,
+                }
+            });
+            await loadSessions(String(template.id));
+            setAddSessionDialogOpen(false);
+            toast.success("세션이 생성되었습니다");
+        } catch (e) {
+            console.error("Failed to create session", e);
+            toast.error("세션 생성 실패");
+        }
     };
 
     const handleEditSession = async (data: any) => {
-        if (!editingSession || !template) return;
+        if (!editingSession || !editingSession.id) return;
+        try {
+            await sessionApi.updateSession({
+                sessionId: editingSession.id,
+                sessionUpdateRequest: {
+                    date: new Date(data.date),
+                    startTime: `${data.startTime}:00`,
+                    endTime: `${data.endTime}:00`,
+                    capacity: data.capacity,
+                    price: data.price,
+                }
+            });
 
-        await sessionApi.update(editingSession.id, data);
-        setEditingSession(null);
-        await loadSessions(template.id);
+            if (template && template.id) {
+                await loadSessions(String(template.id));
+            }
+            setEditingSession(null);
+            toast.success("세션이 수정되었습니다");
+        } catch (e) {
+            console.error("Failed to update session", e);
+            toast.error("세션 수정 실패");
+        }
     };
 
-    const handleStatusChange = async (sessionId: string, newStatus: 'RECRUITING' | 'CLOSED' | 'FULL') => {
-        if (!template) return;
-        await sessionApi.updateStatus(sessionId, newStatus);
-        await loadSessions(template.id);
+    const handleStatusChange = async (sessionId: number, newStatus: 'RECRUITING' | 'FULL' | 'CLOSED') => {
+        if (!template || !template.id) return;
+        await sessionApi.updateSessionStatus({ sessionId, status: newStatus });
+        await loadSessions(String(template.id));
     };
 
-    const handleDeleteSession = (sessionId: string) => {
-        setSessionToDelete(sessionId);
+    const handleDeleteSession = (sessionId: number) => {
+        setSessionToDelete(String(sessionId));
         setDeleteConfirmOpen(true);
     };
 
@@ -193,10 +233,10 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
         if (!sessionToDelete) return;
 
         try {
-            await sessionApi.delete(sessionToDelete);
+            await sessionApi.deleteSession({ sessionId: Number(sessionToDelete) });
 
-            if (template) {
-                await loadSessions(template.id);
+            if (template && template.id) {
+                await loadSessions(String(template.id));
             }
 
             toast.success('세션이 삭제되었습니다', {
@@ -218,10 +258,15 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
     };
 
     const handleLinkShareStatusChange = async (newStatus: 'ENABLED' | 'DISABLED') => {
-        if (!template) return;
+        if (!template || !template.id) return;
 
         try {
-            const updatedTemplate = await templateApi.updateLinkShareStatus(template.id, newStatus);
+            const updatedTemplate = await onedayClassApi.updateLinkShareStatus({
+                classId: template.id,
+                linkShareStatusUpdateRequest: {
+                    linkShareStatus: newStatus
+                }
+            });
             setTemplate(updatedTemplate);
 
             toast.success(
@@ -256,7 +301,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
     const isLinkEnabled = template.linkShareStatus === 'ENABLED';
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6" >
             <Button variant="ghost" onClick={() => router.push('/dashboard/classes')} className="px-3 text-[#6B7684] hover:text-[#191F28] -ml-2 mb-4 w-fit">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 클래스 목록으로
@@ -349,10 +394,10 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                         </div>
                     </div>
                 </CardHeader>
-            </Card>
+            </Card >
 
             {/* 세션 목록 섹션 */}
-            <div className="space-y-4">
+            < div className="space-y-4" >
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                     <h2 className="text-lg md:text-xl font-bold text-[#191F28]">세션 목록</h2>
                     <Dialog open={addSessionDialogOpen} onOpenChange={setAddSessionDialogOpen}>
@@ -391,7 +436,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                             <DialogTitle className="text-xl font-bold text-[#191F28]">세션 수정</DialogTitle>
                         </DialogHeader>
                         {editingSession && (
-                            <EditSessionForm
+                            <EditSessionFormDialog
                                 session={editingSession}
                                 onSubmit={handleEditSession}
                                 onCancel={() => setEditingSession(null)}
@@ -413,16 +458,18 @@ export default function ClassDetailPage({ params }: { params: Promise<{ classId:
                 />
 
                 <FloatingGuideButton pageId="class-detail" />
-            </div>
+            </div >
 
             {/* Preview Dialog */}
-            {previewData && (
-                <PreviewDialog
-                    isOpen={previewDialogOpen}
-                    onClose={() => setPreviewDialogOpen(false)}
-                    previewData={previewData}
-                />
-            )}
-        </div>
+            {
+                previewData && (
+                    <PreviewDialog
+                        isOpen={previewDialogOpen}
+                        onClose={() => setPreviewDialogOpen(false)}
+                        previewData={previewData}
+                    />
+                )
+            }
+        </div >
     );
 }

@@ -1,5 +1,6 @@
-import type { IAuthApi, LoginRequest, SignUpRequest, LoginResponse, User } from '../types';
-import { delay, generateId } from './storage';
+import type { User } from '../types';
+import type { LoginOperationRequest, SignUpOperationRequest, LoginResponse, LoginStatusResponse } from '../generated';
+import { delay } from './storage';
 
 const AUTH_KEY = 'classhub_auth_user';
 const USERS_KEY = 'classhub_users';
@@ -17,11 +18,12 @@ const saveUsers = (users: User[]): void => {
     localStorage.setItem(USERS_KEY, JSON.stringify(users));
 };
 
-export const authApiMock: IAuthApi = {
-    async login({ email, password }: LoginRequest): Promise<LoginResponse> {
+import { AuthServiceInterface } from '../types';
+
+export const authApiMock: AuthServiceInterface = {
+    async login(requestParameters: LoginOperationRequest): Promise<LoginResponse> {
         await delay(500); // Simulate network latency
-
-
+        const { email, password } = requestParameters.loginRequest;
 
         const users = getUsers();
         const user = users.find(u => u.email === email);
@@ -38,11 +40,17 @@ export const authApiMock: IAuthApi = {
         // Save session
         localStorage.setItem(AUTH_KEY, JSON.stringify(user));
 
-        return { userId: parseInt(user.id.split('_')[1]) || 1, accessToken: 'mock-jwt-token' };
+        return {
+            userId: user.id.includes('_') ? parseInt(user.id.split('_')[1]) : 1,
+            name: user.name,
+            phoneNumber: user.phoneNumber,
+            role: user.role === 'admin' ? 'ADMIN' : 'USER'
+        } as LoginResponse;
     },
 
-    async signUp({ email, name, password, phoneNumber }: SignUpRequest): Promise<LoginResponse> {
+    async signUp(requestParameters: SignUpOperationRequest): Promise<number> {
         await delay(500);
+        const { email, name, password, phoneNumber } = requestParameters.signUpRequest;
         const users = getUsers();
 
         if (users.find(u => u.email === email)) {
@@ -51,7 +59,7 @@ export const authApiMock: IAuthApi = {
 
         const newUser: User = {
             id: `instructor_${Date.now()}`,
-            email,
+            email: email || '',
             name,
             phoneNumber,
             role: 'instructor',
@@ -62,9 +70,9 @@ export const authApiMock: IAuthApi = {
         saveUsers(users);
 
         // Save password separately (simple imitation)
-        localStorage.setItem(`password_${email}`, password);
+        localStorage.setItem(`password_${email || ''}`, password || '');
 
-        return { userId: parseInt(newUser.id.split('_')[1]), accessToken: 'mock-jwt-token' };
+        return parseInt(newUser.id.split('_')[1]);
     },
 
     async logout(): Promise<void> {
@@ -72,20 +80,32 @@ export const authApiMock: IAuthApi = {
         localStorage.removeItem(AUTH_KEY);
     },
 
+    async checkLoginStatus(): Promise<LoginStatusResponse> {
+        await delay(200);
+        if (typeof window === 'undefined') return { loggedIn: false };
+        const data = localStorage.getItem(AUTH_KEY);
+        const user = data ? JSON.parse(data) : null;
+        return {
+            loggedIn: !!user,
+            username: user ? user.name : undefined
+        };
+    },
+
+    async refresh(): Promise<void> {
+        await delay(200);
+        // Mock refresh always succeeds if we are here
+    },
+
+    // Extended helper methods (kept for compatibility during migration, or as part of Enhanced interface)
     async getCurrentUser(): Promise<User | null> {
-        // Check localStorage immediately but simulate async return
         if (typeof window === 'undefined') return null;
         const data = localStorage.getItem(AUTH_KEY);
         return data ? JSON.parse(data) : null;
     },
 
     async isLoggedIn(): Promise<boolean> {
-        const user = await this.getCurrentUser();
-        return user !== null;
-    },
-
-    async refresh(): Promise<void> {
-        await delay(200);
-        // Mock refresh always succeeds if we are here
+        if (typeof window === 'undefined') return false;
+        const data = localStorage.getItem(AUTH_KEY);
+        return !!data;
     }
 };

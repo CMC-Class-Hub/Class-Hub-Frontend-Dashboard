@@ -13,8 +13,8 @@ Name | Type
 `classLocation` | string
 `classCode` | string
 `date` | Date
-`startTime` | [LocalTime](LocalTime.md)
-`endTime` | [LocalTime](LocalTime.md)
+`startTime` | string
+`endTime` | string
 `applicantName` | string
 `phoneNumber` | string
 `capacity` | number

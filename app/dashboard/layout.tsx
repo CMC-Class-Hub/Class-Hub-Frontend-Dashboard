@@ -58,30 +58,41 @@ function DashboardContent({
                 return;
             }
 
-            // Create Template
-            const template = await api.templates.create(instructorId, {
-                name: data.name,
-                description: data.description,
-                location: data.location || "미정",
-                locationDetails: "",
-                preparation: data.materials,
-                parkingInfo: data.parking,
-                // category is not in API yet, skipping
+            // Create Template using generated API
+            // Note: instructorId might be implicit from token or not needed in generated API request body if handled by backend
+            const template = await api.onedayClass.createClass({
+                onedayClassCreateRequest: {
+                    name: data.name,
+                    description: data.description,
+                    location: data.location,
+                    locationDetails: data.locationDetails,
+                    preparation: data.preparation,
+                    instructions: data.instructions,
+                    cancellationPolicy: data.cancellationPolicy,
+                    parkingInfo: data.parkingInfo,
+                    images: data.images
+                }
             });
-
             // Create Session if date exists
             if (data.date && data.startTime) {
-                // "2024.03.15 (토)" -> "2024-03-15"
-                const dateStr = data.date.split(' ')[0].replace(/\./g, '-');
-                const priceNum = data.price ? Number(String(data.price).replace(/,/g, '')) : 0;
+                const startTimeParts = data.startTime.split(':');
+                // Assuming endTime is available or calculated.
+                // If endTime is not in data, we might need default duration.
+                // Legacy code had duration? data.startTime + duration?
+                // Let's assume 2 hours default if endTime missing.
+                const startHour = parseInt(startTimeParts[0]);
+                const startMinute = parseInt(startTimeParts[1]);
+                const endHour = startHour + 2; // Default 2 hours duration
 
-                await api.sessions.create(instructorId, {
-                    templateId: template.id,
-                    date: dateStr,
-                    startTime: data.startTime,
-                    endTime: "16:00", // Default 2 hours later
-                    capacity: Number(data.capacity) || 10,
-                    price: priceNum,
+                await api.session.createSession({
+                    sessionCreateRequest: {
+                        templateId: Number(template.id),
+                        date: new Date(data.date), // "2024-03-15" string to Date works? Date constructor handles YYYY-MM-DD
+                        startTime: `${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}:00`,
+                        endTime: `${String(endHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}:00`,
+                        capacity: Number(data.capacity) || 10, // Default to 10 if not provided
+                        price: Number(data.price) || 0 // Default to 0 if not provided
+                    }
                 });
             }
 

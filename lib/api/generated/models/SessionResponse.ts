@@ -13,14 +13,6 @@
  */
 
 import { mapValues } from '../runtime';
-import type { LocalTime } from './LocalTime';
-import {
-    LocalTimeFromJSON,
-    LocalTimeFromJSONTyped,
-    LocalTimeToJSON,
-    LocalTimeToJSONTyped,
-} from './LocalTime';
-
 /**
  * 세션 응답
  * @export
@@ -41,16 +33,16 @@ export interface SessionResponse {
     date?: Date;
     /**
      * 시작 시간
-     * @type {LocalTime}
+     * @type {string}
      * @memberof SessionResponse
      */
-    startTime?: LocalTime;
+    startTime?: string;
     /**
      * 종료 시간
-     * @type {LocalTime}
+     * @type {string}
      * @memberof SessionResponse
      */
-    endTime?: LocalTime;
+    endTime?: string;
     /**
      * 현재 신청 인원
      * @type {number}
@@ -96,8 +88,8 @@ export function SessionResponseFromJSONTyped(json: any, ignoreDiscriminator: boo
         
         'id': json['id'] == null ? undefined : json['id'],
         'date': json['date'] == null ? undefined : (new Date(json['date'])),
-        'startTime': json['startTime'] == null ? undefined : LocalTimeFromJSON(json['startTime']),
-        'endTime': json['endTime'] == null ? undefined : LocalTimeFromJSON(json['endTime']),
+        'startTime': json['startTime'] == null ? undefined : json['startTime'],
+        'endTime': json['endTime'] == null ? undefined : json['endTime'],
         'currentNum': json['currentNum'] == null ? undefined : json['currentNum'],
         'capacity': json['capacity'] == null ? undefined : json['capacity'],
         'price': json['price'] == null ? undefined : json['price'],
@@ -118,8 +110,8 @@ export function SessionResponseToJSONTyped(value?: SessionResponse | null, ignor
         
         'id': value['id'],
         'date': value['date'] == null ? value['date'] : value['date'].toISOString().substring(0,10),
-        'startTime': LocalTimeToJSON(value['startTime']),
-        'endTime': LocalTimeToJSON(value['endTime']),
+        'startTime': value['startTime'],
+        'endTime': value['endTime'],
         'currentNum': value['currentNum'],
         'capacity': value['capacity'],
         'price': value['price'],

@@ -4,32 +4,21 @@ import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Users, Clock, CreditCard } from "lucide-react";
 import { formatTime12h } from "@/lib/utils";
-
-// 세션 타입 정의
-interface ClassSession {
-    id: string;
-    date: string;
-    startTime: string;
-    endTime: string;
-    capacity: number;
-    currentNum?: number;
-    price: number;
-    status: 'RECRUITING' | 'FULL' | 'CLOSED';
-}
+import { type SessionResponse } from "@/lib/api";
 
 interface SessionListProps {
-    sessions: ClassSession[];
+    sessions: SessionResponse[];
     sessionApplicationCounts: Record<string, number>;
-    onDeleteSession: (sessionId: string) => void;
-    onEditSession: (session: ClassSession) => void;
-    onStatusChange?: (sessionId: string, newStatus: 'RECRUITING' | 'FULL' | 'CLOSED') => void;
+    onDeleteSession: (sessionId: number) => void;
+    onEditSession: (session: SessionResponse) => void;
+    onStatusChange?: (sessionId: number, newStatus: 'RECRUITING' | 'FULL' | 'CLOSED') => void;
     onAddSession?: () => void;
     classId: string;
 }
 
 // 날짜 포맷 함수
-const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+const formatDate = (date: Date | undefined) => {
+    if (!date) return '';
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const days = ['일', '월', '화', '수', '목', '금', '토'];
@@ -43,16 +32,19 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
         const now = new Date();
         return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     });
-    const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+    const [openDropdown, setOpenDropdown] = useState<number | null>(null);
 
     // 월별로 그룹화된 세션 날짜 목록
     const sessionsByMonth = useMemo(() => {
-        const grouped: Record<string, Record<string, ClassSession[]>> = {};
+        const grouped: Record<string, Record<string, SessionResponse[]>> = {};
 
         sessions.forEach((session) => {
-            const date = new Date(session.date);
+            if (!session.date || !session.startTime) return;
+
+            const date = session.date;
             const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-            const dateKey = session.date;
+            // Use ISO string date part as key
+            const dateKey = date.toISOString().split('T')[0];
 
             if (!grouped[monthKey]) {
                 grouped[monthKey] = {};
@@ -66,12 +58,13 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
         // 각 월의 날짜들을 정렬하고, 각 날짜 내에서 시간순으로 정렬
         Object.keys(grouped).forEach(month => {
             const sortedDates = Object.keys(grouped[month]).sort();
-            const sortedMonth: Record<string, ClassSession[]> = {};
+            const sortedMonth: Record<string, SessionResponse[]> = {};
 
             sortedDates.forEach(date => {
-                sortedMonth[date] = grouped[month][date].sort((a, b) =>
-                    a.startTime.localeCompare(b.startTime)
-                );
+                sortedMonth[date] = grouped[month][date].sort((a, b) => {
+                    if (!a.startTime || !b.startTime) return 0;
+                    return a.startTime.localeCompare(b.startTime);
+                });
             });
 
             grouped[month] = sortedMonth;
@@ -227,7 +220,7 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                             {/* 날짜 헤더 - 깔끔한 디자인 */}
                             <div className="flex items-center gap-3 px-1">
                                 <h3 className="text-base font-bold text-[#191F28] whitespace-nowrap">
-                                    {formatDate(date)}
+                                    {formatDate(new Date(date))}
                                 </h3>
                                 <div className="flex-1 h-[1.5px] bg-gray-200"></div>
                             </div>
@@ -235,7 +228,8 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                             {/* 해당 날짜의 세션들 */}
                             <div className="space-y-2.5">
                                 {dateSessions.map((session, sessionIndex) => {
-                                    const confirmedCount = sessionApplicationCounts[session.id] || 0;
+                                    if (!session.id) return null;
+                                    const confirmedCount = sessionApplicationCounts[String(session.id)] || 0;
                                     const isDropdownOpen = openDropdown === session.id;
                                     const isFirstSession = sessionIndex === 0 && date === Object.keys(currentMonthSessions)[0];
 
@@ -255,7 +249,7 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                                                             {onStatusChange ? (
                                                                 <div className="relative" {...(isFirstSession && { 'data-coachmark': 'session-status' })}>
                                                                     <button
-                                                                        onClick={() => setOpenDropdown(isDropdownOpen ? null : session.id)}
+                                                                        onClick={() => setOpenDropdown(isDropdownOpen ? null : session.id!)}
                                                                         className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium cursor-pointer hover:opacity-80 transition-opacity min-w-[60px] justify-center ${session.status === 'RECRUITING'
                                                                             ? 'bg-[#E8F3FF] text-[#3182F6]'
                                                                             : 'bg-[#F2F4F6] text-[#4E5968]'
@@ -267,7 +261,7 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                                                                         <div className="absolute z-10 mt-1 w-32 rounded-lg border bg-white shadow-lg p-1">
                                                                             <button
                                                                                 onClick={() => {
-                                                                                    onStatusChange(session.id, 'RECRUITING');
+                                                                                    onStatusChange(session.id!, 'RECRUITING');
                                                                                     setOpenDropdown(null);
                                                                                 }}
                                                                                 className="block w-full px-3 py-2 text-left text-sm rounded-md hover:bg-[#F2F4F6] transition-colors text-[#333D4B]"
@@ -276,7 +270,7 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                                                                             </button>
                                                                             <button
                                                                                 onClick={() => {
-                                                                                    onStatusChange(session.id, 'FULL');
+                                                                                    onStatusChange(session.id!, 'FULL');
                                                                                     setOpenDropdown(null);
                                                                                 }}
                                                                                 className="block w-full px-3 py-2 text-left text-sm rounded-md hover:bg-[#F2F4F6] transition-colors text-[#333D4B]"
@@ -285,7 +279,7 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                                                                             </button>
                                                                             <button
                                                                                 onClick={() => {
-                                                                                    onStatusChange(session.id, 'CLOSED');
+                                                                                    onStatusChange(session.id!, 'CLOSED');
                                                                                     setOpenDropdown(null);
                                                                                 }}
                                                                                 className="block w-full px-3 py-2 text-left text-sm rounded-md hover:bg-[#F2F4F6] transition-colors text-[#333D4B]"
@@ -315,7 +309,7 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                                                             <div className="w-[1px] h-3 bg-[#E5E8EB]" />
                                                             <div className="flex items-center gap-1.5">
                                                                 <CreditCard className="w-4 h-4 text-[#8B95A1]" />
-                                                                <span className="font-medium text-[#191F28]">{session.price.toLocaleString()}원</span>
+                                                                <span className="font-medium text-[#191F28]">{(session.price || 0).toLocaleString()}원</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -340,7 +334,7 @@ export function SessionList({ sessions, sessionApplicationCounts, onDeleteSessio
                                                         </button>
 
                                                         <button
-                                                            onClick={() => onDeleteSession(session.id)}
+                                                            onClick={() => onDeleteSession(session.id!)}
                                                             className="inline-flex items-center justify-center rounded-md p-2 text-[#B0B8C1] hover:text-[#F04452] hover:bg-[#FFEBEE] transition-colors"
                                                         >
                                                             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

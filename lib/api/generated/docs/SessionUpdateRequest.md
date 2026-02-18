@@ -8,8 +8,8 @@
 Name | Type
 ------------ | -------------
 `date` | Date
-`startTime` | [LocalTime](LocalTime.md)
-`endTime` | [LocalTime](LocalTime.md)
+`startTime` | string
+`endTime` | string
 `price` | number
 `capacity` | number
 

@@ -78,7 +78,7 @@ function SignUpForm() {
 
     try {
       // 회원가입
-      await api.auth.signUp({ email, name, password, phoneNumber });
+      await api.auth.signUp({ signUpRequest: { email, name, password, phoneNumber } });
     } catch (err: any) {
       setError(err.message || "회원가입에 실패했습니다.");
       setIsLoading(false);
@@ -87,7 +87,7 @@ function SignUpForm() {
 
     try {
       // 자동 로그인
-      await api.auth.login({ email, password });
+      await api.auth.login({ loginRequest: { email, password } });
 
       if (ref === "landing") {
         router.push("/dashboard?ref=landing");
@@ -215,7 +215,7 @@ function SignUpForm() {
                 {showTermsDetail && (
                   <div className="ml-6 p-3 bg-gray-50 rounded-lg text-xs text-gray-700 leading-relaxed max-h-60 overflow-y-auto space-y-2">
                     <h4 className="font-bold text-sm text-gray-900">📄 강사용 서비스 이용약관</h4>
-                    
+
                     <div>
                       <h5 className="font-semibold text-gray-800">제1조 (목적)</h5>
                       <p>본 약관은 [회사명] (이하 "회사")이 제공하는 원데이 클래스 플랫폼 서비스(이하 "서비스")를 강사 회원이 이용함에 있어 회사와 강사 간의 권리·의무 및 책임사항을 규정함을 목적으로 합니다.</p>

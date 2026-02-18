@@ -68,7 +68,10 @@ export default function ProfilePage() {
                 updateData.password = password;
             }
 
-            await api.instructor.updateProfile(userId, updateData);
+            await api.instructor.updateInstructor({
+                instructorId: Number(userId),
+                instructorUpdateRequest: updateData
+            });
 
             // localStorage의 사용자 정보도 업데이트
             const currentUser = await api.auth.getCurrentUser();
@@ -169,7 +172,7 @@ export default function ProfilePage() {
                         if (confirm('정말로 탈퇴하시겠습니까? 탈퇴 시 모든 정보와 클래스가 삭제되며 복구할 수 없습니다.')) {
                             try {
                                 setIsLoading(true);
-                                await api.instructor.withdraw(userId);
+                                await api.instructor.withdraw({ instructorId: Number(userId) });
                                 await api.auth.logout();
                                 toast.success('탈퇴 처리가 완료되었습니다.');
                                 router.push('/');

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "generate-api": "openapi-generator-cli generate -i http://localhost:8080/v3/api-docs -g typescript-fetch -o ./lib/api/generated --additional-properties=typescriptThreePlus=true,supportsES6=true"
+    "generate-api": "openapi-generator-cli generate -i http://localhost:8080/v3/api-docs -g typescript-fetch -o ./lib/api/generated --additional-properties=typescriptThreePlus=true,supportsES6=true --type-mappings=LocalTime=string"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

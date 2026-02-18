@@ -13,14 +13,6 @@
  */
 
 import { mapValues } from '../runtime';
-import type { LocalTime } from './LocalTime';
-import {
-    LocalTimeFromJSON,
-    LocalTimeFromJSONTyped,
-    LocalTimeToJSON,
-    LocalTimeToJSONTyped,
-} from './LocalTime';
-
 /**
  * 예약 상세 응답
  * @export
@@ -65,16 +57,16 @@ export interface ReservationDetailResponse {
     date?: Date;
     /**
      * 시작 시간
-     * @type {LocalTime}
+     * @type {string}
      * @memberof ReservationDetailResponse
      */
-    startTime?: LocalTime;
+    startTime?: string;
     /**
      * 종료 시간
-     * @type {LocalTime}
+     * @type {string}
      * @memberof ReservationDetailResponse
      */
-    endTime?: LocalTime;
+    endTime?: string;
     /**
      * 신청자 이름
      * @type {string}
@@ -136,8 +128,8 @@ export function ReservationDetailResponseFromJSONTyped(json: any, ignoreDiscrimi
         'classLocation': json['classLocation'] == null ? undefined : json['classLocation'],
         'classCode': json['classCode'] == null ? undefined : json['classCode'],
         'date': json['date'] == null ? undefined : (new Date(json['date'])),
-        'startTime': json['startTime'] == null ? undefined : LocalTimeFromJSON(json['startTime']),
-        'endTime': json['endTime'] == null ? undefined : LocalTimeFromJSON(json['endTime']),
+        'startTime': json['startTime'] == null ? undefined : json['startTime'],
+        'endTime': json['endTime'] == null ? undefined : json['endTime'],
         'applicantName': json['applicantName'] == null ? undefined : json['applicantName'],
         'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
         'capacity': json['capacity'] == null ? undefined : json['capacity'],
@@ -164,8 +156,8 @@ export function ReservationDetailResponseToJSONTyped(value?: ReservationDetailRe
         'classLocation': value['classLocation'],
         'classCode': value['classCode'],
         'date': value['date'] == null ? value['date'] : value['date'].toISOString().substring(0,10),
-        'startTime': LocalTimeToJSON(value['startTime']),
-        'endTime': LocalTimeToJSON(value['endTime']),
+        'startTime': value['startTime'],
+        'endTime': value['endTime'],
         'applicantName': value['applicantName'],
         'phoneNumber': value['phoneNumber'],
         'capacity': value['capacity'],

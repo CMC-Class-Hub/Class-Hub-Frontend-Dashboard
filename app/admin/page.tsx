@@ -45,13 +45,13 @@ export default function AdminPage() {
   };
 
   const filteredInstructors = instructors.filter(i =>
-    i.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    i.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (i.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (i.email || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalClasses = instructors.reduce((acc, curr) => acc + curr.onedayClassCount, 0);
-  const totalSessions = instructors.reduce((acc, curr) => acc + curr.sessionCount, 0);
-  const totalReservations = instructors.reduce((acc, curr) => acc + curr.reservationCount, 0);
+  const totalClasses = instructors.reduce((acc, curr) => acc + (curr.onedayClassCount || 0), 0);
+  const totalSessions = instructors.reduce((acc, curr) => acc + (curr.sessionCount || 0), 0);
+  const totalReservations = instructors.reduce((acc, curr) => acc + (curr.reservationCount || 0), 0);
 
   return (
     <div className="min-h-screen bg-[#F2F4F6] pb-12">
@@ -174,8 +174,8 @@ export default function AdminPage() {
                 ) : filteredInstructors.length > 0 ? (
                   filteredInstructors.map((instructor, index) => (
                     <TableRow key={index} className="hover:bg-gray-50/30 transition-colors">
-                      <TableCell className="font-medium text-[#191F28] py-5 pl-8">{instructor.name}</TableCell>
-                      <TableCell className="text-[#4E5968]">{instructor.email}</TableCell>
+                      <TableCell className="font-medium text-[#191F28] py-5 pl-8">{instructor.name || '-'}</TableCell>
+                      <TableCell className="text-[#4E5968]">{instructor.email || '-'}</TableCell>
                       <TableCell className="text-[#4E5968]">
                         {instructor.createdAt ? new Date(instructor.createdAt).toLocaleString('ko-KR', {
                           year: 'numeric',
@@ -187,11 +187,11 @@ export default function AdminPage() {
                       </TableCell>
                       <TableCell className="text-center">
                         <Badge variant="secondary" className="bg-blue-50 text-blue-600 hover:bg-blue-50 font-medium">
-                          {instructor.onedayClassCount}
+                          {instructor.onedayClassCount || 0}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-center text-[#4E5968] font-medium">{instructor.sessionCount}</TableCell>
-                      <TableCell className="text-center text-[#4E5968] font-medium">{instructor.reservationCount}</TableCell>
+                      <TableCell className="text-center text-[#4E5968] font-medium">{instructor.sessionCount || 0}</TableCell>
+                      <TableCell className="text-center text-[#4E5968] font-medium">{instructor.reservationCount || 0}</TableCell>
                       <TableCell className="pr-8 text-right">
                         <Button size="icon" variant="ghost" className="text-[#8B95A1] hover:text-[#3182F6]">
                           <Settings className="w-4 h-4" />

@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
-import { api, templateApi, sessionApi, type ClassTemplate, type User } from "@/lib/api";
+import { api, onedayClassApi, sessionApi, type OnedayClassResponse, type User } from "@/lib/api";
 import { ClassList } from "@/components/dashboard/ClassList";
 import { CreateClassForm } from "@/components/dashboard/CreateClassForm";
 import { PreviewDialog } from "@/components/dialog/PreviewDialog";
@@ -17,7 +17,7 @@ import { FloatingGuideButton } from "@/components/coachmark";
 import { useCoachmark } from "@/components/coachmark/hooks/useCoachmark";
 
 export default function ClassesPage() {
-    const [templates, setTemplates] = useState<ClassTemplate[]>([]);
+    const [templates, setTemplates] = useState<OnedayClassResponse[]>([]);
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
     const [previewData, setPreviewData] = useState<ClassDetailResponse | null>(null);
@@ -60,16 +60,15 @@ export default function ClassesPage() {
     }, [currentAction, isActive]);
 
     // 데모 모드용 가짜 클래스 (가이드 실행 중에만 표시)
-    const demoTemplate: ClassTemplate = {
-        id: 'demo-class',
-        instructorId: 'demo-user',
+    const demoTemplate: OnedayClassResponse = {
+        id: 999999, // Use number for ID
+        instructorId: 999999,
         classCode: 'DEMO001',
         name: '웹 개발 기초 강의',
         description: '프론트엔드 개발의 기초를 배우는 강의입니다',
         location: '강남역 인근 스터디룸',
         locationDetails: '2층 세미나실',
         preparation: '노트북, 필기구',
-        createdAt: new Date().toISOString(),
     };
 
     // 실제 데이터와 데모 데이터 결합
@@ -83,14 +82,14 @@ export default function ClassesPage() {
             if (currentUser) {
                 await api.initializeDemoData(currentUser.id);
                 setUser(currentUser);
-                loadTemplates(currentUser.id);
+                loadTemplates();
             }
         };
         checkAuth();
     }, []);
 
-    const loadTemplates = async (instructorId: string) => {
-        const myTemplates = await templateApi.getAll(instructorId);
+    const loadTemplates = async () => {
+        const myTemplates = await onedayClassApi.getMyClasses();
         setTemplates(myTemplates);
     };
 
@@ -100,8 +99,14 @@ export default function ClassesPage() {
             if (templates.length > 0) {
                 const counts: Record<string, number> = {};
                 for (const template of templates) {
-                    const templateSessions = await sessionApi.getByTemplateId(template.id);
-                    counts[template.id] = templateSessions.length;
+                    if (template.id) {
+                        try {
+                            const templateSessions = await onedayClassApi.getClassSessions1({ classId: Number(template.id) });
+                            counts[String(template.id)] = templateSessions.length;
+                        } catch (e) {
+                            console.error(`Failed to load sessions for template ${template.id}`, e);
+                        }
+                    }
                 }
                 setTemplateSessionCounts(counts);
             }
@@ -114,10 +119,22 @@ export default function ClassesPage() {
         if (!user) return;
 
         try {
-            await templateApi.create(user.id, data);
+            await onedayClassApi.createClass({
+                onedayClassCreateRequest: {
+                    name: data.name,
+                    description: data.description,
+                    location: data.location,
+                    locationDetails: data.locationDetails,
+                    preparation: data.preparation,
+                    instructions: data.instructions,
+                    cancellationPolicy: data.cancellationPolicy,
+                    parkingInfo: data.parkingInfo,
+                    images: data.images || [],
+                }
+            });
             setCreateDialogOpen(false);
             setPreviewDialogOpen(false);
-            await loadTemplates(user.id);
+            await loadTemplates();
         } catch (error) {
             toast.error('클래스 생성 실패', {
                 description: '클래스 생성 중 오류가 발생했습니다. 이미지가 너무 크거나 저장 공간이 부족할 수 있습니다.'
@@ -179,8 +196,8 @@ export default function ClassesPage() {
         if (!templateToDelete) return;
 
         try {
-            await templateApi.delete(templateToDelete);
-            if (user) await loadTemplates(user.id);
+            await onedayClassApi.deleteClass({ classId: Number(templateToDelete) });
+            await loadTemplates();
             toast.success('클래스가 삭제되었습니다', {
                 description: '클래스가 성공적으로 삭제되었습니다.'
             });

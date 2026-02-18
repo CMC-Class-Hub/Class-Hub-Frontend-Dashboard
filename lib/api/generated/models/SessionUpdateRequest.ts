@@ -13,14 +13,6 @@
  */
 
 import { mapValues } from '../runtime';
-import type { LocalTime } from './LocalTime';
-import {
-    LocalTimeFromJSON,
-    LocalTimeFromJSONTyped,
-    LocalTimeToJSON,
-    LocalTimeToJSONTyped,
-} from './LocalTime';
-
 /**
  * 세션 수정 요청
  * @export
@@ -35,16 +27,16 @@ export interface SessionUpdateRequest {
     date: Date;
     /**
      * 시작 시간
-     * @type {LocalTime}
+     * @type {string}
      * @memberof SessionUpdateRequest
      */
-    startTime: LocalTime;
+    startTime: string;
     /**
      * 종료 시간
-     * @type {LocalTime}
+     * @type {string}
      * @memberof SessionUpdateRequest
      */
-    endTime: LocalTime;
+    endTime: string;
     /**
      * 가격
      * @type {number}
@@ -82,8 +74,8 @@ export function SessionUpdateRequestFromJSONTyped(json: any, ignoreDiscriminator
     return {
         
         'date': (new Date(json['date'])),
-        'startTime': LocalTimeFromJSON(json['startTime']),
-        'endTime': LocalTimeFromJSON(json['endTime']),
+        'startTime': json['startTime'],
+        'endTime': json['endTime'],
         'price': json['price'],
         'capacity': json['capacity'],
     };
@@ -101,8 +93,8 @@ export function SessionUpdateRequestToJSONTyped(value?: SessionUpdateRequest | n
     return {
         
         'date': value['date'].toISOString().substring(0,10),
-        'startTime': LocalTimeToJSON(value['startTime']),
-        'endTime': LocalTimeToJSON(value['endTime']),
+        'startTime': value['startTime'],
+        'endTime': value['endTime'],
         'price': value['price'],
         'capacity': value['capacity'],
     };

@@ -8,10 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { AddressSearchInput } from "@/components/ui/AddressSearchInput";
-import type { ClassTemplate } from "@/lib/api";
+import type { OnedayClassResponse } from "@/lib/api";
 
 export function EditClassForm({ template, onSubmit, onCancel, onPreview, onOpenPreview }: {
-    template: ClassTemplate;
+    template: OnedayClassResponse;
     onSubmit: (data: {
         name: string;
         description: string;
@@ -37,13 +37,13 @@ export function EditClassForm({ template, onSubmit, onCancel, onPreview, onOpenP
     }) => void;
     onOpenPreview?: () => void;
 }) {
-    const [name, setName] = useState(template.name);
+    const [name, setName] = useState(template.name || '');
     const [description, setDescription] = useState(template.description || '');
-    const [location, setLocation] = useState(template.location);
+    const [location, setLocation] = useState(template.location || '');
     const [locationDetails, setLocationDetails] = useState(template.locationDetails || '');
     const [preparation, setPreparation] = useState(template.preparation || '');
     const [instructions, setInstructions] = useState(template.instructions || '');
-    const [imageUrls, setImageUrls] = useState<string[]>(template.imageUrls || []); // 여기 수정!
+    const [imageUrls, setImageUrls] = useState<string[]>(template.imageUrls || []);
     const [parkingInfo, setParkingInfo] = useState(template.parkingInfo || '');
     const [cancellationPolicy, setCancellationPolicy] = useState(template.cancellationPolicy || '');
     const [errors, setErrors] = useState<{ name?: string; description?: string; location?: string }>({});

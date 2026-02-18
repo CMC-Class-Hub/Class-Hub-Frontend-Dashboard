@@ -4,21 +4,21 @@ import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { messageTemplateApi, type MessageTemplateType, type MessageTemplateListItem } from "@/lib/api";
+import { messageTemplateApi, type MessageTemplateMetadata, MessageTemplateResponseTypeEnum } from "@/lib/api";
 import { KakaoTemplatePreview } from "@/components/dashboard/KakaoTemplatePreview";
 
 export default function MessagesPage() {
-    const [templates, setTemplates] = useState<MessageTemplateListItem[]>([]);
+    const [templates, setTemplates] = useState<MessageTemplateMetadata[]>([]);
     const [selectedTitle, setSelectedTitle] = useState<string | null>(null);
-    const [detailsCache, setDetailsCache] = useState<Record<string, { type: string, body: string }>>({});
+    const [detailsCache, setDetailsCache] = useState<Record<string, { type?: MessageTemplateResponseTypeEnum, body?: string }>>({});
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchTemplates = async () => {
             try {
-                const list = await messageTemplateApi.getTitles();
+                const list = await messageTemplateApi.getTemplates();
                 setTemplates(list);
-                if (list.length > 0) {
+                if (list.length > 0 && list[0].title) {
                     setSelectedTitle(list[0].title);
                     handleFetchDetails(list[0].title);
                 }
@@ -34,7 +34,7 @@ export default function MessagesPage() {
     const handleFetchDetails = async (title: string) => {
         if (!detailsCache[title]) {
             try {
-                const data = await messageTemplateApi.getDetails(title);
+                const data = await messageTemplateApi.getTemplate({ title });
                 setDetailsCache(prev => ({
                     ...prev,
                     [title]: { type: data.type, body: data.body }
@@ -109,7 +109,7 @@ export default function MessagesPage() {
                                 return (
                                     <button
                                         key={template.title}
-                                        onClick={() => handleSelect(template.title)}
+                                        onClick={() => template.title && handleSelect(template.title)}
                                         className={`
                                             w-full p-4 rounded-[20px] flex items-center gap-4 transition-all text-left group border
                                             ${isSelected
@@ -122,19 +122,19 @@ export default function MessagesPage() {
                                             w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 transition-all duration-500
                                             ${isSelected ? 'bg-[#3182F6] text-white rotate-6 scale-110 shadow-lg shadow-blue-100' : 'bg-[#F2F4F6] text-gray-400'}
                                         `}>
-                                            {getIcon(template.title)}
+                                            {getIcon(template.title || '')}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-0.5">
                                                 <p className={`text-[16px] font-bold transition-colors ${isSelected ? 'text-[#191F28]' : 'text-[#4E5968]'}`}>
-                                                    {template.title}
+                                                    {template.title || '제목 없음'}
                                                 </p>
                                                 {isSelected && (
                                                     <span className="bg-blue-50 text-[#3182F6] text-[9px] font-black px-1.2 py-0.5 rounded uppercase tracking-tighter">Selected</span>
                                                 )}
                                             </div>
                                             <p className={`text-xs font-medium transition-colors ${isSelected ? 'text-[#4E5968]' : 'text-[#8B95A1]'}`}>
-                                                {template.description}
+                                                {template.description || ''}
                                             </p>
                                         </div>
                                         <ChevronRight className={`w-5 h-5 transition-all ${isSelected ? 'text-[#3182F6] translate-x-1' : 'text-gray-200 group-hover:text-gray-400'}`} />
@@ -176,7 +176,7 @@ export default function MessagesPage() {
                                 <div className="flex-1 overflow-y-auto no-scrollbar relative">
                                     {activeDetail ? (
                                         <div key={selectedTitle} className="w-full animate-in fade-in zoom-in slide-in-from-bottom-4 duration-700 h-full">
-                                            <KakaoTemplatePreview body={activeDetail.body} />
+                                            <KakaoTemplatePreview body={activeDetail.body || ''} />
                                         </div>
                                     ) : (
                                         <div className="h-full flex flex-col items-center justify-center space-y-4 px-8 text-center bg-[#ABC1D1]">
