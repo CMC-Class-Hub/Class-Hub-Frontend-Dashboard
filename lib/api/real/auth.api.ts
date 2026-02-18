@@ -93,7 +93,6 @@ export const authApiReal: IAuthApi = {
 
                 // 2. 만약 로그인이 안 되어 있다고 나오는데 로컬 데이터는 있다면, 토큰 갱신 시도
                 if (!loggedIn) {
-                    console.log('[authApi] Session check returned false. Attempting manual refresh...');
                     try {
                         await this.refresh();
                         // 갱신 성공 후 다시 상태 확인

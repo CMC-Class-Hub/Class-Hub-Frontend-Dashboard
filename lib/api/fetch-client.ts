@@ -39,12 +39,10 @@ export async function fetchClient(
     let response = await makeRequest();
 
     // 401 Unauthorized 발생 시
-    if (response.status === 401 || response.status === 403) {
-      console.log(`[fetchClient] 401 Unauthorized detected for: ${endpoint}`);
-
+    if (response.status === 401) {
+      
       // 이미 갱신 중이라면 대기 리스트에 추가
       if (isRefreshing) {
-        console.log('[fetchClient] Refresh already in progress, queuing request...');
         return new Promise<Response>((resolve) => {
           refreshSubscribers.push(() => {
             resolve(makeRequest());
@@ -53,7 +51,6 @@ export async function fetchClient(
       }
 
       isRefreshing = true;
-      console.log('[fetchClient] Attempting token refresh...');
 
       try {
         // 토큰 갱신 API 호출
@@ -63,7 +60,6 @@ export async function fetchClient(
         });
 
         if (refreshResponse.ok) {
-          console.log('[fetchClient] Token refresh successful! Retrying original requests.');
           isRefreshing = false;
           onRefreshed();
           return await makeRequest();
