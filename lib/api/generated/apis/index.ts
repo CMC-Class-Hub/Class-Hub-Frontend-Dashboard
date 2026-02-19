@@ -8,6 +8,7 @@ export * from './MemberApi';
 export * from './MessageTemplateApi';
 export * from './MessageWebhookControllerApi';
 export * from './OnedayClassApi';
+export * from './PaymentControllerApi';
 export * from './ReservationApi';
 export * from './SessionApi';
 export * from './UploadApi';

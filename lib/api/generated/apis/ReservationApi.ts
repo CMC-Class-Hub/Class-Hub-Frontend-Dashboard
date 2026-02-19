@@ -16,6 +16,7 @@
 import * as runtime from '../runtime';
 import type {
   OnedayClassResponse,
+  ReservationCreateResponse,
   ReservationDetailResponse,
   ReservationRequest,
   ReservationResponse,
@@ -24,6 +25,8 @@ import type {
 import {
     OnedayClassResponseFromJSON,
     OnedayClassResponseToJSON,
+    ReservationCreateResponseFromJSON,
+    ReservationCreateResponseToJSON,
     ReservationDetailResponseFromJSON,
     ReservationDetailResponseToJSON,
     ReservationRequestFromJSON,
@@ -454,22 +457,18 @@ export class ReservationApi extends runtime.BaseAPI {
      * 원데이클래스 예약을 생성합니다
      * 예약 생성
      */
-    async reserveRaw(requestParameters: ReserveRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
+    async reserveRaw(requestParameters: ReserveRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ReservationCreateResponse>> {
         const requestOptions = await this.reserveRequestOpts(requestParameters);
         const response = await this.request(requestOptions, initOverrides);
 
-        if (this.isJsonMime(response.headers.get('content-type'))) {
-            return new runtime.JSONApiResponse<string>(response);
-        } else {
-            return new runtime.TextApiResponse(response) as any;
-        }
+        return new runtime.JSONApiResponse(response, (jsonValue) => ReservationCreateResponseFromJSON(jsonValue));
     }
 
     /**
      * 원데이클래스 예약을 생성합니다
      * 예약 생성
      */
-    async reserve(requestParameters: ReserveRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+    async reserve(requestParameters: ReserveRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ReservationCreateResponse> {
         const response = await this.reserveRaw(requestParameters, initOverrides);
         return await response.value();
     }
