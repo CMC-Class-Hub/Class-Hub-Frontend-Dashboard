@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
+import { getErrorMessage, validateEmail } from "@/lib/utils";
 
 // 전화번호 자동 포맷팅 (01012345678 → 010-1234-5678)
 const formatPhoneNumber = (value: string): string => {
@@ -28,6 +29,15 @@ function SignUpForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [error, setError] = useState("");
+  const [validationErrors, setValidationErrors] = useState<{
+    name?: string;
+    email?: string;
+    phoneNumber?: string;
+    password?: string;
+    confirmPassword?: string;
+    terms?: string;
+    privacy?: string;
+  }>({});
   const [isLoading, setIsLoading] = useState(false);
 
   // 약관 동의 상태
@@ -43,35 +53,41 @@ function SignUpForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setValidationErrors({});
     setIsLoading(true);
 
-    // 유효성 검사
-    if (!name || !email || !password || !confirmPassword || !phoneNumber) {
-      setError("모든 필드를 입력해주세요.");
-      setIsLoading(false);
-      return;
-    }
+    const newErrors: {
+      name?: string;
+      email?: string;
+      phoneNumber?: string;
+      password?: string;
+      confirmPassword?: string;
+      terms?: string;
+      privacy?: string;
+    } = {};
 
-    if (!agreedToTerms) {
-      setError("서비스 이용약관에 동의해주세요.");
-      setIsLoading(false);
-      return;
+    if (!name) newErrors.name = "이름을 입력해주세요.";
+    if (!email) {
+      newErrors.email = "이메일을 입력해주세요.";
+    } else if (!validateEmail(email)) {
+      newErrors.email = "올바른 이메일 형식이 아닙니다.";
     }
-
-    if (!agreedToPrivacy) {
-      setError("개인정보 수집·이용에 동의해주세요.");
-      setIsLoading(false);
-      return;
+    if (!phoneNumber) newErrors.phoneNumber = "전화번호를 입력해주세요.";
+    if (!password) {
+      newErrors.password = "비밀번호를 입력해주세요.";
+    } else if (password.length < 4) {
+      newErrors.password = "비밀번호는 4자 이상이어야 합니다.";
     }
-
-    if (password !== confirmPassword) {
-      setError("비밀번호가 일치하지 않습니다.");
-      setIsLoading(false);
-      return;
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "비밀번호 확인을 입력해주세요.";
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = "비밀번호가 일치하지 않습니다.";
     }
+    if (!agreedToTerms) newErrors.terms = "서비스 이용약관에 동의해주세요.";
+    if (!agreedToPrivacy) newErrors.privacy = "개인정보 수집·이용에 동의해주세요.";
 
-    if (password.length < 4) {
-      setError("비밀번호는 4자 이상이어야 합니다.");
+    if (Object.keys(newErrors).length > 0) {
+      setValidationErrors(newErrors);
       setIsLoading(false);
       return;
     }
@@ -80,7 +96,8 @@ function SignUpForm() {
       // 회원가입
       await api.auth.signUp({ signUpRequest: { email, name, password, phoneNumber } });
     } catch (err: any) {
-      setError(err.message || "회원가입에 실패했습니다.");
+      const message = await getErrorMessage(err, "회원가입에 실패했습니다.");
+      setError(message);
       setIsLoading(false);
       return;
     }
@@ -116,7 +133,7 @@ function SignUpForm() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div className="space-y-2">
               <Label htmlFor="name">이름</Label>
               <Input
@@ -124,9 +141,14 @@ function SignUpForm() {
                 type="text"
                 placeholder="홍길동"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (validationErrors.name) setValidationErrors({ ...validationErrors, name: undefined });
+                }}
               />
+              {validationErrors.name && (
+                <p className="text-xs text-[#F04452] font-medium mt-1">{validationErrors.name}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -136,9 +158,14 @@ function SignUpForm() {
                 type="email"
                 placeholder="example@email.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (validationErrors.email) setValidationErrors({ ...validationErrors, email: undefined });
+                }}
               />
+              {validationErrors.email && (
+                <p className="text-xs text-[#F04452] font-medium mt-1">{validationErrors.email}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -148,10 +175,15 @@ function SignUpForm() {
                 type="tel"
                 placeholder="010-0000-0000"
                 value={phoneNumber}
-                onChange={handlePhoneChange}
+                onChange={(e) => {
+                  handlePhoneChange(e);
+                  if (validationErrors.phoneNumber) setValidationErrors({ ...validationErrors, phoneNumber: undefined });
+                }}
                 maxLength={13}
-                required
               />
+              {validationErrors.phoneNumber && (
+                <p className="text-xs text-[#F04452] font-medium mt-1">{validationErrors.phoneNumber}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -161,9 +193,14 @@ function SignUpForm() {
                 type="password"
                 placeholder="비밀번호 (4자 이상)"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (validationErrors.password) setValidationErrors({ ...validationErrors, password: undefined });
+                }}
               />
+              {validationErrors.password && (
+                <p className="text-xs text-[#F04452] font-medium mt-1">{validationErrors.password}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -173,9 +210,14 @@ function SignUpForm() {
                 type="password"
                 placeholder="비밀번호를 다시 입력하세요"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  if (validationErrors.confirmPassword) setValidationErrors({ ...validationErrors, confirmPassword: undefined });
+                }}
               />
+              {validationErrors.confirmPassword && (
+                <p className="text-xs text-[#F04452] font-medium mt-1">{validationErrors.confirmPassword}</p>
+              )}
             </div>
 
             {/* 약관 동의 섹션 */}
@@ -189,7 +231,7 @@ function SignUpForm() {
                     checked={agreedToTerms}
                     onChange={(e) => {
                       setAgreedToTerms(e.target.checked);
-                      setError('');
+                      if (validationErrors.terms) setValidationErrors({ ...validationErrors, terms: undefined });
                     }}
                     className="mt-0.5 w-4 h-4 accent-blue-600 cursor-pointer"
                   />
@@ -262,6 +304,9 @@ function SignUpForm() {
                   </div>
                 )}
               </div>
+              {validationErrors.terms && (
+                <p className="text-xs text-[#F04452] font-medium mt-1 ml-6">{validationErrors.terms}</p>
+              )}
 
               {/* 개인정보 수집·이용 동의 */}
               <div className="space-y-2">
@@ -272,7 +317,7 @@ function SignUpForm() {
                     checked={agreedToPrivacy}
                     onChange={(e) => {
                       setAgreedToPrivacy(e.target.checked);
-                      setError('');
+                      if (validationErrors.privacy) setValidationErrors({ ...validationErrors, privacy: undefined });
                     }}
                     className="mt-0.5 w-4 h-4 accent-blue-600 cursor-pointer"
                   />
@@ -333,6 +378,9 @@ function SignUpForm() {
                   </div>
                 )}
               </div>
+              {validationErrors.privacy && (
+                <p className="text-xs text-[#F04452] font-medium mt-1 ml-6">{validationErrors.privacy}</p>
+              )}
             </div>
 
             {error && (

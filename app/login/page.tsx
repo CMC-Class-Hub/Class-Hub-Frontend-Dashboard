@@ -8,12 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
+import { getErrorMessage, validateEmail } from "@/lib/utils";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [validationErrors, setValidationErrors] = useState<{ email?: string; password?: string }>({});
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -34,11 +36,19 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setValidationErrors({});
     setIsLoading(true);
 
-    // 간단한 유효성 검사
-    if (!email || !password) {
-      setError("이메일과 비밀번호를 입력해주세요.");
+    const newErrors: { email?: string; password?: string } = {};
+    if (!email) {
+      newErrors.email = "이메일을 입력해주세요.";
+    } else if (!validateEmail(email)) {
+      newErrors.email = "올바른 이메일 형식이 아닙니다.";
+    }
+    if (!password) newErrors.password = "비밀번호를 입력해주세요.";
+
+    if (Object.keys(newErrors).length > 0) {
+      setValidationErrors(newErrors);
       setIsLoading(false);
       return;
     }
@@ -52,7 +62,8 @@ export default function LoginPage() {
         router.push("/dashboard");
       }
     } catch (err: any) {
-      setError(err.message || "로그인에 실패했습니다.");
+      const message = await getErrorMessage(err, "로그인에 실패했습니다.");
+      setError(message);
     }
 
     setIsLoading(false);
@@ -72,7 +83,7 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <div className="space-y-2">
               <Label htmlFor="email">이메일</Label>
               <Input
@@ -80,9 +91,14 @@ export default function LoginPage() {
                 type="email"
                 placeholder="example@email.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (validationErrors.email) setValidationErrors({ ...validationErrors, email: undefined });
+                }}
               />
+              {validationErrors.email && (
+                <p className="text-xs text-[#F04452] font-medium mt-1">{validationErrors.email}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -92,9 +108,14 @@ export default function LoginPage() {
                 type="password"
                 placeholder="비밀번호를 입력하세요"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (validationErrors.password) setValidationErrors({ ...validationErrors, password: undefined });
+                }}
               />
+              {validationErrors.password && (
+                <p className="text-xs text-[#F04452] font-medium mt-1">{validationErrors.password}</p>
+              )}
             </div>
 
             {error && (

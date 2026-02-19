@@ -9,6 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
 import { api, onedayClassApi, sessionApi, type OnedayClassResponse, type User } from "@/lib/api";
+import { getErrorMessage } from "@/lib/utils";
 import { ClassList } from "@/components/dashboard/ClassList";
 import { CreateClassForm } from "@/components/dashboard/CreateClassForm";
 import { PreviewDialog } from "@/components/dialog/PreviewDialog";
@@ -136,8 +137,9 @@ export default function ClassesPage() {
             setPreviewDialogOpen(false);
             await loadTemplates();
         } catch (error) {
+            const message = await getErrorMessage(error, '클래스 생성 중 오류가 발생했습니다.');
             toast.error('클래스 생성 실패', {
-                description: '클래스 생성 중 오류가 발생했습니다. 이미지가 너무 크거나 저장 공간이 부족할 수 있습니다.'
+                description: message
             });
             console.error('Failed to create template:', error);
         }
@@ -202,8 +204,9 @@ export default function ClassesPage() {
                 description: '클래스가 성공적으로 삭제되었습니다.'
             });
         } catch (err: any) {
+            const message = await getErrorMessage(err, '클래스 삭제에 실패했습니다.');
             toast.error('삭제 실패', {
-                description: err.message ?? '클래스 삭제에 실패했습니다.'
+                description: message
             });
         } finally {
             setTemplateToDelete(null);
