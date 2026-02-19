@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
+import { getErrorMessage } from "@/lib/utils";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -90,7 +91,8 @@ export default function ProfilePage() {
             setPassword('');
             setConfirmPassword('');
         } catch (error: any) {
-            toast.error(error.message || '정보 수정에 실패했습니다.');
+            const message = await getErrorMessage(error, '정보 수정에 실패했습니다.');
+            toast.error(message);
         } finally {
             setIsLoading(false);
         }
@@ -177,7 +179,8 @@ export default function ProfilePage() {
                                 toast.success('탈퇴 처리가 완료되었습니다.');
                                 router.push('/');
                             } catch (err: any) {
-                                toast.error(err.message || '탈퇴 처리에 실패했습니다.');
+                                const message = await getErrorMessage(err, '탈퇴 처리에 실패했습니다.');
+                                toast.error(message);
                             } finally {
                                 setIsLoading(false);
                             }
