@@ -1,17 +1,111 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, AlertCircle, RefreshCw, Clock, X } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Link from "next/link";
 import { messageTemplateApi, type MessageTemplateMetadata, MessageTemplateResponseTypeEnum } from "@/lib/api";
 import { KakaoTemplatePreview } from "@/components/dashboard/KakaoTemplatePreview";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { AddressSearchInput } from "@/components/ui/AddressSearchInput";
+import { TimeSelector } from "@/components/ui/TimeSelector";
+import { toast } from "sonner";
+
+const MOCK_STUDENTS = [
+    { id: "s1", name: "홍길동" },
+    { id: "s2", name: "홍길이" },
+    { id: "s3", name: "홍기삼" },
+    { id: "s4", name: "홍기사" },
+];
 
 export default function MessagesPage() {
     const [templates, setTemplates] = useState<MessageTemplateMetadata[]>([]);
     const [selectedTitle, setSelectedTitle] = useState<string | null>(null);
     const [detailsCache, setDetailsCache] = useState<Record<string, { type?: MessageTemplateResponseTypeEnum, body?: string }>>({});
     const [loading, setLoading] = useState(true);
+
+    // Emergency Message State
+    const [emClass, setEmClass] = useState<string>("");
+    const [emSession, setEmSession] = useState<string>("");
+    const [emSituation, setEmSituation] = useState<string>("");
+    const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>(MOCK_STUDENTS.map(s => s.id));
+
+    const isAllSelected = selectedStudentIds.length === MOCK_STUDENTS.length;
+
+    // Dynamic Inputs State
+    const [emLocBefore, setEmLocBefore] = useState<string>("");
+    const [emLocBeforeDetail, setEmLocBeforeDetail] = useState<string>("");
+    const [emLocAfter, setEmLocAfter] = useState<string>("");
+    const [emLocDetail, setEmLocDetail] = useState<string>("");
+    const [emTimeBefore, setEmTimeBefore] = useState<string>("");
+    const [emTimeAfter, setEmTimeAfter] = useState<string>("");
+    const [emDelayMin, setEmDelayMin] = useState<string>("");
+    const [emCustomText, setEmCustomText] = useState<string>("");
+
+    const [isSending, setIsSending] = useState(false);
+    const [activeTab, setActiveTab] = useState<"automated" | "emergency">("emergency");
+
+    const getClassName = () => {
+        if (emClass === "class1") return "초보자를 위한 베이킹 클래스";
+        if (emClass === "class2") return "프랑스 자수 원데이 클래스";
+        return "{클래스명}";
+    };
+
+    const emergencyPreviewText = useMemo(() => {
+        const className = getClassName();
+
+        switch (emSituation) {
+            case 'location':
+                const beforeLocation = emLocBefore || '기존 장소';
+                const beforeDetail = emLocBeforeDetail ? ` (${emLocBeforeDetail})` : '';
+                const locationText = emLocAfter || '변경 장소';
+                const detailText = emLocDetail ? ` (${emLocDetail})` : '';
+                return `[긴급 안내]\n\n오늘 진행되는 ${className} 수업 장소가 변경되었습니다.\n\n-변경 전: **${beforeLocation}${beforeDetail}**\n-변경 후: **${locationText}${detailText}**\n\n자세한 위치는 클래스 링크에서 확인해주세요.`;
+            case 'time':
+                return `[긴급 안내]\n\n${className} 수업 시작 시간이 변경되었습니다.\n\n-기존: **${emTimeBefore || '기존 시간'}**\n-변경: **${emTimeAfter || '변경 시간'}**\n\n참고 부탁드립니다.`;
+            case 'delay':
+                return `[긴급 안내]\n\n강사 도착 지연으로 인해 ${className} 수업이 약 **${emDelayMin || '?'}**분 늦게 시작될 예정입니다.\n\n양해 부탁드립니다.`;
+            case 'cancel':
+                return `[긴급 안내]\n\n금일 예정된 ${className} 수업이 부득이한 사정으로 취소되었습니다.\n\n환불 및 후속 안내는 클래스 링크를 통해 진행됩니다.\n\n**-환불 관련하여 논의하기**`;
+            case 'custom':
+                return emCustomText || "수강생이 지금 바로 알아야 할 변경 사항만\n간단히 작성해주세요.";
+            default:
+                return "상황 종류를 선택하면\n미리보기가 표시됩니다.";
+        }
+    }, [emSituation, emClass, emLocBefore, emLocBeforeDetail, emLocAfter, emLocDetail, emTimeBefore, emTimeAfter, emDelayMin, emCustomText]);
+
+    // Auto-populate location based on class selection
+    useEffect(() => {
+        if (emClass === "class1") {
+            setEmLocBefore("서울특별시 강남구 서초동 123-45");
+            setEmLocBeforeDetail("아트타워 3층");
+        } else if (emClass === "class2") {
+            setEmLocBefore("서울특별시 성동구 성수동 2가 31-1");
+            setEmLocBeforeDetail("그린빌딩 502호");
+        } else {
+            setEmLocBefore("");
+            setEmLocBeforeDetail("");
+        }
+    }, [emClass]);
+
+    // Auto-populate time based on session selection
+    useEffect(() => {
+        if (emSession === "session1") {
+            setEmTimeBefore("14:00");
+        } else if (emSession === "session2") {
+            setEmTimeBefore("10:00");
+        } else {
+            setEmTimeBefore("");
+        }
+    }, [emSession]);
 
     useEffect(() => {
         const fetchTemplates = async () => {
@@ -69,80 +163,411 @@ export default function MessagesPage() {
 
     return (
         <div className="max-w-[1400px] mx-auto space-y-6 pb-10">
-            {/* Top Header & Stats Bar */}
-            <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 px-2">
-                <div className="space-y-1.5 px-2">
-                    <h1 className="text-3xl font-black text-[#191F28] tracking-tight">메시지 센터</h1>
-                    <p className="text-[#8B95A1] font-medium">알림 메시지 발송 시나리오를 한눈에 관리하세요.</p>
+            {/* Top Header */}
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div>
+                    <h1 className="text-xl md:text-2xl font-bold text-[#191F28]">메시지 센터</h1>
+                    <p className="text-sm md:text-base text-[#8B95A1] mt-1">알림 메시지 발송 시나리오를 한눈에 관리하세요.</p>
                 </div>
-
-                <div className="flex items-center gap-4 bg-white border border-gray-100 p-2 rounded-2xl shadow-sm">
-                    <div className="px-4 py-2 flex flex-col items-center border-r border-gray-100">
-                        <span className="text-[10px] font-bold text-[#8B95A1]">운영 상태</span>
-                        <div className="flex items-center gap-1.5">
-                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                            <span className="text-sm font-bold text-[#191F28]">자동 발송 중</span>
-                        </div>
-                    </div>
-                    <div className="px-4 py-2 flex flex-col items-center">
-                        <span className="text-[10px] font-bold text-[#8B95A1]">활성 템플릿</span>
-                        <span className="text-sm font-bold text-[#3182F6]">{templates.length}개</span>
-                    </div>
-                </div>
+                <Link href="/dashboard/messages/history">
+                    <Button
+                        variant="outline"
+                        className="rounded-xl border-gray-200 text-[#4E5968] font-semibold h-10 px-4 flex items-center gap-2 hover:bg-gray-50 transition-colors shrink-0"
+                    >
+                        <Clock className="w-4 h-4" />
+                        발송 이력
+                    </Button>
+                </Link>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 {/* Left Side: Management Section (6 columns) - Aligned Top */}
                 <div className="lg:col-span-12 xl:col-span-6 flex flex-col pt-2 min-h-[550px] space-y-4">
-                    {/* 1. Template List */}
-                    <section className="space-y-3">
-                        <div className="flex items-center justify-between px-2">
-                            <h2 className="text-base font-bold text-[#191F28] flex items-center gap-2">
-                                <span className="text-blue-500">Selection</span> 알림 시나리오 선택
-                            </h2>
-                            <span className="text-[10px] font-medium text-[#8B95A1]">클릭하여 미리보기를 확인하세요</span>
+                    <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as "automated" | "emergency")} className="w-full h-full flex flex-col">
+                        <TabsList className="w-full bg-gray-100/50 p-1 rounded-[24px] mb-2 hidden">
+                            <TabsTrigger value="emergency" className="flex-1 rounded-[20px] py-3 text-[15px] font-bold data-[state=active]:bg-white data-[state=active]:text-red-500 data-[state=active]:shadow-sm">
+                                <AlertCircle className="w-4 h-4 mr-2" /> 긴급 메시지 발송
+                            </TabsTrigger>
+                            <TabsTrigger value="automated" className="flex-1 rounded-[20px] py-3 text-[15px] font-bold data-[state=active]:bg-white data-[state=active]:text-[#3182F6] data-[state=active]:shadow-sm">
+                                <RefreshCw className="w-4 h-4 mr-2" /> 자동 발송 시스템
+                            </TabsTrigger>
+                        </TabsList>
+
+                        {/* Toss-style Segmented Control (Static) */}
+                        <div className="relative flex bg-[#F2F4F6] p-1 rounded-[18px] mb-6 shadow-inner border border-gray-200/50">
+                            <TabsList className="absolute inset-0 opacity-0 w-full h-full z-0 pointer-events-none">
+                                <TabsTrigger value="emergency" id="trigger-emergency">직접 알림 발송</TabsTrigger>
+                                <TabsTrigger value="automated" id="trigger-automated">자동 알림 관리</TabsTrigger>
+                            </TabsList>
+
+                            <button
+                                onClick={() => {
+                                    document.getElementById('trigger-emergency')?.click();
+                                    setActiveTab("emergency");
+                                }}
+                                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-[14px] text-[15px] font-bold transition-all z-10 relative
+                                    ${activeTab === "emergency"
+                                        ? "bg-white text-[#E92C2C] shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+                                        : "text-[#8B95A1] hover:text-[#4E5968]"}
+                                `}
+                            >
+                                <AlertCircle className="w-4 h-4" />
+                                직접 알림 발송
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    document.getElementById('trigger-automated')?.click();
+                                    setActiveTab("automated");
+                                }}
+                                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-[14px] text-[15px] font-bold transition-all z-10 relative
+                                    ${activeTab === "automated"
+                                        ? "bg-white text-[#3182F6] shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+                                        : "text-[#8B95A1] hover:text-[#4E5968]"}
+                                `}
+                            >
+                                <RefreshCw className="w-4 h-4" />
+                                자동 알림 관리
+                            </button>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-3">
-                            {templates.map((template) => {
-                                const isSelected = selectedTitle === template.title;
-                                return (
-                                    <button
-                                        key={template.title}
-                                        onClick={() => template.title && handleSelect(template.title)}
-                                        className={`
-                                            w-full p-4 rounded-[20px] flex items-center gap-4 transition-all text-left group border
-                                            ${isSelected
-                                                ? 'bg-white border-[#3182F6]/20 shadow-[0_8px_16px_-4px_rgba(49,130,246,0.1)] ring-1 ring-[#3182F6]/5'
-                                                : 'bg-white border-transparent hover:border-gray-200 hover:bg-gray-50/50'
-                                            }
-                                        `}
-                                    >
-                                        <div className={`
-                                            w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 transition-all duration-500
-                                            ${isSelected ? 'bg-[#3182F6] text-white rotate-6 scale-110 shadow-lg shadow-blue-100' : 'bg-[#F2F4F6] text-gray-400'}
-                                        `}>
-                                            {getIcon(template.title || '')}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-0.5">
-                                                <p className={`text-[16px] font-bold transition-colors ${isSelected ? 'text-[#191F28]' : 'text-[#4E5968]'}`}>
-                                                    {template.title || '제목 없음'}
-                                                </p>
-                                                {isSelected && (
-                                                    <span className="bg-blue-50 text-[#3182F6] text-[9px] font-black px-1.2 py-0.5 rounded uppercase tracking-tighter">Selected</span>
+
+                        <TabsContent value="automated" className="flex-1 flex flex-col pt-0 mt-0 border-none outline-none">
+
+                            {/* 1. Template List */}
+                            <section className="space-y-3">
+                                <div className="flex items-center justify-between px-2">
+                                    <h2 className="text-base font-bold text-[#191F28] flex items-center gap-2">
+                                        <span className="text-blue-500">Auto</span> 자동 알림 시나리오
+                                    </h2>
+                                    <span className="text-[10px] font-medium text-[#8B95A1]">시나리오를 클릭해 미리보기를 확인하세요</span>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-3">
+                                    {templates.map((template) => {
+                                        const isSelected = selectedTitle === template.title;
+                                        return (
+                                            <React.Fragment key={template.title}>
+                                                <button
+                                                    onClick={() => template.title && handleSelect(template.title)}
+                                                    className={`
+                                                        w-full p-4 rounded-[20px] flex items-center gap-4 transition-all text-left group border
+                                                        ${isSelected
+                                                            ? 'bg-white border-[#3182F6]/20 shadow-[0_8px_16px_-4px_rgba(49,130,246,0.1)] ring-1 ring-[#3182F6]/5'
+                                                            : 'bg-white border-transparent hover:border-gray-200 hover:bg-gray-50/50'
+                                                        }
+                                                    `}
+                                                >
+                                                    <div className={`
+                                                        w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 transition-all duration-500
+                                                        ${isSelected ? 'bg-[#3182F6] text-white rotate-6 scale-110 shadow-lg shadow-blue-100' : 'bg-[#F2F4F6] text-gray-400'}
+                                                    `}>
+                                                        {getIcon(template.title || '')}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-0.5">
+                                                            <p className={`text-[16px] font-bold transition-colors ${isSelected ? 'text-[#191F28]' : 'text-[#4E5968]'}`}>
+                                                                {template.title || '제목 없음'}
+                                                            </p>
+                                                            {isSelected && (
+                                                                <span className="bg-blue-50 text-[#3182F6] text-[9px] font-black px-1.2 py-0.5 rounded uppercase tracking-tighter">Selected</span>
+                                                            )}
+                                                        </div>
+                                                        <p className={`text-xs font-medium transition-colors ${isSelected ? 'text-[#4E5968]' : 'text-[#8B95A1]'}`}>
+                                                            {template.description || ''}
+                                                        </p>
+                                                    </div>
+                                                    <ChevronRight className={`w-5 h-5 transition-all ${isSelected ? 'text-[#3182F6] translate-x-1' : 'text-gray-200 group-hover:text-gray-400'}`} />
+                                                </button>
+
+                                                {template.title === "D-1 리마인더" && (
+                                                    <div className="bg-blue-50/50 border border-blue-100 rounded-[20px] p-4 my-2 flex items-start gap-3">
+                                                        <div className="mt-1 w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)] shrink-0" />
+                                                        <div className="space-y-1">
+                                                            <h3 className="text-[15px] font-bold text-blue-900">자동 발송 시스템 작동 중</h3>
+                                                            <p className="text-xs text-blue-700/80 font-medium leading-relaxed">
+                                                                현재 <strong className="text-blue-700">{templates.length}개</strong>의 알림 시나리오가 활성화되어 있습니다.<br />
+                                                                수강생의 예약 및 수업 일정에 맞춰 카카오톡 알림톡이 자동으로 발송됩니다.
+                                                            </p>
+                                                        </div>
+                                                    </div>
                                                 )}
-                                            </div>
-                                            <p className={`text-xs font-medium transition-colors ${isSelected ? 'text-[#4E5968]' : 'text-[#8B95A1]'}`}>
-                                                {template.description || ''}
-                                            </p>
+                                            </React.Fragment>
+                                        );
+                                    })}
+                                </div>
+                            </section>
+                        </TabsContent>
+
+                        <TabsContent value="emergency" className="flex-1 flex flex-col pt-0 mt-0 border-none outline-none">
+                            <div className="flex items-center justify-between px-2 mb-3">
+                                <h2 className="text-base font-bold text-[#191F28] flex items-center gap-2">
+                                    <span className="text-red-500">Manual</span> 직접 알림 작성
+                                </h2>
+                                <span className="text-[10px] font-medium text-[#8B95A1]">작성 후 즉시 발송돼요</span>
+                            </div>
+
+                            <div className="bg-white p-6 rounded-[24px] border border-red-100 shadow-[0_8px_30px_-12px_rgba(233,44,44,0.1)] space-y-6">
+                                {/* 1. 대상 클래스/세션 선택 */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="w-1.5 h-4 bg-red-500 rounded-full"></div>
+                                        <h3 className="text-sm font-bold text-[#191F28]">발송 대상 선택</h3>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="space-y-1.5">
+                                            <Label className="text-xs font-semibold text-[#8B95A1]">클래스</Label>
+                                            <Select value={emClass} onValueChange={setEmClass}>
+                                                <SelectTrigger className="rounded-xl border-gray-200">
+                                                    <SelectValue placeholder="클래스 선택" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="class1">초보자를 위한 베이킹 클래스</SelectItem>
+                                                    <SelectItem value="class2">프랑스 자수 원데이 클래스</SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </div>
-                                        <ChevronRight className={`w-5 h-5 transition-all ${isSelected ? 'text-[#3182F6] translate-x-1' : 'text-gray-200 group-hover:text-gray-400'}`} />
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </section>
+                                        <div className="space-y-1.5">
+                                            <Label className="text-xs font-semibold text-[#8B95A1]">세션</Label>
+                                            <Select value={emSession} onValueChange={setEmSession}>
+                                                <SelectTrigger className="rounded-xl border-gray-200">
+                                                    <SelectValue placeholder="세션 선택" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="session1">10/24 (목) 14:00</SelectItem>
+                                                    <SelectItem value="session2">10/25 (금) 10:00</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <Label className="text-xs font-semibold text-[#8B95A1]">수신자 대상</Label>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button variant="outline" className="w-full justify-between rounded-xl border-gray-200 font-medium px-4 h-10">
+                                                        <span className="truncate">
+                                                            {isAllSelected
+                                                                ? `전체 (${MOCK_STUDENTS.length}명)`
+                                                                : selectedStudentIds.length === 0
+                                                                    ? "수신자 선택"
+                                                                    : selectedStudentIds.length === 1
+                                                                        ? MOCK_STUDENTS.find(s => s.id === selectedStudentIds[0])?.name
+                                                                        : `${MOCK_STUDENTS.find(s => s.id === selectedStudentIds[0])?.name} 외 ${selectedStudentIds.length - 1}명`
+                                                            }
+                                                        </span>
+                                                        <ChevronDown className="w-4 h-4 opacity-50 ml-2" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-60 p-2" align="start">
+                                                    <div className="space-y-1">
+                                                        <button
+                                                            onClick={() => {
+                                                                if (isAllSelected) setSelectedStudentIds([]);
+                                                                else setSelectedStudentIds(MOCK_STUDENTS.map(s => s.id));
+                                                            }}
+                                                            className="flex items-center w-full px-2 py-2 hover:bg-gray-50 rounded-lg transition-colors group"
+                                                        >
+                                                            <Checkbox
+                                                                checked={isAllSelected}
+                                                                onCheckedChange={() => {
+                                                                    if (isAllSelected) setSelectedStudentIds([]);
+                                                                    else setSelectedStudentIds(MOCK_STUDENTS.map(s => s.id));
+                                                                }}
+                                                                className="mr-3 border-gray-300 pointer-events-none"
+                                                            />
+                                                            <span className={`text-sm font-bold ${isAllSelected ? 'text-[#191F28]' : 'text-[#8B95A1]'}`}>전체 선택</span>
+                                                        </button>
+                                                        <div className="h-px bg-gray-100 my-1 mx-2"></div>
+                                                        <div className="max-h-48 overflow-y-auto space-y-1 px-1">
+                                                            {MOCK_STUDENTS.map((student) => {
+                                                                const isChecked = selectedStudentIds.includes(student.id);
+                                                                return (
+                                                                    <button
+                                                                        key={student.id}
+                                                                        onClick={() => {
+                                                                            if (isChecked) {
+                                                                                setSelectedStudentIds(prev => prev.filter(id => id !== student.id));
+                                                                            } else {
+                                                                                setSelectedStudentIds(prev => [...prev, student.id]);
+                                                                            }
+                                                                        }}
+                                                                        className="flex items-center w-full px-2 py-2 hover:bg-gray-50 rounded-lg transition-colors"
+                                                                    >
+                                                                        <Checkbox
+                                                                            checked={isChecked}
+                                                                            onCheckedChange={() => {
+                                                                                if (isChecked) {
+                                                                                    setSelectedStudentIds(prev => prev.filter(id => id !== student.id));
+                                                                                } else {
+                                                                                    setSelectedStudentIds(prev => [...prev, student.id]);
+                                                                                }
+                                                                            }}
+                                                                            className="mr-3 border-gray-300 pointer-events-none"
+                                                                        />
+                                                                        <span className={`text-sm font-medium ${isChecked ? 'text-[#191F28]' : 'text-[#8B95A1]'}`}>
+                                                                            {student.name}
+                                                                        </span>
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="h-px bg-gray-100 w-full my-4"></div>
+
+                                {/* 2. 상황 선택 및 동적 입력 */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="w-1.5 h-4 bg-red-500 rounded-full"></div>
+                                        <h3 className="text-sm font-bold text-[#191F28]">알림 내용 작성</h3>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <Label className="text-xs font-semibold text-[#8B95A1]">알림 유형</Label>
+                                        <Select value={emSituation} onValueChange={setEmSituation}>
+                                            <SelectTrigger className="rounded-xl border-gray-200 h-12 text-[15px]">
+                                                <SelectValue placeholder="어떤 내용을 알릴까요?" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="location">📍 장소 변경</SelectItem>
+                                                <SelectItem value="time">⏰ 시간 변경</SelectItem>
+                                                <SelectItem value="delay">⏳ 시작 지연</SelectItem>
+                                                <SelectItem value="cancel">❌ 수업 취소</SelectItem>
+                                                <SelectItem value="custom">💬 기타 안내</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    {/* Dynamic Inputs based on situation */}
+                                    <div className="space-y-3 pt-2">
+                                        {emSituation === 'location' && (
+                                            <div className="grid grid-cols-1 gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                <div className="space-y-1.5">
+                                                    <Label className="text-xs font-semibold text-[#8B95A1]">기존 장소</Label>
+                                                    <div className="space-y-1.5">
+                                                        <AddressSearchInput
+                                                            value={emLocBefore}
+                                                            onChange={setEmLocBefore}
+                                                            placeholder="예: 서울특별시 강남구..."
+                                                            className="rounded-xl"
+                                                        />
+                                                        <Input
+                                                            placeholder="상세 정보를 입력하세요 (동/호수, 건물명 등)"
+                                                            className="rounded-xl"
+                                                            value={emLocBeforeDetail}
+                                                            onChange={(e) => setEmLocBeforeDetail(e.target.value)}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <Label className="text-xs font-semibold text-[#8B95A1]">변경 장소 (필수)</Label>
+                                                    <div className="space-y-1.5">
+                                                        <AddressSearchInput
+                                                            value={emLocAfter}
+                                                            onChange={setEmLocAfter}
+                                                            placeholder="변경될 주소를 검색하세요"
+                                                            className="rounded-xl border-red-200"
+                                                        />
+                                                        <Input
+                                                            placeholder="상세 정보를 입력하세요 (동/호수, 건물명 등)"
+                                                            className="rounded-xl"
+                                                            value={emLocDetail}
+                                                            onChange={(e) => setEmLocDetail(e.target.value)}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {emSituation === 'time' && (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                <div className="space-y-1.5">
+                                                    <Label className="text-xs font-semibold text-[#8B95A1]">기존 시간</Label>
+                                                    <TimeSelector
+                                                        value={emTimeBefore}
+                                                        onChange={setEmTimeBefore}
+                                                    />
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <Label className="text-xs font-semibold text-[#8B95A1]">변경 시간 (필수)</Label>
+                                                    <TimeSelector
+                                                        value={emTimeAfter}
+                                                        onChange={setEmTimeAfter}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {emSituation === 'delay' && (
+                                            <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                <Label className="text-xs font-semibold text-[#8B95A1]">지연 예상 시간 (분)</Label>
+                                                <div className="relative">
+                                                    <Input type="number" min="0" placeholder="예: 15" className="rounded-xl border-red-200 focus-visible:ring-red-100 pr-10" value={emDelayMin} onChange={(e) => setEmDelayMin(e.target.value)} />
+                                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">분</span>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {emSituation === 'cancel' && (
+                                            <div className="p-3 bg-red-50 text-red-600 rounded-xl text-sm font-medium flex items-start gap-2 animate-in fade-in zoom-in duration-300">
+                                                <AlertCircle className="w-5 h-5 shrink-0" />
+                                                <p>수업 취소 안내 메시지는 별도의 추가 입력 없이 자동으로 포맷에 맞게 발송됩니다. 필요한 경우 환불 안내 등은 클래스 링크를 통해 확인하도록 안내됩니다.</p>
+                                            </div>
+                                        )}
+
+                                        {emSituation === 'custom' && (
+                                            <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                <Label className="text-xs font-semibold text-[#8B95A1]">변경 안내 사항</Label>
+                                                <Textarea
+                                                    placeholder="수강생이 지금 바로 알아야 할 변경 사항만 간단히 작성해주세요.&#10;예: 건물 엘리베이터 점검으로 인해 계단을 이용해 주시기 바랍니다."
+                                                    className="min-h-[100px] rounded-xl border-red-200 focus-visible:ring-red-100 resize-none"
+                                                    value={emCustomText}
+                                                    onChange={(e) => setEmCustomText(e.target.value)}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <Button
+                                    className={`w-full py-6 rounded-2xl text-[16px] font-bold shadow-lg transition-all
+                                        ${(!emClass || !emSession || !emSituation)
+                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none hover:bg-gray-100'
+                                            : 'bg-red-500 text-white hover:bg-red-600 shadow-red-500/20 active:scale-[0.98]'
+                                        }
+                                    `}
+                                    disabled={!emClass || !emSession || !emSituation || isSending}
+                                    onClick={() => {
+                                        setIsSending(true);
+                                        setTimeout(() => {
+                                            setIsSending(false);
+                                            toast.success("긴급 메시지가 성공적으로 발송되었습니다.", {
+                                                description: `${getClassName()} 수강생들에게 알림이 전송되었습니다.`
+                                            });
+                                            // Optional reset
+                                            setEmSituation("");
+                                            setEmLocBefore(""); setEmLocBeforeDetail(""); setEmLocAfter(""); setEmLocDetail("");
+                                            setEmTimeBefore(""); setEmTimeAfter("");
+                                            setEmDelayMin(""); setEmCustomText("");
+                                        }, 1500);
+                                    }}
+                                >
+                                    {isSending ? (
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            발송 중...
+                                        </div>
+                                    ) : (
+                                        "긴급 알림 발송하기"
+                                    )}
+                                </Button>
+                            </div>
+                        </TabsContent>
+                    </Tabs>
                 </div>
 
                 {/* Right Side: Preview Workbench (6 columns) */}
@@ -172,9 +597,12 @@ export default function MessagesPage() {
                                     </div>
                                 </div>
 
-                                {/* Content Scroll Area */}
                                 <div className="flex-1 overflow-y-auto no-scrollbar relative">
-                                    {activeDetail ? (
+                                    {activeTab === "emergency" ? (
+                                        <div key={`preview-em-${emSituation}`} className="w-full animate-in fade-in zoom-in slide-in-from-bottom-4 duration-700 h-full">
+                                            <KakaoTemplatePreview body={emergencyPreviewText} />
+                                        </div>
+                                    ) : activeDetail ? (
                                         <div key={selectedTitle} className="w-full animate-in fade-in zoom-in slide-in-from-bottom-4 duration-700 h-full">
                                             <KakaoTemplatePreview body={activeDetail.body || ''} />
                                         </div>
