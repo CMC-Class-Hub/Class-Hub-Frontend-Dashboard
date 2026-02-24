@@ -69,7 +69,8 @@ export interface SettlementResponse {
  */
 export const SettlementResponseStatusEnum = {
     Ready: 'READY',
-    Paid: 'PAID'
+    Paid: 'PAID',
+    Cancelled: 'CANCELLED'
 } as const;
 export type SettlementResponseStatusEnum = typeof SettlementResponseStatusEnum[keyof typeof SettlementResponseStatusEnum];
 

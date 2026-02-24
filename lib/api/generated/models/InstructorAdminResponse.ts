@@ -61,6 +61,12 @@ export interface InstructorAdminResponse {
      * @memberof InstructorAdminResponse
      */
     reservationCount?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof InstructorAdminResponse
+     */
+    profileUrl?: string;
 }
 
 /**
@@ -87,6 +93,7 @@ export function InstructorAdminResponseFromJSONTyped(json: any, ignoreDiscrimina
         'onedayClassCount': json['onedayClassCount'] == null ? undefined : json['onedayClassCount'],
         'sessionCount': json['sessionCount'] == null ? undefined : json['sessionCount'],
         'reservationCount': json['reservationCount'] == null ? undefined : json['reservationCount'],
+        'profileUrl': json['profileUrl'] == null ? undefined : json['profileUrl'],
     };
 }
 
@@ -108,6 +115,7 @@ export function InstructorAdminResponseToJSONTyped(value?: InstructorAdminRespon
         'onedayClassCount': value['onedayClassCount'],
         'sessionCount': value['sessionCount'],
         'reservationCount': value['reservationCount'],
+        'profileUrl': value['profileUrl'],
     };
 }
 
