@@ -26,6 +26,8 @@ export * from './ReservationResponse';
 export * from './SessionCreateRequest';
 export * from './SessionResponse';
 export * from './SessionUpdateRequest';
+export * from './SettlementResponse';
+export * from './SettlementSummaryResponse';
 export * from './SignUpRequest';
 export * from './SolapiWebhookRequest';
 export * from './UpdateMemberRequest';

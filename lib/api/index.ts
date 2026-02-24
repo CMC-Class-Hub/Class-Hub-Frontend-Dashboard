@@ -18,13 +18,14 @@ import {
   adminApiMock,
   initializeDemoData as initializeDemoDataMock,
   uploadImageApiMock,
+  settlementApiMock,
 } from './mock';
 
 import { LocalAuthApi } from './LocalAuthApi';
 import { UploadImageApi } from './UploadImageApi';
 import { apiConfig } from './config/generated-client';
-import { InstructorApi, AdminControllerApi, MessageTemplateApi, OnedayClassApi, SessionApi, MemberApi, ReservationApi } from './generated';
-export { type InstructorAdminResponse, type MessageTemplateMetadata, type MessageTemplateResponse, MessageTemplateResponseTypeEnum, type OnedayClassResponse, type SessionResponse, type LocalTime, type ReservationResponse, type MemberResponseDto } from './generated';
+import { InstructorApi, AdminControllerApi, MessageTemplateApi, OnedayClassApi, SessionApi, MemberApi, ReservationApi, SettlementControllerApi } from './generated';
+export { type InstructorAdminResponse, type MessageTemplateMetadata, type MessageTemplateResponse, MessageTemplateResponseTypeEnum, type OnedayClassResponse, type SessionResponse, type LocalTime, type ReservationResponse, type MemberResponseDto, type SettlementResponse, type SettlementSummaryResponse, SettlementResponseStatusEnum, type ReservationDetailResponse, type OnedayClassDetailResponse } from './generated';
 export type { UploadResult } from './UploadImageApi';
 export type { GetTemplateRequest } from './generated';
 
@@ -48,6 +49,7 @@ export const authApi: AuthServiceInterface = USE_MOCK ? authApiMock : new LocalA
 export const instructorApi = USE_MOCK ? instructorApiMock : new InstructorApi(apiConfig);
 export const adminControllerApi = USE_MOCK ? adminApiMock : new AdminControllerApi(apiConfig);
 export const uploadImageApi = USE_MOCK ? uploadImageApiMock : new UploadImageApi();
+export const settlementApi = USE_MOCK ? settlementApiMock : new SettlementControllerApi(apiConfig);
 
 // 데모 데이터 초기화 (Mock 모드에서만 동작)
 export const initializeDemoData = async (instructorId: string): Promise<void> => {
@@ -81,6 +83,7 @@ export const api = {
   instructor: instructorApi,
   admin: adminControllerApi,
   upload: uploadImageApi,
+  settlement: settlementApi,
   initializeDemoData,
 };
 
