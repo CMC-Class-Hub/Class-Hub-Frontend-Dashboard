@@ -22,6 +22,7 @@ export interface ClassDetailResponse {
     locationDetails?: string;
     instructions?: string;
     profileUrl?: string;
+    instructorName?: string;
 }
 
 interface ClassPreviewProps {
@@ -104,8 +105,8 @@ export const ClassPreview: React.FC<ClassPreviewProps> = ({
                                         key={index}
                                         onClick={() => setCurrentImageIndex(index)}
                                         className={`w-2 h-2 rounded-full transition-all ${index === currentImageIndex
-                                                ? 'bg-white w-6'
-                                                : 'bg-white/60'
+                                            ? 'bg-white w-6'
+                                            : 'bg-white/60'
                                             }`}
                                         aria-label={`이미지 ${index + 1}`}
                                     />
@@ -133,7 +134,7 @@ export const ClassPreview: React.FC<ClassPreviewProps> = ({
             <div className="px-5 pt-8 pb-4">
                 {showHeader && (
                     <div className="space-y-4">
-                        <div className="flex flex-wrap gap-2 items-center">
+                        <div className="flex items-center justify-between gap-2">
                             <span className="inline-block px-2.5 py-1 bg-[#E8F3FF] text-[#3182F6] text-[11px] font-bold rounded-md">
                                 원데이 클래스
                             </span>
@@ -142,9 +143,12 @@ export const ClassPreview: React.FC<ClassPreviewProps> = ({
                                     href={classDetail.profileUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-block px-2.5 py-1 bg-[#FFF0F6] text-[#FF4D8F] text-[11px] font-bold rounded-md hover:bg-[#FFDEEB] transition-colors"
+                                    className="flex items-center gap-1 text-[#8B95A1] hover:text-[#4E5968] text-xs font-medium transition-colors"
                                 >
-                                    강사 링크
+                                    강사 프로필
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                    </svg>
                                 </a>
                             )}
                         </div>
