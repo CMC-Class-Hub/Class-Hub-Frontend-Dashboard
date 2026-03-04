@@ -22,16 +22,24 @@ export default function SaveButton({ slug, imageUrl }: SaveButtonProps) {
             const fileName = `ClassHub_${slug}.png`;
             const file = new File([blob], fileName, { type: blob.type });
 
+            const shareData = {
+                files: [file],
+                title: "Class Hub 모바일 명함",
+            };
+
             // iOS Safari doesn't typically auto-save images via <a download> cleanly into the Photos app 
             // without opening a new tab or prompting saving manually.
             // Instead, we use the Web Share API (navigator.share) which is the standard way on iOS 
             // to open the Share Sheet. From there, the user can easily tap "Save Image".
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({
-                    files: [file],
-                    title: "Class Hub 모바일 명함",
-                });
-                toast.success("명함 공유 화면을 열었습니다.");
+                try {
+                    await navigator.share(shareData);
+                } catch (shareError: any) {
+                    // User cancelled the share dialog, ignore the error
+                    if (shareError.name !== 'AbortError') {
+                        throw shareError;
+                    }
+                }
             } else {
                 // Fallback for desktop or non-iOS browsers
                 const downloadUrl = URL.createObjectURL(blob);
@@ -41,12 +49,11 @@ export default function SaveButton({ slug, imageUrl }: SaveButtonProps) {
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                URL.revokeObjectURL(downloadUrl);
-                toast.success("명함 이미지를 다운로드했습니다.");
+                setTimeout(() => URL.revokeObjectURL(downloadUrl), 100);
             }
         } catch (error) {
             console.error("Error sharing or downloading the image:", error);
-            toast.error("명함 저장 중 오류가 발생했습니다.");
+            toast.error("이미지를 여는 데 실패했습니다. 화면을 꾹 눌러 '이미지 저장'을 선택해주세요.");
         } finally {
             setIsLoading(false);
         }
