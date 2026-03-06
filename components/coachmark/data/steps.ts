@@ -118,7 +118,7 @@ export const COACHMARK_STEPS: CoachmarkStep[] = [
     {
         id: 'applications-intro',
         pageId: 'applications',
-        target: '[data-coachmark="application-list"]',
+        target: '[data-coachmark="reservation-list"]',
         title: '신청자 관리하기',
         description: '이 세션에 신청한 신청자 목록을 확인하고, 연락처와 신청 상태를 한눈에 볼 수 있어요.',
         placement: 'top',

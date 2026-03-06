@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
+import { getErrorMessage } from "@/lib/utils";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -23,6 +24,7 @@ export default function ProfilePage() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
+    const [profileUrl, setProfileUrl] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -39,6 +41,8 @@ export default function ProfilePage() {
                 setName(user.name ?? '');
                 setEmail(user.email);
                 setPhone(user.phoneNumber || '');
+                setProfileUrl(user.profileUrl || '');
+                console.log('정보', user.profileUrl);
             } else {
                 router.push('/login');
             }
@@ -61,6 +65,7 @@ export default function ProfilePage() {
             const updateData: any = {
                 name,
                 phoneNumber: phone,
+                profileUrl: profileUrl,
             };
 
             // 비밀번호를 입력한 경우에만 포함
@@ -68,7 +73,10 @@ export default function ProfilePage() {
                 updateData.password = password;
             }
 
-            await api.instructor.updateProfile(userId, updateData);
+            await api.instructor.updateInstructor({
+                instructorId: Number(userId),
+                instructorUpdateRequest: updateData
+            });
 
             // localStorage의 사용자 정보도 업데이트
             const currentUser = await api.auth.getCurrentUser();
@@ -77,6 +85,7 @@ export default function ProfilePage() {
                     ...currentUser,
                     name,
                     phoneNumber: phone,
+                    profileUrl: profileUrl,
                 };
                 localStorage.setItem('classhub_auth_user', JSON.stringify(updatedUser));
             }
@@ -87,7 +96,8 @@ export default function ProfilePage() {
             setPassword('');
             setConfirmPassword('');
         } catch (error: any) {
-            toast.error(error.message || '정보 수정에 실패했습니다.');
+            const message = await getErrorMessage(error, '정보 수정에 실패했습니다.');
+            toast.error(message);
         } finally {
             setIsLoading(false);
         }
@@ -133,6 +143,16 @@ export default function ProfilePage() {
                             />
                         </div>
                         <div className="space-y-2">
+                            <Label htmlFor="profile-url">프로필 링크 (선택)</Label>
+                            <Input
+                                id="profile-url"
+                                value={profileUrl}
+                                onChange={(e) => setProfileUrl(e.target.value)}
+                                type="url"
+                                placeholder="https://yourlink.com"
+                            />
+                        </div>
+                        <div className="space-y-2">
                             <Label htmlFor="profile-password">새 비밀번호</Label>
                             <Input
                                 id="profile-password"
@@ -169,12 +189,13 @@ export default function ProfilePage() {
                         if (confirm('정말로 탈퇴하시겠습니까? 탈퇴 시 모든 정보와 클래스가 삭제되며 복구할 수 없습니다.')) {
                             try {
                                 setIsLoading(true);
-                                await api.instructor.withdraw(userId);
+                                await api.instructor.withdraw({ instructorId: Number(userId) });
                                 await api.auth.logout();
                                 toast.success('탈퇴 처리가 완료되었습니다.');
                                 router.push('/');
                             } catch (err: any) {
-                                toast.error(err.message || '탈퇴 처리에 실패했습니다.');
+                                const message = await getErrorMessage(err, '탈퇴 처리에 실패했습니다.');
+                                toast.error(message);
                             } finally {
                                 setIsLoading(false);
                             }

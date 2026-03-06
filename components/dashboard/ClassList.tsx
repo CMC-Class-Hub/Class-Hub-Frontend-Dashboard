@@ -1,14 +1,12 @@
-"use client";
-
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trash2 } from "lucide-react";
-import type { ClassTemplate } from "@/lib/api";
+import type { OnedayClassResponse } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
 interface ClassListProps {
-    templates: ClassTemplate[];
+    templates: OnedayClassResponse[];
     templateSessionCounts: Record<string, number>;
     onDelete: (e: React.MouseEvent, templateId: string) => void;
 }
@@ -23,13 +21,14 @@ export function ClassList({ templates, templateSessionCounts, onDelete }: ClassL
     return (
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {templates.map((template, index) => {
-                const sessionCount = templateSessionCounts[template.id] || 0;
+                const templateId = String(template.id);
+                const sessionCount = templateSessionCounts[templateId] || 0;
 
                 return (
                     <Card
                         key={template.id}
                         className="cursor-pointer hover:shadow-lg hover:border-[#3182F6]/30 transition-all duration-200 active:scale-[0.98]"
-                        onClick={() => router.push(`/dashboard/classes/${template.id}`)}
+                        onClick={() => router.push(`/dashboard/classes/${templateId}`)}
                         {...(index === 0 && { 'data-coachmark': 'class-card' })}
                     >
                         <CardHeader className="p-5 md:p-6">
@@ -39,7 +38,7 @@ export function ClassList({ templates, templateSessionCounts, onDelete }: ClassL
                                     variant="ghost"
                                     size="sm"
                                     className="h-8 w-8 p-0 text-[#B0B8C1] hover:text-[#F04452] hover:bg-[#FFEBEE]"
-                                    onClick={(e) => onDelete(e, template.id)}
+                                    onClick={(e) => onDelete(e, templateId)}
                                 >
                                     <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -56,3 +55,4 @@ export function ClassList({ templates, templateSessionCounts, onDelete }: ClassL
         </div>
     );
 }
+

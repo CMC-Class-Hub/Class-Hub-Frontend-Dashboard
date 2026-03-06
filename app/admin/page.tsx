@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, Users, BookOpen, Calendar, CheckCircle, Search, Settings } from "lucide-react";
+import { LogOut, Users, BookOpen, Calendar, CheckCircle, Search, Settings, RotateCcw } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -44,14 +45,26 @@ export default function AdminPage() {
     router.push("/");
   };
 
+  const handleResetPassword = async (instructorId: number) => {
+    if (!confirm("해당 강사의 비밀번호를 재설정하시겠습니까?")) return;
+
+    try {
+      await api.admin.resetInstructorPassword({ instructorId });
+      toast.success("재설정 되었습니다.");
+    } catch (error) {
+      console.error("Failed to reset password", error);
+      toast.error("비밀번호 재설정에 실패했습니다.");
+    }
+  };
+
   const filteredInstructors = instructors.filter(i =>
-    i.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    i.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (i.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (i.email || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalClasses = instructors.reduce((acc, curr) => acc + curr.onedayClassCount, 0);
-  const totalSessions = instructors.reduce((acc, curr) => acc + curr.sessionCount, 0);
-  const totalReservations = instructors.reduce((acc, curr) => acc + curr.reservationCount, 0);
+  const totalClasses = instructors.reduce((acc, curr) => acc + (curr.onedayClassCount || 0), 0);
+  const totalSessions = instructors.reduce((acc, curr) => acc + (curr.sessionCount || 0), 0);
+  const totalReservations = instructors.reduce((acc, curr) => acc + (curr.reservationCount || 0), 0);
 
   return (
     <div className="min-h-screen bg-[#F2F4F6] pb-12">
@@ -174,8 +187,15 @@ export default function AdminPage() {
                 ) : filteredInstructors.length > 0 ? (
                   filteredInstructors.map((instructor, index) => (
                     <TableRow key={index} className="hover:bg-gray-50/30 transition-colors">
-                      <TableCell className="font-medium text-[#191F28] py-5 pl-8">{instructor.name}</TableCell>
-                      <TableCell className="text-[#4E5968]">{instructor.email}</TableCell>
+                      <TableCell className="font-medium text-[#191F28] py-5 pl-8">
+                        <button
+                          className="hover:text-blue-600 hover:underline transition-colors"
+                          onClick={() => instructor.instructorId != null && router.push(`/admin/settlement/${instructor.instructorId}`)}
+                        >
+                          {instructor.name || '-'}
+                        </button>
+                      </TableCell>
+                      <TableCell className="text-[#4E5968]">{instructor.email || '-'}</TableCell>
                       <TableCell className="text-[#4E5968]">
                         {instructor.createdAt ? new Date(instructor.createdAt).toLocaleString('ko-KR', {
                           year: 'numeric',
@@ -187,15 +207,26 @@ export default function AdminPage() {
                       </TableCell>
                       <TableCell className="text-center">
                         <Badge variant="secondary" className="bg-blue-50 text-blue-600 hover:bg-blue-50 font-medium">
-                          {instructor.onedayClassCount}
+                          {instructor.onedayClassCount || 0}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-center text-[#4E5968] font-medium">{instructor.sessionCount}</TableCell>
-                      <TableCell className="text-center text-[#4E5968] font-medium">{instructor.reservationCount}</TableCell>
+                      <TableCell className="text-center text-[#4E5968] font-medium">{instructor.sessionCount || 0}</TableCell>
+                      <TableCell className="text-center text-[#4E5968] font-medium">{instructor.reservationCount || 0}</TableCell>
                       <TableCell className="pr-8 text-right">
-                        <Button size="icon" variant="ghost" className="text-[#8B95A1] hover:text-[#3182F6]">
-                          <Settings className="w-4 h-4" />
-                        </Button>
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 text-xs border-gray-200 text-[#4E5968] hover:text-[#3182F6] hover:border-[#3182F6]"
+                            onClick={() => instructor.instructorId != null && handleResetPassword(instructor.instructorId)}
+                          >
+                            <RotateCcw className="w-3 h-3 mr-1" />
+                            재설정
+                          </Button>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-[#8B95A1] hover:text-[#3182F6]">
+                            <Settings className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))

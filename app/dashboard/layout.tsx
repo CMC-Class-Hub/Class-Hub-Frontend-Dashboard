@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { Menu, X, LogOut, Calendar, MessageSquare, Settings } from "lucide-react";
+import { Menu, X, LogOut, Calendar, MessageSquare, Settings, CreditCard } from "lucide-react";
 import { api } from "@/lib/api";
 import type { User } from "@/lib/api/types";
 
@@ -58,30 +58,41 @@ function DashboardContent({
                 return;
             }
 
-            // Create Template
-            const template = await api.templates.create(instructorId, {
-                name: data.name,
-                description: data.description,
-                location: data.location || "미정",
-                locationDetails: "",
-                preparation: data.materials,
-                parkingInfo: data.parking,
-                // category is not in API yet, skipping
+            // Create Template using generated API
+            // Note: instructorId might be implicit from token or not needed in generated API request body if handled by backend
+            const template = await api.onedayClass.createClass({
+                onedayClassCreateRequest: {
+                    name: data.name,
+                    description: data.description,
+                    location: data.location,
+                    locationDetails: data.locationDetails,
+                    preparation: data.preparation,
+                    instructions: data.instructions,
+                    cancellationPolicy: data.cancellationPolicy,
+                    parkingInfo: data.parkingInfo,
+                    images: data.images
+                }
             });
-
             // Create Session if date exists
             if (data.date && data.startTime) {
-                // "2024.03.15 (토)" -> "2024-03-15"
-                const dateStr = data.date.split(' ')[0].replace(/\./g, '-');
-                const priceNum = data.price ? Number(String(data.price).replace(/,/g, '')) : 0;
+                const startTimeParts = data.startTime.split(':');
+                // Assuming endTime is available or calculated.
+                // If endTime is not in data, we might need default duration.
+                // Legacy code had duration? data.startTime + duration?
+                // Let's assume 2 hours default if endTime missing.
+                const startHour = parseInt(startTimeParts[0]);
+                const startMinute = parseInt(startTimeParts[1]);
+                const endHour = startHour + 2; // Default 2 hours duration
 
-                await api.sessions.create(instructorId, {
-                    templateId: template.id,
-                    date: dateStr,
-                    startTime: data.startTime,
-                    endTime: "16:00", // Default 2 hours later
-                    capacity: Number(data.capacity) || 10,
-                    price: priceNum,
+                await api.session.createSession({
+                    sessionCreateRequest: {
+                        templateId: Number(template.id),
+                        date: new Date(data.date), // "2024-03-15" string to Date works? Date constructor handles YYYY-MM-DD
+                        startTime: `${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}:00`,
+                        endTime: `${String(endHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}:00`,
+                        capacity: Number(data.capacity) || 10, // Default to 10 if not provided
+                        price: Number(data.price) || 0 // Default to 0 if not provided
+                    }
                 });
             }
 
@@ -173,6 +184,20 @@ function DashboardContent({
 
                         <button
                             onClick={() => {
+                                router.push("/dashboard/settlement");
+                                setSidebarOpen(false);
+                            }}
+                            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-200 ${isActive("/dashboard/settlement")
+                                ? "bg-[#E8F3FF] text-[#3182F6]"
+                                : "text-[#4E5968] hover:bg-[#F2F4F6]"
+                                }`}
+                        >
+                            <CreditCard className="h-5 w-5" />
+                            <span className="font-semibold">정산 관리</span>
+                        </button>
+
+                        <button
+                            onClick={() => {
                                 router.push("/dashboard/profile");
                                 setSidebarOpen(false);
                             }}
@@ -190,9 +215,9 @@ function DashboardContent({
                 <div className="p-4 border-t border-[#E5E8EB]">
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-[#6B7684] hover:bg-[#F2F4F6] transition-all duration-200"
+                        className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-[#6B7684] hover:bg-[#F2F4F6] hover:text-[#F04452] transition-all duration-200 group"
                     >
-                        <LogOut className="h-5 w-5" />
+                        <LogOut className="h-5 w-5 group-hover:text-[#F04452] transition-colors" />
                         <span className="font-semibold">로그아웃</span>
                     </button>
                 </div>
@@ -209,9 +234,9 @@ function DashboardContent({
                 <h1 className="ml-3 font-bold text-[#3182F6] text-lg">Class Hub</h1>
             </div>
 
-            {/* 메인 컨텐츠 영역 */}
-            <div className="md:pl-72 pt-16 md:pt-0 min-h-screen">
-                <main className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
+            {/* 기기별 메인 컨텐츠 영역 */}
+            <div className="md:pl-72 pt-16 md:pt-0 min-h-screen relative">
+                <main className="p-4 md:p-8 max-w-6xl mx-auto space-y-6 pb-24">
                     {children}
                 </main>
             </div>

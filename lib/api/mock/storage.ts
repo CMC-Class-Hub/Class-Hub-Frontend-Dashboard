@@ -4,13 +4,7 @@
  * - UI에서 직접 import 금지
  */
 
-import type {
-  ClassTemplate,
-  ClassSession,
-  Student,
-  Application,
-  Message,
-} from '../types';
+import type { MemberResponseDto, ReservationResponse } from '../generated';
 
 // ============================================================
 // Storage Keys
@@ -56,32 +50,34 @@ export function removeItem(key: string): void {
 // Typed Storage Accessors
 // ============================================================
 
-// Templates
-export const getTemplates = (): ClassTemplate[] =>
-  getItem<ClassTemplate>(STORAGE_KEYS.TEMPLATES);
+import { OnedayClassResponse, SessionResponse } from '../generated';
 
-export const setTemplates = (templates: ClassTemplate[]): void =>
+// Templates
+export const getTemplates = (): OnedayClassResponse[] =>
+  getItem<OnedayClassResponse>(STORAGE_KEYS.TEMPLATES);
+
+export const setTemplates = (templates: OnedayClassResponse[]): void =>
   setItem(STORAGE_KEYS.TEMPLATES, templates);
 
 // Sessions
-export const getSessions = (): ClassSession[] =>
-  getItem<ClassSession>(STORAGE_KEYS.SESSIONS);
+export const getSessions = (): SessionResponse[] =>
+  getItem<SessionResponse>(STORAGE_KEYS.SESSIONS);
 
-export const setSessions = (sessions: ClassSession[]): void =>
+export const setSessions = (sessions: SessionResponse[]): void =>
   setItem(STORAGE_KEYS.SESSIONS, sessions);
 
 // Students
-export const getStudents = (): Student[] =>
-  getItem<Student>(STORAGE_KEYS.STUDENTS);
+export const getStudents = (): MemberResponseDto[] =>
+  getItem<MemberResponseDto>(STORAGE_KEYS.STUDENTS);
 
-export const setStudents = (students: Student[]): void =>
+export const setStudents = (students: MemberResponseDto[]): void =>
   setItem(STORAGE_KEYS.STUDENTS, students);
 
 // Applications
-export const getApplications = (): Application[] =>
-  getItem<Application>(STORAGE_KEYS.APPLICATIONS);
+export const getApplications = (): ReservationResponse[] =>
+  getItem<ReservationResponse>(STORAGE_KEYS.APPLICATIONS);
 
-export const setApplications = (applications: Application[]): void =>
+export const setApplications = (applications: ReservationResponse[]): void =>
   setItem(STORAGE_KEYS.APPLICATIONS, applications);
 
 // Message Templates (Deprecated/Removed)
@@ -121,20 +117,4 @@ export const generateLinkId = (): string => {
 export const delay = (ms: number = 100): Promise<void> =>
   new Promise(resolve => setTimeout(resolve, ms));
 
-// Messages
-export const getMessages = (): Message[] => {
-  if (typeof window === 'undefined') return [];
-  const data = localStorage.getItem('ops_messages');
-  return data ? JSON.parse(data) : [];
-};
 
-export const saveMessage = (message: Message): void => {
-  const messages = getMessages();
-  const index = messages.findIndex(m => m.id === message.id);
-  if (index >= 0) {
-    messages[index] = message;
-  } else {
-    messages.push(message);
-  }
-  localStorage.setItem('ops_messages', JSON.stringify(messages));
-};

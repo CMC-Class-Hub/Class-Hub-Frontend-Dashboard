@@ -1,11 +1,9 @@
-"use client";
-
 import { useState, useRef, useEffect } from 'react';
-import { X, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { uploadMultipleImages, validateFile } from '@/lib/api/real/s3-upload';
+import { api } from '@/lib/api';
 
 interface ImageUploadProps {
     values?: string[];      // S3 URL 배열
@@ -15,9 +13,9 @@ interface ImageUploadProps {
     maxSizeMB?: number;
 }
 
-export function ImageUpload({ 
-    values = [], 
-    onChange, 
+export function ImageUpload({
+    values = [],
+    onChange,
     disabled,
     maxImages = 5,
     maxSizeMB = 5
@@ -34,8 +32,8 @@ export function ImageUpload({
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
-        
-        
+
+
         if (!files || files.length === 0) {
             return;
         }
@@ -59,33 +57,33 @@ export function ImageUpload({
             const fileArray = Array.from(files);
 
             // 파일 검증
-            const validationResults = fileArray.map(file => validateFile(file, maxSizeMB));
+            const validationResults = fileArray.map(file => api.upload.validateFile(file, maxSizeMB));
             const invalidFiles = validationResults.filter(r => !r.valid);
 
             if (invalidFiles.length > 0) {
                 invalidFiles.forEach(result => {
                     toast.error(result.error);
                 });
-                
+
                 // 유효한 파일만 필터링
                 const validFiles = fileArray.filter((_, index) => validationResults[index].valid);
-                
+
                 if (validFiles.length === 0) {
                     return;
                 }
-                
+
             }
 
             const validFiles = fileArray.filter((_, index) => validationResults[index].valid);
-            
+
             // S3에 업로드
             setUploadProgress(`S3에 업로드 중... (0/${validFiles.length})`);
-            const results = await uploadMultipleImages(validFiles);
-            
+            const results = await api.upload.uploadMultipleImages(validFiles);
+
             // URL만 추출
             const newUrls = results.map(r => r.url);
             const updatedUrls = [...imageUrls, ...newUrls];
-            
+
             setImageUrls(updatedUrls);
             onChange(updatedUrls);
 
@@ -97,7 +95,7 @@ export function ImageUpload({
         } finally {
             setUploading(false);
             setUploadProgress('');
-            
+
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
@@ -105,11 +103,11 @@ export function ImageUpload({
     };
 
     const handleRemove = (index: number, url: string) => {
-        
+
         const updatedUrls = imageUrls.filter((_, i) => i !== index);
         setImageUrls(updatedUrls);
         onChange(updatedUrls);
-        
+
         toast.success('이미지가 제거되었습니다.');
     };
 
@@ -140,8 +138,8 @@ export function ImageUpload({
             {/* 이미지 그리드 */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {imageUrls.map((url, index) => (
-                    <div 
-                        key={index} 
+                    <div
+                        key={index}
                         className="relative h-40 rounded-lg overflow-hidden border border-gray-200 group"
                     >
                         <img
@@ -152,7 +150,7 @@ export function ImageUpload({
                                 e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>';
                             }}
                         />
-                        
+
                         {!disabled && (
                             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button
@@ -170,7 +168,7 @@ export function ImageUpload({
                                 </Button>
                             </div>
                         )}
-                        
+
                         {/* 이미지 번호 */}
                         <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
                             {index + 1}
