@@ -21,6 +21,12 @@ export const metadata: Metadata = {
   icons: {
     icon: "/icons/icon-192.png",
   },
+  openGraph: {
+    title: "Class Hub - 강사 대시보드",
+    description: "원데이 클래스 자동화 솔루션",
+    images: ["/og-image.png"],
+    type: "website",
+  },
 };
 
 export default function RootLayout({
